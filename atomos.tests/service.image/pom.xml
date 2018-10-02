@@ -1,0 +1,332 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.atomos</groupId>
+		<artifactId>atomos.tests</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+	<artifactId>service.image</artifactId>
+	<packaging>pom</packaging>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.eclipse.platform</groupId>
+			<artifactId>org.eclipse.osgi</artifactId>
+			<version>3.13.100</version>
+		</dependency>
+		<dependency>
+			<groupId>org.atomos</groupId>
+			<artifactId>atomos.framework</artifactId>
+			<version>${atomos.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.atomos</groupId>
+			<artifactId>service.contract</artifactId>
+			<version>${atomos.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.atomos</groupId>
+			<artifactId>service.impl</artifactId>
+			<version>${atomos.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.atomos</groupId>
+			<artifactId>service.impl.activator</artifactId>
+			<version>${atomos.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.scr</artifactId>
+			<version>2.1.8</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.gogo.command</artifactId>
+			<version>1.1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.gogo.runtime</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.gogo.shell</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.moditect</groupId>
+				<artifactId>moditect-maven-plugin</artifactId>
+				<version>1.0.0-SNAPSHOT</version>
+				<executions>
+					<execution>
+						<id>add-module-infos</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>add-module-info</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/modules</outputDirectory>
+							<jvmVersion>base</jvmVersion>
+							<modules>
+								<module>
+									<artifact>
+										<groupId>org.eclipse.platform</groupId>
+										<artifactId>org.eclipse.osgi</artifactId>
+										<version>3.13.100</version>
+									</artifact>
+									<moduleInfoSource>
+										open module org.eclipse.osgi {
+										requires java.xml;
+
+										exports org.apache.felix.resolver;
+										exports org.apache.felix.resolver.util;
+										exports org.eclipse.core.runtime.adaptor;
+										exports org.eclipse.core.runtime.internal.adaptor;
+										exports org.eclipse.equinox.log;
+										exports org.eclipse.osgi.container;
+										exports org.eclipse.osgi.container.builders;
+										exports org.eclipse.osgi.container.namespaces;
+										exports org.eclipse.osgi.framework.console;
+										exports org.eclipse.osgi.framework.eventmgr;
+										exports org.eclipse.osgi.framework.internal.reliablefile;
+										exports org.eclipse.osgi.framework.log;
+										exports org.eclipse.osgi.framework.util;
+										exports org.eclipse.osgi.internal.cds;
+										exports org.eclipse.osgi.internal.container;
+										exports org.eclipse.osgi.internal.debug;
+										exports org.eclipse.osgi.internal.framework;
+										exports org.eclipse.osgi.internal.framework.legacy;
+										exports org.eclipse.osgi.internal.hookregistry;
+										exports org.eclipse.osgi.internal.hooks;
+										exports org.eclipse.osgi.internal.loader;
+										exports org.eclipse.osgi.internal.loader.buddy;
+										exports org.eclipse.osgi.internal.loader.classpath;
+										exports org.eclipse.osgi.internal.loader.sources;
+										exports org.eclipse.osgi.internal.location;
+										exports org.eclipse.osgi.internal.log;
+										exports org.eclipse.osgi.internal.messages;
+										exports org.eclipse.osgi.internal.permadmin;
+										exports org.eclipse.osgi.internal.provisional.service.security;
+										exports org.eclipse.osgi.internal.provisional.verifier;
+										exports org.eclipse.osgi.internal.service.security;
+										exports org.eclipse.osgi.internal.serviceregistry;
+										exports org.eclipse.osgi.internal.signedcontent;
+										exports org.eclipse.osgi.internal.url;
+										exports org.eclipse.osgi.internal.util;
+										exports org.eclipse.osgi.internal.weaving;
+										exports org.eclipse.osgi.launch;
+										exports org.eclipse.osgi.report.resolution;
+										exports org.eclipse.osgi.service.datalocation;
+										exports org.eclipse.osgi.service.debug;
+										exports org.eclipse.osgi.service.environment;
+										exports org.eclipse.osgi.service.localization;
+										exports org.eclipse.osgi.service.pluginconversion;
+										exports org.eclipse.osgi.service.resolver;
+										exports org.eclipse.osgi.service.runnable;
+										exports org.eclipse.osgi.service.security;
+										exports org.eclipse.osgi.service.urlconversion;
+										exports org.eclipse.osgi.signedcontent;
+										exports org.eclipse.osgi.storage;
+										exports org.eclipse.osgi.storage.bundlefile;
+										exports org.eclipse.osgi.storage.url;
+										exports org.eclipse.osgi.storage.url.bundleentry;
+										exports org.eclipse.osgi.storage.url.bundleresource;
+										exports org.eclipse.osgi.storage.url.reference;
+										exports org.eclipse.osgi.storagemanager;
+										exports org.eclipse.osgi.util;
+										exports org.osgi.dto;
+										exports org.osgi.framework;
+										exports org.osgi.framework.dto;
+										exports org.osgi.framework.hooks.bundle;
+										exports org.osgi.framework.hooks.resolver;
+										exports org.osgi.framework.hooks.service;
+										exports org.osgi.framework.hooks.weaving;
+										exports org.osgi.framework.launch;
+										exports org.osgi.framework.namespace;
+										exports org.osgi.framework.startlevel;
+										exports org.osgi.framework.startlevel.dto;
+										exports org.osgi.framework.wiring;
+										exports org.osgi.framework.wiring.dto;
+										exports org.osgi.resource;
+										exports org.osgi.resource.dto;
+										exports org.osgi.service.condpermadmin;
+										exports org.osgi.service.log;
+										exports org.osgi.service.log.admin;
+										exports org.osgi.service.packageadmin;
+										exports org.osgi.service.permissionadmin;
+										exports org.osgi.service.resolver;
+										exports org.osgi.service.startlevel;
+										exports org.osgi.service.url;
+										exports org.osgi.util.tracker;
+
+										provides org.osgi.framework.launch.FrameworkFactory with org.eclipse.osgi.launch.EquinoxFactory;
+
+										}
+									</moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
+										<groupId>org.apache.felix</groupId>
+										<artifactId>org.apache.felix.scr</artifactId>
+										<version>2.1.8</version>
+									</artifact>
+									<moduleInfoSource>
+										module org.apache.felix.scr {
+										requires
+										java.logging;
+										requires java.management;
+
+										requires transitive org.apache.felix.gogo.runtime;
+										requires transitive org.eclipse.osgi;
+
+										exports org.apache.felix.scr.component;
+										exports org.apache.felix.scr.impl;
+										exports org.apache.felix.scr.impl.config;
+										exports org.apache.felix.scr.impl.helper;
+										exports org.apache.felix.scr.impl.inject;
+										exports org.apache.felix.scr.impl.inject.field;
+										exports org.apache.felix.scr.impl.inject.methods;
+										exports org.apache.felix.scr.impl.logger;
+										exports org.apache.felix.scr.impl.manager;
+										exports org.apache.felix.scr.impl.metadata;
+										exports org.apache.felix.scr.impl.parser;
+										exports org.apache.felix.scr.impl.runtime;
+										exports org.apache.felix.scr.impl.xml;
+										exports org.apache.felix.scr.info;
+										exports org.kxml2.io;
+										exports org.osgi.service.component;
+										exports org.osgi.service.component.runtime;
+										exports org.osgi.service.component.runtime.dto;
+										exports org.osgi.util.promise;
+										exports org.xmlpull.v1;
+
+										}
+									</moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
+										<groupId>org.apache.felix</groupId>
+										<artifactId>org.apache.felix.gogo.command</artifactId>
+										<version>1.1.0-SNAPSHOT</version>
+									</artifact>
+									<moduleInfoSource>
+										module org.apache.felix.gogo.command {
+										requires transitive org.apache.felix.gogo.runtime;
+										requires transitive org.eclipse.osgi;
+
+										exports org.apache.felix.gogo.command;
+
+										}
+									</moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
+										<groupId>org.apache.felix</groupId>
+										<artifactId>org.apache.felix.gogo.runtime</artifactId>
+										<version>1.1.0</version>
+									</artifact>
+									<moduleInfoSource>
+										module org.apache.felix.gogo.runtime {
+										requires java.logging;
+
+										requires transitive org.eclipse.osgi;
+
+										exports org.apache.felix.gogo.runtime;
+										exports org.apache.felix.gogo.runtime.activator;
+										exports org.apache.felix.gogo.runtime.threadio;
+										exports org.apache.felix.service.command;
+										exports org.apache.felix.service.threadio;
+
+										}
+									</moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
+										<groupId>org.apache.felix</groupId>
+										<artifactId>org.apache.felix.gogo.shell</artifactId>
+										<version>1.1.0</version>
+									</artifact>
+									<moduleInfoSource>
+										module org.apache.felix.gogo.shell {
+										requires transitive org.apache.felix.gogo.runtime;
+										requires transitive org.eclipse.osgi;
+
+										exports org.apache.felix.gogo.options;
+										exports org.apache.felix.gogo.shell;
+
+										}
+									</moduleInfoSource>
+								</module>
+							</modules>
+						</configuration>
+					</execution>
+					<execution>
+						<id>create-runtime-image</id>
+						<phase>package</phase>
+						<goals>
+							<goal>create-runtime-image</goal>
+						</goals>
+						<configuration>
+							<ignoreSigningInformation>true</ignoreSigningInformation>
+							<modulePath>
+								<path>${project.build.directory}/modules</path>
+							</modulePath>
+							<modules>
+								<module>atomos.framework</module>
+								<module>org.apache.felix.gogo.command</module>
+								<module>org.apache.felix.gogo.runtime</module>
+								<module>org.apache.felix.gogo.shell</module>
+								<module>org.apache.felix.scr</module>
+								<module>org.eclipse.osgi</module>
+								<module>service.impl</module>
+								<module>service.impl.activator</module>
+							</modules>
+
+
+							<launcher>
+								<name>atomos</name>
+								<module>atomos.framework</module>
+							</launcher>
+							<outputDirectory>
+								${project.build.directory}/atomos
+							</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.1.1</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/modules</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<excludeTransitive>true</excludeTransitive>
+							<excludeGroupIds>org.apache.felix,org.eclipse.platform</excludeGroupIds>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
