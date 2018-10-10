@@ -19,7 +19,7 @@ Once you have the above built and installed into your local maven `.m2` reposito
 `mvn clean install`
 
 This should create a jlink image under `atomos/atomos.tests/service.image/target/atomos`.  Executing the following command
-that jlink image should produce a gogo shell prompt:
+against the jlink image should produce a gogo shell prompt:
 
 `atomos/bin/java --add-modules ALL-SYSTEM -m atomos.framework`
 
