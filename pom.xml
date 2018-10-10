@@ -24,6 +24,14 @@
 		<module>atomos.tests</module>
 	</modules>
 
+	<pluginRepositories>
+		<pluginRepository>
+			<snapshots/>
+			<id>bnd</id>
+			<name>bnd</name>
+			<url>https://bndtools.ci.cloudbees.com/job/bnd.master/lastSuccessfulBuild/artifact/dist/bundles</url>
+		</pluginRepository>
+	</pluginRepositories>
 	<build>
 		<pluginManagement>
 			<plugins>
