@@ -22,109 +22,110 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.VersionRange;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 /**
- * The Atom runtime provides a {@link FrameworkFactory} for constructing OSGi Framework instances.
- * The Atom Framework instance will have a set of atomos bundles discovered and installed
- * automatically when the Atom Framework is {@link Framework#init() initialized}.
- * The atomos bundles will be loaded from a Java module and will use the class loader
- * provided by the Java module system. This implies that the normal protection provided 
+ * The Atomos runtime provides a {@link FrameworkFactory} for constructing OSGi Framework instances.
+ * The Atomos Framework instance will have a set of Atomos bundles discovered and installed
+ * automatically when the Atomos Framework is {@link Framework#init() initialized}.
+ * The Atomos bundles will be loaded from the Java modules included the module path and 
+ * will use the class loader provided by the Java module system. This implies that the normal protection provided 
  * by the OSGi module layer will
- * not be available to the code loaded out of atomos bundles.  Code in one boot bundle will
+ * not be available to the code loaded out of Atomos bundles.  Code in one boot bundle will
  * be able to access and load code from other boot bundles even when the package is not
  * exported.  Other limitations are also imposed because a single class loader is used
  * to load all boot bundles.  For example, multiple versions of a package cannot
  * be supported because the class loader can only define a single package of a given name.
  * <p>
- * Boot bundles are discovered using the class loader which loads the OSGi Boot implementation.
- * This is typically the Java application class loader. Boot bundles are discovered by 
- * searching the class path for bundle manifest resources (META-INF/MANIFEST.MF), any that contain
- * a {@link Constants#BUNDLE_SYMBOLICNAME Bundle-SymbolicName} header will be used as a boot
- * bundle. These boot bundles will be installed with a location prefix "osgiboot:".
- * 
+ * Atomos bundles are discovered using the module layer which loads the Atomos framework.
+ * This is typically the boot layer. Atomos bundles are discovered by 
+ * searching the current module layer for for the available modules  as well
+ * as the modules available in the parent layers.  These Atomos bundles will be installed with a
+ * location prefix "atomos:".
  * <p>
- * The OSGi Boot Framework is created using the OSGi launcher APIs like a normal OSGi Framework:
+ * The Atomos Framework can be created using the OSGi launcher APIs like a normal OSGi Framework
+ * or for more advanced scenarios the Atomos runtime can be used to setup additional module
+ * layer configurations before launching the framework.
+ * <p>
+ * The following will launch using the standard {@link FrameworkFactory}:
  * <pre>
  * {@code Map<String, String>} config = getConfiguration();
+ * config.put(Constants.FRAMEWORK_SYSTEMPACKAGES, "");
  * Framework framework = ServiceLoader.load(FrameworkFactory.class).iterator().next().newFramework(config);
  * framework.start();
  * </pre>
- * 
- * By default this will have all boot bundles installed and started when the framework is started.
- * If {@link #ATOM_BUNDLE_INSTALL osgi.boot.bundle.install} is set to <code>false</code> in the framework
+ * Note that the {@link Constants#FRAMEWORK_SYSTEMPACKAGES} must be set to an empty value to prevent
+ * discovery of packages from the boot layer.
+ * <p>
+ * By default this will have all Atomos bundles installed and started when the framework is started.
+ * If {@link #ATOMOS_BUNDLE_INSTALL atomos.bundle.install} is set to <code>false</code> in the framework
  * configuration then the boot bundles will not be installed by default. In that case the
  * {@link #installAtomBundle(String, VersionRange, String)} method can be used to selectively install
  * boot bundles.
- * If {@link #ATOM_BUNDLE_START osgi.boot.bundle.start} is set to <code>false</code> in the framework
+ * If {@link #ATOMOS_BUNDLE_START atomos.bundle.start} is set to <code>false</code> in the framework
  * configuration then the boot bundles will not be started by default.
  * The system.bundle of the initialized framework will also have an AtomosRuntime service registered with
  * its bundle context.
- * <p>
- * In order to {@link #BOOT_MULTIPLEX_CONTEXT multiplex} the system bundle context each framework instance
- * should be {@link Framework#init() initialized} and {@link Framework#start() started} from a thread group
- * with a unique name prefixed with {@link #BOOT_MULTIPLEX_GROUP_PREFIX osgi-boot-}.  The following
- * shows an example of starting two framework instances with a multiplexed context:
- * 
- * <pre>
- * ThreadGroup g1 = new ThreadGroup(AtomosRuntime.getNextThreadGroupName());
- * ExecutorService e1 = Executors.newSingleThreadExecutor((r) -&gt; { 
- *   return new Thread(g1, r);
- * });
- * {@code Map<String, String>} config1 = getConfiguration();
- * // configure multiplexing
- * config1.put(AtomosRuntime.BOOT_MULTIPLEX_CONTEXT, "true");
- * Framework f1 = ServiceLoader.load(FrameworkFactory.class).iterator().next().newFramework(config1);
- * e1.submit(() -&gt; f1.start());
- *
- * ThreadGroup g2 = new ThreadGroup(AtomosRuntime.getNextThreadGroupName());
- * ExecutorService e2 = Executors.newSingleThreadExecutor((r) -&gt; {
- *   return new Thread(g2, r);
- * });
- * {@code Map<String, String>} config2 = getConfiguration();
- * // configure multiplexing
- * config2.put(AtomosRuntime.BOOT_MULTIPLEX_CONTEXT, "true");
- * Framework f2 = ServiceLoader.load(FrameworkFactory.class).iterator().next().newFramework(config2);
- * e1.submit(() -&gt; f2.start());
- * </pre>
- *
  */
 public interface AtomosRuntime {
 	/**
-	 * If set to false then the atomos bundles will not be automatically installed.  Default is true.
+	 * If set to false then the Atomos bundles will not be automatically installed.  Default is true.
 	 */
-	String ATOM_BUNDLE_INSTALL = "atomos.bundle.install"; //$NON-NLS-1$
+	String ATOMOS_BUNDLE_INSTALL = "atomos.bundle.install";
 	/**
-	 * If set to false then the boot bundles will not be marked for start.  Default is true.
+	 * If set to false then the Atomos bundles will not be marked for start.  Default is true.
 	 */
-	String ATOM_BUNDLE_START = "atomos.boot.bundle.start"; //$NON-NLS-1$
+	String ATOMOS_BUNDLE_START = "atomos.boot.bundle.start";
 	/**
-	 * The initial bundle start level to set before installing the boot bundles
+	 * The initial bundle start level to set before installing the Atomos bundles at
+	 * {@link Framework#init() initialization}.
 	 */
-	String ATOM_INITIAL_BUNDLE_START_LEVEL = "atomos.initial.bundle.startlevel"; //$NON-NLS-1$
+	String ATOMOS_INITIAL_BUNDLE_START_LEVEL = "atomos.initial.bundle.startlevel";
 
 	/**
-	 * Returns the boot bundle info that is installed at the specified location
+	 * A configuration option used by {@link #launch(Map)} which can be used to
+	 * configuration a modules folder to load additional Atomos bundles from.
+	 */
+	String ATOMOS_MODULES_DIR = "atomos.modules";
+
+	/**
+	 * Returns the Atomos bundle info that is installed at the specified location
 	 * @param bundleLocation the bundle location.
-	 * @return the boot bundle with the specified location or {@code null}
-	 * if no boot bundle is installed at the location.
+	 * @return the Atomos bundle with the specified location or {@code null}
+	 * if no Atomos bundle is installed at the location.
 	 */
 	AtomosBundleInfo getAtomBundle(String bundleLocation);
 
+	/**
+	 * Adds a {@link Configuration} to the Atomos runtime.  This can be done before
+	 * or after the Atomos framework has been {@link #createFramework(Map) created}.
+	 * If done before framework creation then the Atomos bundles found will be 
+	 * be automatically installed and started according to the {@link #ATOMOS_BUNDLE_INSTALL}
+	 * and {@link #ATOMOS_BUNDLE_START} settings.
+	 * @param layerConfig the configuration to use for the new layer
+	 * @return The Atomos layer that got created
+	 */
 	AtomosLayer addLayer(Configuration layerConfig);
 
+	/**
+	 * The initial boot Atomos layer
+	 * @return the boot Atomos layer
+	 */
 	AtomosLayer getBootLayer();
 
+	/**
+	 * Creates a new {@link Framework} with the specified framework configuration.
+	 * @param frameworkConfig the framework configuraiton
+	 * @return
+	 */
 	Framework createFramework(Map<String, String> frameworkConfig);
 
 	/**
 	 * A main method that can be used by executable jars to initialize and start
-	 * an OSGi Atom Framework. Each string in the arguments array may contain a
+	 * an Atomos Framework. Each string in the arguments array may contain a
 	 * key=value pair that will be used for the framework configuration.
 	 * @param args the args will be converted into a {@code Map<String, String>} to use as
 	 * configuration parameters for the OSGi Framework.
@@ -134,41 +135,69 @@ public interface AtomosRuntime {
 		launch(getConfiguration(args));
 	}
 
+	/**
+	 * Convenience method that creates an AtomosRuntime in order to load the Atomos
+	 * bundles contained in the module path in the boot layer.  It will also look for
+	 * additional modules to load into a child layer in a modules folder.  The path to
+	 * the modules folder can be configured by using the {@link #ATOMOS_MODULES_DIR}
+	 * launch option.  If the {@link #ATOMOS_MODULES_DIR} option is not specified
+	 * in the frameworkConfig then the default will try to determine the location on
+	 * disk of the atomos.framework module and look for a folder called "modules".
+	 * If the location of the atomos.framework module cannot be determined then no
+	 * additional modules folder will be searched.
+	 * @param frameworkConfig the framework configuration
+	 * @return a new Atomos framework instance which has been started.
+	 * @throws BundleException if an error occurred creating and starting the Atomos framework
+	 */
 	static Framework launch(Map<String, String> frameworkConfig) throws BundleException {
 		ModuleLayer thisLayer = AtomosRuntime.class.getModule().getLayer();
 		if (thisLayer == null) {
 			throw new IllegalStateException("Must launch on the module path.");
 		}
-    	// Get the ResolvedModule for the launcher module
-        Configuration config = thisLayer.configuration();
-        ResolvedModule resolved = config.findModule(AtomosRuntime.class.getModule().getName()).get();
-        URI location = resolved.reference().location().get();
 
         AtomosRuntime atomosRuntime = createAtomRuntime();
 
-		if (location.getScheme().equals("file")) {
-			// Use the module location as the relative base to locate the modules folder
-			File thisModuleFile = new File(location);
-			File modules = new File(thisModuleFile.getParent(), "modules");
-			if (modules.isDirectory()) {
-				// Find all the modules and use all of them as roots because we want to load
-				// them all
-				ModuleFinder finder = ModuleFinder.of(modules.toPath());
-				Set<String> roots = finder.findAll().stream().map((r) -> r.descriptor().name())
-						.collect(Collectors.toSet());
+    	// Get the ResolvedModule for the launcher module
+        Configuration config = thisLayer.configuration();
+        File modulesDir = getModulesDir(config, frameworkConfig);
+        if (modulesDir != null) {
+			// Find all the modules and use all of them as roots because we want to load them all
+			ModuleFinder finder = ModuleFinder.of(modulesDir.toPath());
+			Set<String> roots = finder.findAll().stream().map((r) -> r.descriptor().name())
+					.collect(Collectors.toSet());
 
-				// Resolve the configuration with all the roots
-				Configuration modulesConfig = Configuration.resolve(ModuleFinder.of(), List.of(config), finder, roots);
-				atomosRuntime.addLayer(modulesConfig);
-			}
+			// Resolve the configuration with all the roots
+			Configuration modulesConfig = Configuration.resolve(ModuleFinder.of(), List.of(config), finder, roots);
+			atomosRuntime.addLayer(modulesConfig);
 		}
 		Framework framework = atomosRuntime.createFramework(frameworkConfig);
 		framework.start();
 		return framework;
 	}
+
+	static private File getModulesDir(Configuration layerConfig, Map<String, String> frameworkConfig) {
+		String modulesDirPath = frameworkConfig.get(ATOMOS_MODULES_DIR);
+		File modulesDir = null;
+		if (modulesDirPath != null) {
+			// use the configured modules dir
+			modulesDir = new File(modulesDirPath);
+		} else {
+			ResolvedModule resolved = layerConfig.findModule(AtomosRuntime.class.getModule().getName()).get();
+			URI location = resolved.reference().location().get();
+			if (location.getScheme().equals("file")) {
+				// Use the module location as the relative base to locate the modules folder
+				File thisModuleFile = new File(location);
+				File candidate = new File(thisModuleFile.getParent(), "modules");
+				modulesDir = candidate;
+			}
+		}	
+		return modulesDir != null && modulesDir.isDirectory() ? modulesDir : null;
+	}
+
 	/**
 	 * Converts a string array into a {@code  Map<String,String>}
-	 * @param args the arguments where each element has key=string value
+	 * @param args the arguments where each element has key=string value, the key cannot contain an
+	 * '=' (equals) character.
 	 * @return a map of the configuration specified by the args
 	 */
 	static Map<String, String> getConfiguration(String[] args) {
@@ -186,6 +215,22 @@ public interface AtomosRuntime {
 		return config;
 	}
 
+	/**
+	 * creates a new AtomosRuntime that can be used to create a new
+	 * Atomos framework instance.  If Atomos is running as a Java
+	 * Module then this AtomosRuntime can be used to create
+	 * additional layers by using the {@link #addLayer(Configuration)}
+	 * method.  If the additional layers are added before {@link #createFramework(Map) creating} and
+	 * and {@link Framework#init() initializing} the framework then the 
+	 * Atomos bundles found in the added layers will be automatically
+	 * installed and started according to the {@link #ATOMOS_BUNDLE_INSTALL} and
+	 * {@link #ATOMOS_BUNDLE_START} options.
+	 * <p>
+	 * Note that this AtomosRuntime {@link #createFramework(Map)} must be used
+	 * for a new {@link Framework framework} instance to use the layers added
+	 * to this AtomosRuntime.
+	 * @return a new AtomosRuntime.
+	 */
 	static AtomosRuntime createAtomRuntime() {
 		return ServiceLoader.load( //
 				AtomosRuntime.class.getModule().getLayer(), //

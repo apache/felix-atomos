@@ -46,6 +46,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.namespace.IdentityNamespace;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.FrameworkWiring;
@@ -140,7 +141,16 @@ public class AtomosHookConfigurator implements HookConfigurator {
 				AtomosHookConfigurator.this.bc = bc;
 				emptyJar = bc.getDataFile("atomosEmptyBundle.jar");
 				Files.write(emptyJar.toPath(), EMPTY_JAR);
-				installAtomBundles(atomosRuntime.getBootLayer());
+
+				String initialBundleStartLevel = bc.getProperty(AtomosRuntime.ATOMOS_INITIAL_BUNDLE_START_LEVEL);
+				if (initialBundleStartLevel != null) {
+					// set the default initial bundle startlevel before installing the atomos bundles
+					FrameworkStartLevel fwkStartLevel = bc.getBundle().adapt(FrameworkStartLevel.class);
+					fwkStartLevel.setInitialBundleStartLevel(Integer.parseInt(initialBundleStartLevel));
+				}
+				boolean installBundles = Boolean.valueOf(hookRegistry.getConfiguration().getConfiguration(AtomosRuntime.ATOMOS_BUNDLE_INSTALL, "true")); //$NON-NLS-1$
+				boolean startBundles = Boolean.valueOf(hookRegistry.getConfiguration().getConfiguration(AtomosRuntime.ATOMOS_BUNDLE_START, "true")); //$NON-NLS-1$
+				installAtomBundles(atomosRuntime.getBootLayer(), installBundles, startBundles);
 				bc.registerService(AtomosRuntime.class, atomosRuntime, null);
 			}
 
@@ -167,23 +177,26 @@ public class AtomosHookConfigurator implements HookConfigurator {
 		return new AtomDelegateLoader(parent, configuration, delegate, generation, m.getClassLoader());
 	}
 
-	void installAtomBundles(AtomosLayer atomosLayer) throws BundleException {
-		List<Bundle> bundles = new ArrayList<>();
-		for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomBundles()) {
-			Bundle b = atomosBundle.install("atomos");
-			if (b != null) {
-				bundles.add(b);
+	void installAtomBundles(AtomosLayer atomosLayer, boolean installBundles, boolean startBundles) throws BundleException {
+		if (installBundles) {
+			List<Bundle> bundles = new ArrayList<>();
+			for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomBundles()) {
+				Bundle b = atomosBundle.install("atomos");
+				if (b != null) {
+					bundles.add(b);
+				}
 			}
-		}
-
-		for (Bundle b : bundles) {
-			BundleRevision rev = b.adapt(BundleRevision.class);
-			if ((rev.getTypes() & BundleRevision.TYPE_FRAGMENT) == 0) {
-				b.start();
+			if (startBundles) {
+				for (Bundle b : bundles) {
+					BundleRevision rev = b.adapt(BundleRevision.class);
+					if ((rev.getTypes() & BundleRevision.TYPE_FRAGMENT) == 0) {
+						b.start();
+					}
+				}
+				for (AtomosLayer child : atomosLayer.getChildren()) {
+					installAtomBundles(child, installBundles, startBundles);
+				}
 			}
-		}
-		for (AtomosLayer child : atomosLayer.getChildren()) {
-			installAtomBundles(child);
 		}
 	}
 

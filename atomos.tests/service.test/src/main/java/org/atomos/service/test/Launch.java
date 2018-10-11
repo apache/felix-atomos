@@ -10,19 +10,16 @@
  *******************************************************************************/
 package org.atomos.service.test;
 
-import java.util.Map;
-
+import org.atomos.framework.AtomosRuntime;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.launch.Framework;
-import org.atomos.framework.AtomosRuntime;
 
 public class Launch 
 {
 	private static volatile Framework framework;
     public static void main( String[] args ) throws BundleException
     {
-       	framework = AtomosRuntime.createAtomRuntime().createFramework(Map.of());
-       	framework.start();
+    	framework = AtomosRuntime.launch(AtomosRuntime.getConfiguration(args));
     }
     public static Framework getFramework() {
     	return framework;
