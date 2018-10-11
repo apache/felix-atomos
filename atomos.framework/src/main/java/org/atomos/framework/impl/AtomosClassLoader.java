@@ -31,29 +31,36 @@ public class AtomosClassLoader extends ModuleClassLoader {
 		this.isRegisteredAsParallel = (ModuleClassLoader.REGISTERED_AS_PARALLEL && ATOM_REGISTERED_AS_PARALLEL);
 	}
 
+	private <T> T checkInitialized(T check) {
+		if (check == null) {
+			throw new RuntimeException("Atomos class loader has not been initialized.");
+		}
+		return check;
+	}
 	@Override
 	protected Generation getGeneration() {
-		return generation;
+
+		return checkInitialized(generation);
 	}
 
 	@Override
 	protected Debug getDebug() {
-		return debug;
+		return checkInitialized(debug);
 	}
 
 	@Override
 	public ClasspathManager getClasspathManager() {
-		return manager;
+		return checkInitialized(manager);
 	}
 
 	@Override
 	protected EquinoxConfiguration getConfiguration() {
-		return configuration;
+		return checkInitialized(configuration);
 	}
 
 	@Override
 	public BundleLoader getBundleLoader() {
-		return loader;
+		return checkInitialized(loader);
 	}
 
 	@Override
