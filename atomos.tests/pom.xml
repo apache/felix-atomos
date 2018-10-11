@@ -11,8 +11,11 @@
   <modules>
     <module>service.contract</module>
     <module>service.impl</module>
-    <module>service.test</module>
     <module>service.impl.activator</module>
+    <module>service.impl.a</module>
+    <module>service.impl.b</module>
+    <module>service.lib</module>
+    <module>service.test</module>
     <module>service.image</module>
   </modules>
 </project>

@@ -8,19 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.atomos.framework;
-
-import java.lang.module.Configuration;
-import java.util.List;
-import java.util.Set;
-
-/**
- * 
- */
-public interface AtomosLayer {
-	Configuration getConfiguration();
-	ModuleLayer getModuleLayer();
-	Set<AtomosLayer> getChildren();
-	List<AtomosLayer> getParents();
-	Set<AtomosBundleInfo> getAtomosBundles();
+module service.lib {
+	requires static osgi.annotation;
+	exports org.atomos.service.lib;
 }

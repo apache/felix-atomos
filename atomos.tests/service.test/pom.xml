@@ -27,7 +27,22 @@
 		</dependency>
 		<dependency>
 			<groupId>org.atomos</groupId>
+			<artifactId>service.impl.a</artifactId>
+			<version>${atomos.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.atomos</groupId>
+			<artifactId>service.impl.b</artifactId>
+			<version>${atomos.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.atomos</groupId>
 			<artifactId>service.impl.activator</artifactId>
+			<version>${atomos.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.atomos</groupId>
+			<artifactId>service.lib</artifactId>
 			<version>${atomos.version}</version>
 		</dependency>
 		<dependency>
@@ -56,4 +71,30 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.1.1</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/modules</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<excludeTransitive>true</excludeTransitive>
+							<includeArtifactIds>service.impl.a,service.impl.b,service.lib</includeArtifactIds>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>

@@ -23,9 +23,13 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
+import org.atomos.framework.AtomosBundleInfo;
+import org.atomos.framework.AtomosLayer;
+import org.atomos.framework.AtomosRuntime;
 import org.eclipse.osgi.internal.debug.Debug;
 import org.eclipse.osgi.internal.framework.EquinoxConfiguration;
 import org.eclipse.osgi.internal.hookregistry.BundleFileWrapperFactoryHook;
@@ -43,19 +47,19 @@ import org.eclipse.osgi.storage.url.reference.ReferenceInputStream;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.framework.namespace.IdentityNamespace;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.framework.wiring.FrameworkWiring;
 import org.osgi.resource.Namespace;
 import org.osgi.resource.Requirement;
 import org.osgi.resource.Resource;
-import org.atomos.framework.AtomosBundleInfo;
-import org.atomos.framework.AtomosLayer;
-import org.atomos.framework.AtomosRuntime;
 
 public class AtomosHookConfigurator implements HookConfigurator {
 	public static final String DEBUG_ATOM_FWK = "equinox.atomos.framework/debug"; //$NON-NLS-1$
@@ -93,7 +97,7 @@ public class AtomosHookConfigurator implements HookConfigurator {
 	public void addHooks(HookRegistry hookRegistry) {
 		DEBUG = hookRegistry.getContainer().getConfiguration().getDebugOptions().getBooleanOption(DEBUG_ATOM_FWK,
 				false);
-		if (atomosRuntime.getBootLayer().getAtomBundles().isEmpty()) {
+		if (atomosRuntime.getBootLayer().getAtomosBundles().isEmpty()) {
 			// nothing for us to do here
 			if (DEBUG) {
 				Debug.println("No atomos bundles found.  Likely not running on the module path.");
@@ -138,6 +142,30 @@ public class AtomosHookConfigurator implements HookConfigurator {
 		hookRegistry.addActivatorHookFactory(() -> new BundleActivator() {
 			@Override
 			public void start(BundleContext bc) throws BundleException, IOException {
+				AtomicLong stateStamp = new AtomicLong(hookRegistry.getContainer().getStorage().getModuleDatabase().getRevisionsTimestamp());
+				// TODO there has to be a better way to do this; perhaps we need a new hook in equinox
+				// need to ensure the class loaders for atomos bundles are created eagerly to ensure
+				// they are initialized.  Otherwise if they are delegated to directly before
+				// lazy initialization they will fail to work.
+				bc.addBundleListener(new SynchronousBundleListener() {
+					@Override
+					public void bundleChanged(BundleEvent event) {
+						if (event.getType() == BundleEvent.RESOLVED) {
+							// only do this work if the timestamp has changed indicating a new resolution state
+							// many resolution events can be sent for a single resolve operation
+							if (stateStamp.get() != hookRegistry.getContainer().getStorage().getModuleDatabase().getRevisionsTimestamp()) {
+								for (Bundle b : bc.getBundles()) {
+									if (atomosRuntime.getAtomBundle(b.getLocation()) != null) {
+										BundleWiring wiring = b.adapt(BundleWiring.class);
+										if (wiring != null) {
+											wiring.getClassLoader();
+										}
+									}
+								}
+							}
+						}
+					}
+				});
 				AtomosHookConfigurator.this.bc = bc;
 				emptyJar = bc.getDataFile("atomosEmptyBundle.jar");
 				Files.write(emptyJar.toPath(), EMPTY_JAR);
@@ -180,7 +208,7 @@ public class AtomosHookConfigurator implements HookConfigurator {
 	void installAtomBundles(AtomosLayer atomosLayer, boolean installBundles, boolean startBundles) throws BundleException {
 		if (installBundles) {
 			List<Bundle> bundles = new ArrayList<>();
-			for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomBundles()) {
+			for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomosBundles()) {
 				Bundle b = atomosBundle.install("atomos");
 				if (b != null) {
 					bundles.add(b);

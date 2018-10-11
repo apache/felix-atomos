@@ -158,7 +158,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 			throw new IllegalStateException("AtomosLayer already exists for configuration.");
 		}
 
-		for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomBundles()) {
+		for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomosBundles()) {
 			if (byAtomLocation.putIfAbsent(atomosBundle.getLocation(), (AtomosBundleInfoImpl) atomosBundle) != null) {
 				throw new IllegalStateException("Atom bundle location already exists: " + atomosBundle.getLocation());
 			}
@@ -252,7 +252,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 		}
 
 		@Override
-		public Set<AtomosBundleInfo> getAtomBundles() {
+		public Set<AtomosBundleInfo> getAtomosBundles() {
 			return atomosBundles;
 		}
 

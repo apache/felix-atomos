@@ -8,19 +8,17 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.atomos.framework;
+package org.atomos.service.impl.a;
 
-import java.lang.module.Configuration;
-import java.util.List;
-import java.util.Set;
+import org.osgi.service.component.annotations.Component;
+import org.atomos.service.contract.Echo;
 
-/**
- * 
- */
-public interface AtomosLayer {
-	Configuration getConfiguration();
-	ModuleLayer getModuleLayer();
-	Set<AtomosLayer> getChildren();
-	List<AtomosLayer> getParents();
-	Set<AtomosBundleInfo> getAtomosBundles();
+@Component(property = {"type=impl.a.component"})
+public class EchoImpl implements Echo {
+
+	@Override
+	public String echo(String msg) {
+		return "impl.a.component " + msg;
+	}
+
 }
