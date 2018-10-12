@@ -234,8 +234,6 @@ public interface AtomosRuntime {
 	static AtomosRuntime createAtomRuntime() {
 		return ServiceLoader.load( //
 				AtomosRuntime.class.getModule().getLayer(), //
-				AtomosRuntime.class).findFirst().orElseThrow(() -> {
-					throw new RuntimeException("No AtomosRuntime implementation found.");
-				});
+				AtomosRuntime.class).findFirst().orElseThrow(() -> new RuntimeException("No AtomosRuntime implementation found."));
 	}
 }
