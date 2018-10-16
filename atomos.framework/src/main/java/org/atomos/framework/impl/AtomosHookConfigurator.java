@@ -193,10 +193,7 @@ public class AtomosHookConfigurator implements HookConfigurator {
 
 	ModuleClassLoader createAtomClassLoader(AtomosBundleInfoImpl atomosBundle, ClassLoader parent,
 			EquinoxConfiguration configuration, BundleLoader delegate, Generation generation) {
-		Module m = atomosBundle.getModule();
-		if (m == null) {
-			throw new IllegalStateException("No module found for bundle: " + atomosBundle.getLocation());
-		}
+		Module m = atomosBundle.getModule().orElseThrow(() -> new IllegalStateException("No module found for bundle: " + atomosBundle.getLocation()));
 		ClassLoader mLoader = m.getClassLoader();
 		if (mLoader instanceof AtomosClassLoader) {
 			((AtomosClassLoader) mLoader).init(configuration, delegate, generation);

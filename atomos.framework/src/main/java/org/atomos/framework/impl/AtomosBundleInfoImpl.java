@@ -12,6 +12,7 @@ package org.atomos.framework.impl;
 
 import java.io.IOException;
 import java.lang.module.ResolvedModule;
+import java.util.Optional;
 
 import org.eclipse.osgi.internal.debug.Debug;
 import org.eclipse.osgi.storage.BundleInfo.Generation;
@@ -30,12 +31,12 @@ public class AtomosBundleInfoImpl implements AtomosBundleInfo, Comparable<Atomos
 	/**
 	 * The resolved module for this atomos bundle
 	 */
-	private final ResolvedModule resolvedModule;
+	private final Optional<ResolvedModule> resolvedModule;
 
 	/**
 	 * The module for this atomos bundle.
 	 */
-	private final Module module;
+	private final Optional<Module> module;
 
 	/**
 	 * The bundle location used to install the bundle with.
@@ -58,8 +59,8 @@ public class AtomosBundleInfoImpl implements AtomosBundleInfo, Comparable<Atomos
 	public AtomosBundleInfoImpl(AtomosRuntimeImpl runtime, AtomosLayer atomosLayer, ResolvedModule resolvedModule, Module module, String location, String symbolicName, Version version) {
 		this.runtime = runtime;
 		this.atomosLayer = atomosLayer;
-		this.resolvedModule = resolvedModule;
-		this.module = module;
+		this.resolvedModule = Optional.ofNullable(resolvedModule);
+		this.module = Optional.ofNullable(module);
 		this.location = location;
 		this.symbolicName = symbolicName;
 		this.version = version;
@@ -81,12 +82,12 @@ public class AtomosBundleInfoImpl implements AtomosBundleInfo, Comparable<Atomos
 	}
 
 	@Override
-	public ResolvedModule getResolvedModule() {
+	public Optional<ResolvedModule> getResolvedModule() {
 		return resolvedModule;
 	}
 
 	@Override
-	public Module getModule() {
+	public Optional<Module> getModule() {
 		return module;
 	}
 
@@ -123,7 +124,7 @@ public class AtomosBundleInfoImpl implements AtomosBundleInfo, Comparable<Atomos
 	}
 
 	BundleFile getBundleFile(BundleFile bundleFile, Generation generation, MRUBundleFileList mruList, Debug debug) throws IOException {
-		return new AtomosBundleFile(resolvedModule.reference(), bundleFile.getBaseFile(), generation, mruList, debug);
+		return new AtomosBundleFile(resolvedModule.get().reference(), bundleFile.getBaseFile(), generation, mruList, debug);
 	}
 
 	public String toString() {

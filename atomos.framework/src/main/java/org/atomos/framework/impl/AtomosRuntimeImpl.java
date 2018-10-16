@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -154,7 +155,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 	}
 
 	private void addAtomLayer(AtomLayerImpl atomosLayer) {
-		if (byConfig.putIfAbsent(atomosLayer.getConfiguration(), atomosLayer) != null) {
+		if (byConfig.putIfAbsent(atomosLayer.getConfiguration().get(), atomosLayer) != null) {
 			throw new IllegalStateException("AtomosLayer already exists for configuration.");
 		}
 
@@ -169,28 +170,31 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 	}
 
 	class AtomLayerImpl implements AtomosLayer {
-		private final Configuration config;
-		private final ModuleLayer moduleLayer;
+		private final Optional<Configuration> config;
+		private final Optional<ModuleLayer> moduleLayer;
 		private final Set<AtomosBundleInfo> atomosBundles;
 		private final List<AtomosLayer> parents;
 		private final Set<AtomosLayer> children = new HashSet<>();
 		AtomLayerImpl(Configuration config) {
-			this.config = config;
+			this.config = Optional.ofNullable(config);
 			this.parents = findParents();
-			this.moduleLayer = findModuleLayer();
+			this.moduleLayer = Optional.ofNullable(findModuleLayer());
 			this.atomosBundles = findAtomBundles();
 
 		}
 
 		private ModuleLayer findModuleLayer() {
-			if (config.equals(thisConfig)) {
+			if (config.isEmpty()) {
+				return null;
+			}
+			if (config.get().equals(thisConfig)) {
 				return thisModule.getLayer();
 			}
-			if (Configuration.empty().equals(config)) {
+			if (Configuration.empty().equals(config.get())) {
 				return ModuleLayer.empty();
 			}
-			List<ModuleLayer> parentLayers = parents.stream().sequential().map((a) -> a.getModuleLayer()).collect(Collectors.toList());
-			ModuleLayer.Controller controller = ModuleLayer.defineModules(config, parentLayers, clFunction);
+			List<ModuleLayer> parentLayers = parents.stream().sequential().map((a) -> a.getModuleLayer().get()).collect(Collectors.toList());
+			ModuleLayer.Controller controller = ModuleLayer.defineModules(config.get(), parentLayers, clFunction);
 			return controller.layer();
 		}
 
@@ -199,11 +203,11 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 		}
 
 		private List<AtomosLayer> findParents() {
-			if (config.parents().isEmpty()) {
+			if (config.isEmpty() || config.get().parents().isEmpty()) {
 				return List.of();
 			}
-			List<AtomosLayer> found = new ArrayList<>(config.parents().size());
-			for (Configuration parentConfig : config.parents()) {
+			List<AtomosLayer> found = new ArrayList<>(config.get().parents().size());
+			for (Configuration parentConfig : config.get().parents()) {
 				AtomLayerImpl existingParent = getByConfig(parentConfig);
 				if (existingParent != null) {
 					found.add(existingParent);
@@ -215,10 +219,13 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 		}
 
 		private Set<AtomosBundleInfo> findAtomBundles() {
-			Map<ModuleDescriptor, Module> descriptorMap = moduleLayer.modules().stream()
+			if (moduleLayer.isEmpty()) {
+				return Set.of();
+			}
+			Map<ModuleDescriptor, Module> descriptorMap = moduleLayer.get().modules().stream()
 					.collect(Collectors.toMap(Module::getDescriptor, m -> (m)));
 			Set<AtomosBundleInfo> found = new LinkedHashSet<>();
-			for (ResolvedModule resolved : config.modules()) {
+			for (ResolvedModule resolved : config.get().modules()) {
 				String location = resolved.reference().location().get().toString();
 				Version version = resolved.reference().descriptor().version().map((v) -> {
 					try {
@@ -237,7 +244,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 			return Collections.unmodifiableSet(found);
 		}
 		@Override
-		public Configuration getConfiguration() {
+		public Optional<Configuration> getConfiguration() {
 			return config;
 		}
 
@@ -257,7 +264,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 		}
 
 		@Override
-		public ModuleLayer getModuleLayer() {
+		public Optional<ModuleLayer> getModuleLayer() {
 			return moduleLayer;
 		}
 	}

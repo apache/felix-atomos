@@ -134,7 +134,7 @@ public class LaunchTest {
 		Module serviceLibModule = null;
 		for(AtomosBundleInfo atomosBundle : child.getAtomosBundles()) {
 			if (atomosBundle.getSymbolicName().equals("service.lib")) {
-				serviceLibModule = atomosBundle.getModule();
+				serviceLibModule = atomosBundle.getModule().get();
 			}
 		}
 		try {

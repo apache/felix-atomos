@@ -11,6 +11,7 @@
 package org.atomos.framework;
 
 import java.lang.module.ResolvedModule;
+import java.util.Optional;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
@@ -26,7 +27,7 @@ public interface AtomosBundleInfo extends Comparable<AtomosBundleInfo> {
 	 * This location plus the prefix will be used
 	 * to install the Atomos bundle.
 	 * @return the location of the Atomos bundle.
-	 * @see AtomosRuntime#installAtomBundle(String, org.osgi.framework.VersionRange, String)
+	 * @see AtomosBundleInfo#install(String)
 	 */
 	public String getLocation();
 
@@ -43,16 +44,18 @@ public interface AtomosBundleInfo extends Comparable<AtomosBundleInfo> {
 	public Version getVersion();
 
 	/**
-	 * The resolved module of the Atomos bundle.
-	 * @return the resolved module
+	 * The resolved module of the Atomos bundle. If not running
+	 * in a module layer then the optional will have a null value.
+	 * @return the resolved module or null if not running in a module layer.
 	 */
-	public ResolvedModule getResolvedModule();
+	public Optional<ResolvedModule> getResolvedModule();
 
 	/**
-	 * The module of the Atomos bundle.
-	 * @return the module
+	 * The module of the Atomos bundle.  If not running
+	 * in a module layer then the optional will have a null value.
+	 * @return the module or null if not running in a module layer.
 	 */
-	public Module getModule();
+	public Optional<Module> getModule();
 
 	/**
 	 * The Atomos layer this Atomos bundle is in.

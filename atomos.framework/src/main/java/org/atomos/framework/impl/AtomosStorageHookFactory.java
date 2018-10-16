@@ -125,7 +125,7 @@ public class AtomosStorageHookFactory extends StorageHookFactory<Object, Object,
 		List<GenericInfo> origCaps = original.getCapabilities();
 		List<GenericInfo> origReqs = original.getRequirements();
 
-		ModuleDescriptor desc = atomosBundle.getResolvedModule().reference().descriptor();
+		ModuleDescriptor desc = atomosBundle.getResolvedModule().get().reference().descriptor();
 		ModuleRevisionBuilder builder = new ModuleRevisionBuilder();
 
 		if (origHasBSN) {
