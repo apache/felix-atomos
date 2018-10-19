@@ -25,16 +25,6 @@ import java.util.Set;
  */
 public interface AtomosLayer {
 	/**
-	 * The {@link Configuration} used to create the {@link ModuleLayer} for this
-	 * Atomos layer.  If not running in a module layer then the optional will have a null value.
-	 * This configuration can be used as a parent of new 
-	 * configurations which then can be used to add a new Atomos Layer by calling the
-	 * {@link AtomosRuntime#addLayer(Configuration)} method.
-	 * @return the configuration or null if not running in a module layer
-	 */
-	Optional<Configuration> getConfiguration();
-
-	/**
 	 * The {@link ModuleLayer} associated with this Atomos Layer. If not running
 	 * in a module layer then the optional will have a null value.
 	 * @return the ModuleLayer or null if not running in a module layer

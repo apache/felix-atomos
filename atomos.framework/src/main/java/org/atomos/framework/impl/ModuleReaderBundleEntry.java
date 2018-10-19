@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.atomos.framework.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -18,11 +19,11 @@ import java.net.URL;
 
 import org.eclipse.osgi.storage.bundlefile.BundleEntry;
 
-class AtomosBundleEntry extends BundleEntry {
-	private final AtomosBundleFile bundleFile;
+class ModuleReaderBundleEntry extends BundleEntry {
+	private final ModuleReaderBundleFile bundleFile;
 	private final String path;
 	private final URI uri;
-	public AtomosBundleEntry(AtomosBundleFile bundleFile, String path, URI uri) {
+	public ModuleReaderBundleEntry(ModuleReaderBundleFile bundleFile, String path, URI uri) {
 		this.bundleFile = bundleFile;
 		if (path.length() > 0 && path.charAt(0) == '/') {
 			path = path.substring(1);
@@ -73,9 +74,14 @@ class AtomosBundleEntry extends BundleEntry {
 		}
 	}
 
-	@Override
 	public URL getFileURL() {
-		// TODO Auto-generated method stub
+		try {
+			File file = bundleFile.getFile(path, false);
+			if (file != null)
+				return file.toURI().toURL();
+		} catch (MalformedURLException e) {
+			//This can not happen. 
+		}
 		return null;
 	}
 

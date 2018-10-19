@@ -202,25 +202,23 @@ public interface AtomosRuntime {
 	 *                         framework
 	 */
 	static Framework launch(Map<String, String> frameworkConfig) throws BundleException {
-		ModuleLayer thisLayer = AtomosRuntime.class.getModule().getLayer();
-		if (thisLayer == null) {
-			throw new IllegalStateException("Must launch on the module path.");
-		}
-
 		AtomosRuntime atomosRuntime = createAtomRuntime();
 
-		// Get the ResolvedModule for the launcher module
-		Configuration config = thisLayer.configuration();
-		File modulesDir = getModulesDir(config, frameworkConfig);
-		if (modulesDir != null) {
-			// Find all the modules and use all of them as roots because we want to load
-			// them all
-			ModuleFinder finder = ModuleFinder.of(modulesDir.toPath());
-			Set<String> roots = finder.findAll().stream().map((r) -> r.descriptor().name()).collect(Collectors.toSet());
-
-			// Resolve the configuration with all the roots
-			Configuration modulesConfig = Configuration.resolve(ModuleFinder.of(), List.of(config), finder, roots);
-			atomosRuntime.addLayer(modulesConfig);
+		ModuleLayer thisLayer = AtomosRuntime.class.getModule().getLayer();
+		if (thisLayer != null) {
+			// Get the ResolvedModule for the launcher module
+			Configuration config = thisLayer.configuration();
+			File modulesDir = getModulesDir(config, frameworkConfig);
+			if (modulesDir != null) {
+				// Find all the modules and use all of them as roots because we want to load
+				// them all
+				ModuleFinder finder = ModuleFinder.of(modulesDir.toPath());
+				Set<String> roots = finder.findAll().stream().map((r) -> r.descriptor().name()).collect(Collectors.toSet());
+	
+				// Resolve the configuration with all the roots
+				Configuration modulesConfig = Configuration.resolve(ModuleFinder.of(), List.of(config), finder, roots);
+				atomosRuntime.addLayer(modulesConfig);
+			}
 		}
 		Framework framework = atomosRuntime.createFramework(frameworkConfig);
 		framework.start();
@@ -285,9 +283,15 @@ public interface AtomosRuntime {
 	 * @return a new AtomosRuntime.
 	 */
 	static AtomosRuntime createAtomRuntime() {
-		return ServiceLoader.load( //
-				AtomosRuntime.class.getModule().getLayer(), //
-				AtomosRuntime.class).findFirst()
+		ServiceLoader<AtomosRuntime> loader;
+		if (AtomosRuntime.class.getModule().getLayer() == null) {
+			loader = ServiceLoader.load(AtomosRuntime.class, AtomosRuntime.class.getClassLoader());
+		} else {
+			loader = ServiceLoader.load( //
+					AtomosRuntime.class.getModule().getLayer(), //
+					AtomosRuntime.class);
+		}
+		return loader.findFirst() //
 				.orElseThrow(() -> new RuntimeException("No AtomosRuntime implementation found."));
 	}
 }

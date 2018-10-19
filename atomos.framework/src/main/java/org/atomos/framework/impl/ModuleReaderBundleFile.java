@@ -40,8 +40,10 @@ import org.eclipse.osgi.storage.bundlefile.BundleEntry;
 import org.eclipse.osgi.storage.bundlefile.BundleFile;
 import org.eclipse.osgi.storage.bundlefile.MRUBundleFileList;
 import org.eclipse.osgi.util.NLS;
-
-public class AtomosBundleFile extends BundleFile {
+// NOTE this was copied from Equinox ZipBundleFile to handle MRUBundleFileList
+// TODO should look at enhancing ZipBundleFile to have an abstract class that handles
+// the MRUBundleFileList logic
+public class ModuleReaderBundleFile extends BundleFile {
 	// A reentrant lock is used here (instead of intrinsic synchronization)
 	// to allow the lock conditional held
 	// see lockOpen() and getZipFile()
@@ -55,7 +57,7 @@ public class AtomosBundleFile extends BundleFile {
 	private volatile boolean closed = true;
 	private int referenceCount = 0;
 
-	public AtomosBundleFile(ModuleReference reference, File basefile, BundleInfo.Generation generation, MRUBundleFileList mruList, Debug debug) {
+	public ModuleReaderBundleFile(ModuleReference reference, File basefile, BundleInfo.Generation generation, MRUBundleFileList mruList, Debug debug) {
 		super(basefile);
 		this.reference = reference;
 		this.debug = debug;
@@ -320,7 +322,7 @@ public class AtomosBundleFile extends BundleFile {
 				return null;
 			}
 
-			return new AtomosBundleEntry(this, path, found.get());
+			return new ModuleReaderBundleEntry(this, path, found.get());
 		} finally {
 			openLock.unlock();
 		}
@@ -396,7 +398,7 @@ public class AtomosBundleFile extends BundleFile {
 		try {
 			InputStream stream = reader.open(path).get();
 			if (isMruEnabled()) {
-				stream = new ZipBundleEntryInputStream(stream);
+				stream = new BundleEntryInputStream(stream);
 			}
 			return stream;
 		} finally {
@@ -416,11 +418,11 @@ public class AtomosBundleFile extends BundleFile {
 		}
 	}
 
-	private class ZipBundleEntryInputStream extends FilterInputStream {
+	private class BundleEntryInputStream extends FilterInputStream {
 
 		private boolean streamClosed = false;
 
-		public ZipBundleEntryInputStream(InputStream stream) {
+		public BundleEntryInputStream(InputStream stream) {
 			super(stream);
 			incrementReference();
 		}

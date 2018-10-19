@@ -44,13 +44,6 @@ public interface AtomosBundleInfo extends Comparable<AtomosBundleInfo> {
 	public Version getVersion();
 
 	/**
-	 * The resolved module of the Atomos bundle. If not running
-	 * in a module layer then the optional will have a null value.
-	 * @return the resolved module or null if not running in a module layer.
-	 */
-	public Optional<ResolvedModule> getResolvedModule();
-
-	/**
 	 * The module of the Atomos bundle.  If not running
 	 * in a module layer then the optional will have a null value.
 	 * @return the module or null if not running in a module layer.

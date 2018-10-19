@@ -113,7 +113,7 @@ public class AtomosHookConfigurator implements HookConfigurator {
 					BundleLoader delegate, Generation generation) {
 				AtomosBundleInfoImpl atomosBundle = atomosRuntime.getByOSGiLocation(generation.getBundleInfo().getLocation());
 				if (atomosBundle != null) {
-					return createAtomClassLoader(atomosBundle, parent, configuration, delegate, generation);
+					return createAtomosClassLoader(atomosBundle, parent, configuration, delegate, generation);
 				}
 				// return null to indicate the frameworks built-in class loader should be used.
 				return null;
@@ -178,7 +178,7 @@ public class AtomosHookConfigurator implements HookConfigurator {
 				}
 				boolean installBundles = Boolean.valueOf(hookRegistry.getConfiguration().getConfiguration(AtomosRuntime.ATOMOS_BUNDLE_INSTALL, "true")); //$NON-NLS-1$
 				boolean startBundles = Boolean.valueOf(hookRegistry.getConfiguration().getConfiguration(AtomosRuntime.ATOMOS_BUNDLE_START, "true")); //$NON-NLS-1$
-				installAtomBundles(atomosRuntime.getBootLayer(), installBundles, startBundles);
+				installAtomosBundles(atomosRuntime.getBootLayer(), installBundles, startBundles);
 				bc.registerService(AtomosRuntime.class, atomosRuntime, null);
 			}
 
@@ -191,18 +191,22 @@ public class AtomosHookConfigurator implements HookConfigurator {
 		hookRegistry.addStorageHookFactory(new AtomosStorageHookFactory(atomosRuntime, hookRegistry));
 	}
 
-	ModuleClassLoader createAtomClassLoader(AtomosBundleInfoImpl atomosBundle, ClassLoader parent,
+	ModuleClassLoader createAtomosClassLoader(AtomosBundleInfoImpl atomosBundle, ClassLoader parent,
 			EquinoxConfiguration configuration, BundleLoader delegate, Generation generation) {
-		Module m = atomosBundle.getModule().orElseThrow(() -> new IllegalStateException("No module found for bundle: " + atomosBundle.getLocation()));
-		ClassLoader mLoader = m.getClassLoader();
-		if (mLoader instanceof AtomosClassLoader) {
-			((AtomosClassLoader) mLoader).init(configuration, delegate, generation);
-			return (ModuleClassLoader) mLoader;
+		ClassLoader delegateTo;
+		if (atomosBundle.getModule().isPresent()) {
+			delegateTo = atomosBundle.getModule().get().getClassLoader();
+			if (delegateTo instanceof AtomosClassLoader) {
+				((AtomosClassLoader) delegateTo).init(configuration, delegate, generation);
+				return (ModuleClassLoader) delegateTo;
+			}			
+		} else {
+			delegateTo = HookRegistry.class.getClassLoader();
 		}
-		return new AtomDelegateLoader(parent, configuration, delegate, generation, m.getClassLoader());
+		return new AtomosDelegateLoader(parent, configuration, delegate, generation, delegateTo);
 	}
 
-	void installAtomBundles(AtomosLayer atomosLayer, boolean installBundles, boolean startBundles) throws BundleException {
+	void installAtomosBundles(AtomosLayer atomosLayer, boolean installBundles, boolean startBundles) throws BundleException {
 		if (installBundles) {
 			List<Bundle> bundles = new ArrayList<>();
 			for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomosBundles()) {
@@ -219,13 +223,13 @@ public class AtomosHookConfigurator implements HookConfigurator {
 					}
 				}
 				for (AtomosLayer child : atomosLayer.getChildren()) {
-					installAtomBundles(child, installBundles, startBundles);
+					installAtomosBundles(child, installBundles, startBundles);
 				}
 			}
 		}
 	}
 
-	Bundle installAtomBundle(String prefix, AtomosBundleInfo atomosBundle) throws BundleException {
+	Bundle installAtomosBundle(String prefix, AtomosBundleInfo atomosBundle) throws BundleException {
 		if (DEBUG) {
 			System.out.println("Installing atomos bundle: " + prefix + atomosBundle.getLocation()); //$NON-NLS-1$
 		}
@@ -288,13 +292,13 @@ public class AtomosHookConfigurator implements HookConfigurator {
 	 * this class loader is to simply delegate local class/resource lookups to the
 	 * delegate class loader.
 	 */
-	static class AtomDelegateLoader extends EquinoxClassLoader {
+	static class AtomosDelegateLoader extends EquinoxClassLoader {
 		static {
 			ClassLoader.registerAsParallelCapable();
 		}
 		private final ClassLoader delegateClassLoader;
 
-		public AtomDelegateLoader(ClassLoader parent, EquinoxConfiguration configuration, BundleLoader delegate,
+		public AtomosDelegateLoader(ClassLoader parent, EquinoxConfiguration configuration, BundleLoader delegate,
 				Generation generation, ClassLoader delegateClassLoader) {
 			super(parent, configuration, delegate, generation);
 			this.delegateClassLoader = delegateClassLoader;

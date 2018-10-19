@@ -1,10 +1,17 @@
 package org.atomos.framework.impl;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.module.Configuration;
 import java.lang.module.ModuleDescriptor;
 import java.lang.module.ResolvedModule;
+import java.net.JarURLConnection;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -15,9 +22,12 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
+import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
+import org.eclipse.osgi.internal.framework.EquinoxContainer;
 import org.eclipse.osgi.internal.hookregistry.HookConfigurator;
+import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
@@ -39,6 +49,8 @@ import org.atomos.framework.AtomosRuntime;
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 public class AtomosRuntimeImpl implements AtomosRuntime {
+	static final String JAR_PROTOCOL = "jar"; //$NON-NLS-1$
+	static final String FILE_PROTOCOL = "file"; //$NON-NLS-1$
 	static final Module frameworkModule = HookConfigurator.class.getModule();
 	static final Module thisModule = AtomosRuntimeImpl.class.getModule();
 	static final Configuration thisConfig;
@@ -98,6 +110,9 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 
 	@Override
 	public AtomosLayer addLayer(Configuration layerConfig) {
+		if (bootLayer.getModuleLayer().isEmpty()) {
+			throw new IllegalStateException("Cannot add module layers when Atomos is not loaded as module.");
+		}
 		AtomosLayer atomosLayer = createAtomLayer(layerConfig);
 		return atomosLayer;
 	}
@@ -121,7 +136,16 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 		}
 		AtomosHookConfigurator.bootAtomRuntime.set(this);
 		try {
-			FrameworkFactory factory = ServiceLoader.load(thisModule.getLayer(), FrameworkFactory.class).findFirst().get();
+			ServiceLoader<FrameworkFactory> loader;
+			if (AtomosRuntime.class.getModule().getLayer() == null) {
+				loader = ServiceLoader.load(FrameworkFactory.class, getClass().getClassLoader());
+			} else {
+				loader = ServiceLoader.load( //
+						getClass().getModule().getLayer(), //
+						FrameworkFactory.class);
+			}
+			FrameworkFactory factory = loader.findFirst() //
+					.orElseThrow(() -> new RuntimeException("No Framework implementation found."));
 			return factory.newFramework(frameworkConfig);
 		} finally {
 			AtomosHookConfigurator.bootAtomRuntime.set(null);
@@ -136,7 +160,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 		if (configurator == null) {
 			throw new IllegalStateException("No framework has been created.");
 		}
-		return configurator.installAtomBundle(prefix, atomosBundleInfo);
+		return configurator.installAtomosBundle(prefix, atomosBundleInfo);
 	}
 
 	AtomLayerImpl createAtomLayer(Configuration config) {
@@ -155,13 +179,14 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 	}
 
 	private void addAtomLayer(AtomLayerImpl atomosLayer) {
-		if (byConfig.putIfAbsent(atomosLayer.getConfiguration().get(), atomosLayer) != null) {
+		Configuration config = atomosLayer.getModuleLayer().map((m) -> m.configuration()).orElse(null);
+		if (byConfig.putIfAbsent(config, atomosLayer) != null) {
 			throw new IllegalStateException("AtomosLayer already exists for configuration.");
 		}
 
 		for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomosBundles()) {
 			if (byAtomLocation.putIfAbsent(atomosBundle.getLocation(), (AtomosBundleInfoImpl) atomosBundle) != null) {
-				throw new IllegalStateException("Atom bundle location already exists: " + atomosBundle.getLocation());
+				throw new IllegalStateException("Atomos bundle location already exists: " + atomosBundle.getLocation());
 			}
 		}
 		for (AtomosLayer parent : atomosLayer.getParents()) {
@@ -170,31 +195,29 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 	}
 
 	class AtomLayerImpl implements AtomosLayer {
-		private final Optional<Configuration> config;
 		private final Optional<ModuleLayer> moduleLayer;
 		private final Set<AtomosBundleInfo> atomosBundles;
 		private final List<AtomosLayer> parents;
 		private final Set<AtomosLayer> children = new HashSet<>();
 		AtomLayerImpl(Configuration config) {
-			this.config = Optional.ofNullable(config);
-			this.parents = findParents();
-			this.moduleLayer = Optional.ofNullable(findModuleLayer());
-			this.atomosBundles = findAtomBundles();
+			this.parents = findParents(config);
+			this.moduleLayer = Optional.ofNullable(findModuleLayer(config));
+			this.atomosBundles = findAtomosBundles();
 
 		}
 
-		private ModuleLayer findModuleLayer() {
-			if (config.isEmpty()) {
+		private ModuleLayer findModuleLayer(Configuration config) {
+			if (config == null) {
 				return null;
 			}
-			if (config.get().equals(thisConfig)) {
+			if (config.equals(thisConfig)) {
 				return thisModule.getLayer();
 			}
-			if (Configuration.empty().equals(config.get())) {
+			if (Configuration.empty().equals(config)) {
 				return ModuleLayer.empty();
 			}
 			List<ModuleLayer> parentLayers = parents.stream().sequential().map((a) -> a.getModuleLayer().get()).collect(Collectors.toList());
-			ModuleLayer.Controller controller = ModuleLayer.defineModules(config.get(), parentLayers, clFunction);
+			ModuleLayer.Controller controller = ModuleLayer.defineModules(config, parentLayers, clFunction);
 			return controller.layer();
 		}
 
@@ -202,12 +225,12 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 			children.add(child);
 		}
 
-		private List<AtomosLayer> findParents() {
-			if (config.isEmpty() || config.get().parents().isEmpty()) {
+		private List<AtomosLayer> findParents(Configuration config) {
+			if (config == null || config.parents().isEmpty()) {
 				return List.of();
 			}
-			List<AtomosLayer> found = new ArrayList<>(config.get().parents().size());
-			for (Configuration parentConfig : config.get().parents()) {
+			List<AtomosLayer> found = new ArrayList<>(config.parents().size());
+			for (Configuration parentConfig : config.parents()) {
 				AtomLayerImpl existingParent = getByConfig(parentConfig);
 				if (existingParent != null) {
 					found.add(existingParent);
@@ -218,14 +241,102 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 			return Collections.unmodifiableList(found);
 		}
 
-		private Set<AtomosBundleInfo> findAtomBundles() {
+		private Set<AtomosBundleInfo> findAtomosBundles() {
 			if (moduleLayer.isEmpty()) {
-				return Set.of();
+				return findClassPathAtomosBundles();
 			}
-			Map<ModuleDescriptor, Module> descriptorMap = moduleLayer.get().modules().stream()
+			return findModuleLayerAtomosBundles();
+		}
+
+		private Set<AtomosBundleInfo> findClassPathAtomosBundles() {
+			// first get the boot modules
+			Set<AtomosBundleInfo> bootBundles = findModuleLayerAtomosBundles(ModuleLayer.boot(), Set.of());
+			try {
+				ClassLoader cl = getClass().getClassLoader();
+				Set<URL> parentManifests = new HashSet<>();
+				if(cl.getParent() != null) {
+					Enumeration<URL> eParentManifests = cl.getParent().getResources(JarFile.MANIFEST_NAME);
+					while (eParentManifests.hasMoreElements()) {
+						parentManifests.add(eParentManifests.nextElement());
+					}
+				}
+				Enumeration<URL> classpathManifests = cl.getResources(JarFile.MANIFEST_NAME);
+				while (classpathManifests.hasMoreElements()) {
+					URL manifest = classpathManifests.nextElement();
+					if (parentManifests.contains(manifest)) {
+						// ignore parent manifests
+						continue;
+					}
+					Map<String, String> headers = ManifestElement.parseBundleManifest(manifest.openStream(), null);
+					String bsnHeader = headers.get(Constants.BUNDLE_SYMBOLICNAME);
+					ManifestElement[] element = ManifestElement.parseHeader(Constants.BUNDLE_SYMBOLICNAME, bsnHeader);
+					String symbolicName = element != null ? element[0].getValue() : null;
+					if (symbolicName != null) {
+						if (EquinoxContainer.NAME.equals(symbolicName)) {
+							// skip the framework
+							continue;
+						}
+						Object content = getBundleContent(manifest);
+						if (content != null) {
+							String location = content instanceof File ? ((File) content).getPath() : ((JarFile) content).getName();
+							Version version = Version.parseVersion(headers.get(Constants.BUNDLE_VERSION));
+							if (content instanceof File) {
+								bootBundles.add(new AtomosBundleInfoImpl(AtomosRuntimeImpl.this, this, (File) content, location, symbolicName, version));
+							} else {
+								bootBundles.add(new AtomosBundleInfoImpl(AtomosRuntimeImpl.this, this, (JarFile) content, location, symbolicName, version));
+							}
+						}
+					}
+				}
+			} catch (IOException | BundleException e) {
+				throw new IllegalStateException("Error finding class path bundles.", e);
+			}
+			return bootBundles;
+		}
+		/**
+		 * Returns the bundle content that contains the specified manifest URL.
+		 * The return type will be a JarFile or a File for an exploded bundle.
+		 * @param manifest the manifest URL to get the bundle content for
+		 * @return a JarFile or File
+		 */
+		private Object getBundleContent(URL manifest) {
+			if (JAR_PROTOCOL.equals(manifest.getProtocol())) {
+				// Use a connection to get the JarFile this avoids having to parse the jar: URL
+				// For spring loader they support nested jars with additional !/
+				// For example: 
+				//   jar:file:/path/to/out.jar!/path/to/inner.jar!/META-INF/MANIFEST.MF
+				// Instead of dealing with that just get the JarFile directly that supports this
+				// embedded jar stuff
+				try {
+					URLConnection conn = manifest.openConnection();
+					if (conn instanceof JarURLConnection) {
+						return ((JarURLConnection) conn).getJarFile();
+					}
+				} catch (IOException e) {
+					// TODO log?
+				}
+				// TODO either log or add tracing to help debug issues
+			} else if (FILE_PROTOCOL.equals(manifest.getProtocol())) {
+				try {
+					File f = new File(manifest.toURI());
+					// return two parents up from the manifest file
+					return f.getParentFile().getParentFile();
+				} catch (URISyntaxException e) {
+					throw new RuntimeException(e);
+				}
+			}
+			return null;
+		}
+		private Set<AtomosBundleInfo> findModuleLayerAtomosBundles() {
+			Set<AtomosBundleInfo> result = findModuleLayerAtomosBundles(moduleLayer.get(), Set.of(frameworkModule.getDescriptor()));
+			return Collections.unmodifiableSet(result);
+		}
+
+		private Set<AtomosBundleInfo> findModuleLayerAtomosBundles(ModuleLayer moduleLayer, Set<ModuleDescriptor> exclude) {
+			Map<ModuleDescriptor, Module> descriptorMap = moduleLayer.modules().stream()
 					.collect(Collectors.toMap(Module::getDescriptor, m -> (m)));
 			Set<AtomosBundleInfo> found = new LinkedHashSet<>();
-			for (ResolvedModule resolved : config.get().modules()) {
+			for (ResolvedModule resolved : moduleLayer.configuration().modules()) {
 				String location = resolved.reference().location().get().toString();
 				Version version = resolved.reference().descriptor().version().map((v) -> {
 					try {
@@ -235,17 +346,13 @@ public class AtomosRuntimeImpl implements AtomosRuntime {
 					}
 				}).orElse(Version.emptyVersion);
 				
-				if (!frameworkModule.getDescriptor().equals(resolved.reference().descriptor())) {
-					// include only if it is not the framework module
+				if (!exclude.contains(resolved.reference().descriptor())) {
+					// include only if it is not excluded
 					Module m = descriptorMap.get(resolved.reference().descriptor());
 					found.add(new AtomosBundleInfoImpl(AtomosRuntimeImpl.this, this, resolved, m, location, resolved.name(), version));
 				}
 			}
-			return Collections.unmodifiableSet(found);
-		}
-		@Override
-		public Optional<Configuration> getConfiguration() {
-			return config;
+			return found;
 		}
 
 		@Override

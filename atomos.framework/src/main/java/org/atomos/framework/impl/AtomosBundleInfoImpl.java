@@ -10,19 +10,22 @@
  *******************************************************************************/
 package org.atomos.framework.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.module.ResolvedModule;
 import java.util.Optional;
+import java.util.jar.JarFile;
 
+import org.atomos.framework.AtomosBundleInfo;
+import org.atomos.framework.AtomosLayer;
 import org.eclipse.osgi.internal.debug.Debug;
 import org.eclipse.osgi.storage.BundleInfo.Generation;
 import org.eclipse.osgi.storage.bundlefile.BundleFile;
+import org.eclipse.osgi.storage.bundlefile.DirBundleFile;
 import org.eclipse.osgi.storage.bundlefile.MRUBundleFileList;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
-import org.atomos.framework.AtomosBundleInfo;
-import org.atomos.framework.AtomosLayer;
 
 /**
  * Information about an atomos bundle.
@@ -37,6 +40,9 @@ public class AtomosBundleInfoImpl implements AtomosBundleInfo, Comparable<Atomos
 	 * The module for this atomos bundle.
 	 */
 	private final Optional<Module> module;
+
+	private final Optional<JarFile> jarFile;
+	private final Optional<File> file;
 
 	/**
 	 * The bundle location used to install the bundle with.
@@ -57,6 +63,18 @@ public class AtomosBundleInfoImpl implements AtomosBundleInfo, Comparable<Atomos
 	private final AtomosLayer atomosLayer;
 
 	public AtomosBundleInfoImpl(AtomosRuntimeImpl runtime, AtomosLayer atomosLayer, ResolvedModule resolvedModule, Module module, String location, String symbolicName, Version version) {
+		this(runtime, atomosLayer, resolvedModule, module, null, null, location, symbolicName, version);
+	}
+
+	public AtomosBundleInfoImpl(AtomosRuntimeImpl runtime, AtomosLayer atomosLayer, JarFile jarFile, String location, String symbolicName, Version version) {
+		this(runtime, atomosLayer, null, null, jarFile, null, location, symbolicName, version);
+	}
+
+	public AtomosBundleInfoImpl(AtomosRuntimeImpl runtime, AtomosLayer atomosLayer, File file, String location, String symbolicName, Version version) {
+		this(runtime, atomosLayer, null, null, null, file, location, symbolicName, version);
+	}
+
+	private AtomosBundleInfoImpl(AtomosRuntimeImpl runtime, AtomosLayer atomosLayer, ResolvedModule resolvedModule, Module module, JarFile jarFile, File file, String location, String symbolicName, Version version) {
 		this.runtime = runtime;
 		this.atomosLayer = atomosLayer;
 		this.resolvedModule = Optional.ofNullable(resolvedModule);
@@ -64,8 +82,9 @@ public class AtomosBundleInfoImpl implements AtomosBundleInfo, Comparable<Atomos
 		this.location = location;
 		this.symbolicName = symbolicName;
 		this.version = version;
+		this.jarFile = Optional.ofNullable(jarFile);
+		this.file = Optional.ofNullable(file);
 	}
-
 	@Override
 	public String getLocation() {
 		return location;
@@ -79,11 +98,6 @@ public class AtomosBundleInfoImpl implements AtomosBundleInfo, Comparable<Atomos
 	@Override
 	public Version getVersion() {
 		return version;
-	}
-
-	@Override
-	public Optional<ResolvedModule> getResolvedModule() {
-		return resolvedModule;
 	}
 
 	@Override
@@ -124,7 +138,16 @@ public class AtomosBundleInfoImpl implements AtomosBundleInfo, Comparable<Atomos
 	}
 
 	BundleFile getBundleFile(BundleFile bundleFile, Generation generation, MRUBundleFileList mruList, Debug debug) throws IOException {
-		return new AtomosBundleFile(resolvedModule.get().reference(), bundleFile.getBaseFile(), generation, mruList, debug);
+		if (resolvedModule.isPresent()) {
+			return new ModuleReaderBundleFile(resolvedModule.get().reference(), bundleFile.getBaseFile(), generation, mruList, debug);
+		}
+		if (file.isPresent()) {
+			return new DirBundleFile(file.get(), true);
+		}
+		if (jarFile.isPresent()) {
+			return new JarBundleFile(jarFile.get(), bundleFile.getBaseFile(), generation, debug);
+		}
+		throw new IllegalStateException("No content available for the bundle file.");
 	}
 
 	public String toString() {

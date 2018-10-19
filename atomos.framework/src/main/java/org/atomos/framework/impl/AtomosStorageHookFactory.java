@@ -111,6 +111,9 @@ public class AtomosStorageHookFactory extends StorageHookFactory<Object, Object,
 	ModuleRevisionBuilder createBuilder(AtomosBundleInfo atomosBundle, ModuleRevisionBuilder original,
 			HookRegistry hookRegistry) {
 
+		if (atomosBundle.getModule().isEmpty()) {
+			return null;
+		}
 		boolean origHasBSN = original.getSymbolicName() != null;
 
 		if (origHasBSN) {
@@ -125,7 +128,7 @@ public class AtomosStorageHookFactory extends StorageHookFactory<Object, Object,
 		List<GenericInfo> origCaps = original.getCapabilities();
 		List<GenericInfo> origReqs = original.getRequirements();
 
-		ModuleDescriptor desc = atomosBundle.getResolvedModule().get().reference().descriptor();
+		ModuleDescriptor desc = atomosBundle.getModule().get().getDescriptor();
 		ModuleRevisionBuilder builder = new ModuleRevisionBuilder();
 
 		if (origHasBSN) {
@@ -157,6 +160,27 @@ public class AtomosStorageHookFactory extends StorageHookFactory<Object, Object,
 				builder.addCapability(PackageNamespace.PACKAGE_NAMESPACE, Map.of(),
 						Map.of(PackageNamespace.PACKAGE_NAMESPACE, exports.source()));
 			}
+
+			// only do requires for non bundle modules
+			// map requires to require bundle
+			for (Requires requires : desc.requires()) {
+				Map<String, String> directives = new HashMap<>();
+
+				// determine the resolution value based on the STATIC modifier
+				String resolution = requires.modifiers().contains(Requires.Modifier.STATIC) ? Namespace.RESOLUTION_OPTIONAL
+						: Namespace.RESOLUTION_MANDATORY;
+				directives.put(Namespace.REQUIREMENT_RESOLUTION_DIRECTIVE, resolution);
+				// determine the visibility value based on the TRANSITIVE modifier
+				String visibility = requires.modifiers().contains(Requires.Modifier.TRANSITIVE)
+						? BundleNamespace.VISIBILITY_REEXPORT
+						: BundleNamespace.VISIBILITY_PRIVATE;
+				directives.put(BundleNamespace.REQUIREMENT_VISIBILITY_DIRECTIVE, visibility);
+				// create a bundle filter based on the requires name
+				directives.put(Namespace.REQUIREMENT_FILTER_DIRECTIVE,
+						"(" + BundleNamespace.BUNDLE_NAMESPACE + "=" + requires.name() + ")");
+
+				builder.addRequirement(BundleNamespace.BUNDLE_NAMESPACE, directives, Collections.emptyMap());
+			}
 		}
 
 		// map provides to a made up namespace only to give proper resolution errors
@@ -165,26 +189,6 @@ public class AtomosStorageHookFactory extends StorageHookFactory<Object, Object,
 			builder.addCapability(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE, Map.of(),
 					Map.of(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE, provides.service(),
 							JavaServiceNamespace.CAPABILITY_PROVIDES_WITH, provides.providers()));
-		}
-
-		// map requires to require bundle
-		for (Requires requires : desc.requires()) {
-			Map<String, String> directives = new HashMap<>();
-
-			// determine the resolution value based on the STATIC modifier
-			String resolution = requires.modifiers().contains(Requires.Modifier.STATIC) ? Namespace.RESOLUTION_OPTIONAL
-					: Namespace.RESOLUTION_MANDATORY;
-			directives.put(Namespace.REQUIREMENT_RESOLUTION_DIRECTIVE, resolution);
-			// determine the visibility value based on the TRANSITIVE modifier
-			String visibility = requires.modifiers().contains(Requires.Modifier.TRANSITIVE)
-					? BundleNamespace.VISIBILITY_REEXPORT
-					: BundleNamespace.VISIBILITY_PRIVATE;
-			directives.put(BundleNamespace.REQUIREMENT_VISIBILITY_DIRECTIVE, visibility);
-			// create a bundle filter based on the requires name
-			directives.put(Namespace.REQUIREMENT_FILTER_DIRECTIVE,
-					"(" + BundleNamespace.BUNDLE_NAMESPACE + "=" + requires.name() + ")");
-
-			builder.addRequirement(BundleNamespace.BUNDLE_NAMESPACE, directives, Collections.emptyMap());
 		}
 
 		// map uses to a made up namespace only to give proper resolution errors
@@ -197,6 +201,7 @@ public class AtomosStorageHookFactory extends StorageHookFactory<Object, Object,
 					Map.of(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE, uses));
 		}
 
+		// add back the original
 		origCaps.forEach((c) -> {
 			Map<String, String> directives = c.getDirectives();
 			if (directives.containsKey(Namespace.CAPABILITY_USES_DIRECTIVE)) {
