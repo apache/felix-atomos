@@ -74,6 +74,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 	final Map<String, AtomosBundleInfoImpl> byOSGiLocation = new HashMap<>();
 	final Map<String, AtomosBundleInfoImpl> byAtomosLocation = new HashMap<>();
 	final Map<AtomosLayer, Collection<String>> byAtomosLayer = new HashMap<>();
+	final Map<Module, String> byModule = new HashMap<>();
 	final Map<Configuration, AtomosLayerImpl> byConfig = new HashMap<>();
 	final Map<Long, AtomosLayerImpl> byId = new HashMap<>();
 	final Map<AtomosBundleInfo, String> byAtomosBundle = new HashMap<>();
@@ -101,6 +102,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 			AtomosLayer layer = atomosBundle.getAtomosLayer();
 			byAtomosLayer.computeIfAbsent(layer, (l) -> new ArrayList<>()).add(osgiLocation);
 			byAtomosBundle.put(atomosBundle, osgiLocation);
+			atomosBundle.getModule().ifPresent((m) -> byModule.put(m, osgiLocation));
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -112,6 +114,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 			AtomosBundleInfo removed = byOSGiLocation.remove(osgiLocation);
 			byAtomosLayer.computeIfAbsent(removed.getAtomosLayer(), (l) -> new ArrayList<>()).remove(osgiLocation);
 			byAtomosBundle.remove(removed);
+			removed.getModule().ifPresent((m) -> byModule.remove(m));
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -250,6 +253,8 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 		if (result != next) {
 			throw new IllegalStateException("Cannot use the same AtomosRuntime for multiple Frameworks.");
 		}
+
+		AtomosFrameworkUtilHelper.atomosRuntime = this;
 	}
 
 	BundleContext getBundleContext() {
@@ -697,5 +702,19 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 			}
 			return result.toString();
 		}
+	}
+
+	Bundle getBundle(Module module) {
+		String location = byModule.get(module);
+		if (location != null) {
+			AtomosHookConfigurator current = configurator.get();
+			if (current != null) {
+				BundleContext bc = current.bc;
+				if (bc != null) {
+					return bc.getBundle(location);
+				}
+			}
+		}
+		return null;
 	}
 }

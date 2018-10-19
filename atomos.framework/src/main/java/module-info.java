@@ -9,7 +9,9 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 import org.atomos.framework.AtomosRuntime;
+import org.atomos.framework.impl.AtomosFrameworkUtilHelper;
 import org.atomos.framework.impl.AtomosRuntimeImpl;
+import org.eclipse.osgi.internal.hookregistry.FrameworkUtilHelper;
 
 open module atomos.framework {
 	exports org.atomos.framework;
@@ -17,5 +19,6 @@ open module atomos.framework {
 	requires static osgi.annotation;
 	uses org.osgi.framework.launch.FrameworkFactory;
 	provides AtomosRuntime with AtomosRuntimeImpl;
+	provides FrameworkUtilHelper with AtomosFrameworkUtilHelper;
 	uses AtomosRuntime;
 }

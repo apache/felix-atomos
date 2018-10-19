@@ -163,6 +163,7 @@
 
 										provides org.osgi.framework.launch.FrameworkFactory with org.eclipse.osgi.launch.EquinoxFactory;
 
+										uses org.eclipse.osgi.internal.hookregistry.FrameworkUtilHelper;
 										}
 									</moduleInfoSource>
 								</module>
