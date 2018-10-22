@@ -151,11 +151,16 @@ public interface AtomosRuntime {
 	 * If done before framework creation then the Atomos bundles found will be be
 	 * automatically installed and started according to the
 	 * {@link #ATOMOS_BUNDLE_INSTALL} and {@link #ATOMOS_BUNDLE_START} settings.
+	 * <p>
+	 * If the {@link Configuration#parents() parent} configurations do not already
+	 * have existing Atomos Layers associated with them then they will also be created.
+	 * All Atomos Layers created will use the specified name.
 	 * 
 	 * @param layerConfig the configuration to use for the new layer
+	 * @param name the name of the new layer (and any new parent layers created), may be {@code null}.
 	 * @return The Atomos layer that got created
 	 */
-	AtomosLayer addLayer(Configuration layerConfig);
+	AtomosLayer addLayer(Configuration layerConfig, String name);
 
 	/**
 	 * The initial boot Atomos layer
@@ -217,7 +222,7 @@ public interface AtomosRuntime {
 	
 				// Resolve the configuration with all the roots
 				Configuration modulesConfig = Configuration.resolve(ModuleFinder.of(), List.of(config), finder, roots);
-				atomosRuntime.addLayer(modulesConfig);
+				atomosRuntime.addLayer(modulesConfig, "modules");
 			}
 		}
 		Framework framework = atomosRuntime.createFramework(frameworkConfig);

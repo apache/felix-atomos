@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.atomos.service.test;
 
+import java.util.concurrent.TimeUnit;
+
 import org.atomos.framework.AtomosRuntime;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.launch.Framework;
@@ -19,7 +21,10 @@ public class Launch
 	private static volatile Framework framework;
     public static void main( String[] args ) throws BundleException
     {
+    	long start = System.nanoTime();
     	framework = AtomosRuntime.launch(AtomosRuntime.getConfiguration(args));
+    	long total = System.nanoTime() - start;
+    	System.out.println("Total time: " + TimeUnit.NANOSECONDS.toMillis(total));
     }
     public static Framework getFramework() {
     	return framework;

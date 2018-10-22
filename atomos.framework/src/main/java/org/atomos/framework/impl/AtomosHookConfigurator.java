@@ -10,18 +10,15 @@
  *******************************************************************************/
 package org.atomos.framework.impl;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.jar.JarOutputStream;
@@ -30,6 +27,7 @@ import java.util.zip.ZipEntry;
 import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
 import org.atomos.framework.AtomosRuntime;
+import org.eclipse.osgi.framework.log.FrameworkLogEntry;
 import org.eclipse.osgi.internal.debug.Debug;
 import org.eclipse.osgi.internal.framework.EquinoxConfiguration;
 import org.eclipse.osgi.internal.hookregistry.BundleFileWrapperFactoryHook;
@@ -39,11 +37,11 @@ import org.eclipse.osgi.internal.hookregistry.HookRegistry;
 import org.eclipse.osgi.internal.loader.BundleLoader;
 import org.eclipse.osgi.internal.loader.EquinoxClassLoader;
 import org.eclipse.osgi.internal.loader.ModuleClassLoader;
+import org.eclipse.osgi.internal.log.EquinoxLogServices;
 import org.eclipse.osgi.storage.BundleInfo.Generation;
 import org.eclipse.osgi.storage.bundlefile.BundleFile;
 import org.eclipse.osgi.storage.bundlefile.BundleFileWrapper;
 import org.eclipse.osgi.storage.bundlefile.MRUBundleFileList;
-import org.eclipse.osgi.storage.url.reference.ReferenceInputStream;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -51,15 +49,11 @@ import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.SynchronousBundleListener;
-import org.osgi.framework.namespace.IdentityNamespace;
+import org.osgi.framework.hooks.bundle.CollisionHook;
+import org.osgi.framework.hooks.resolver.ResolverHookFactory;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
-import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWiring;
-import org.osgi.framework.wiring.FrameworkWiring;
-import org.osgi.resource.Namespace;
-import org.osgi.resource.Requirement;
-import org.osgi.resource.Resource;
 
 public class AtomosHookConfigurator implements HookConfigurator {
 	public static final String DEBUG_ATOM_FWK = "equinox.atomos.framework/debug"; //$NON-NLS-1$
@@ -87,6 +81,7 @@ public class AtomosHookConfigurator implements HookConfigurator {
 	private final AtomosRuntimeImpl atomosRuntime;
 	volatile BundleContext bc;
 	volatile File emptyJar;
+	volatile EquinoxLogServices logServices;
 
 	public AtomosHookConfigurator() {
 		AtomosRuntimeImpl bootRuntime = bootAtomRuntime.get();
@@ -97,6 +92,7 @@ public class AtomosHookConfigurator implements HookConfigurator {
 	public void addHooks(HookRegistry hookRegistry) {
 		DEBUG = hookRegistry.getContainer().getConfiguration().getDebugOptions().getBooleanOption(DEBUG_ATOM_FWK,
 				false);
+		logServices = hookRegistry.getContainer().getLogServices();
 		if (atomosRuntime.getBootLayer().getAtomosBundles().isEmpty()) {
 			// nothing for us to do here
 			if (DEBUG) {
@@ -142,6 +138,11 @@ public class AtomosHookConfigurator implements HookConfigurator {
 		hookRegistry.addActivatorHookFactory(() -> new BundleActivator() {
 			@Override
 			public void start(BundleContext bc) throws BundleException, IOException {
+				AtomosHookConfigurator.this.bc = bc;
+				AtomosFrameworkHooks hooks = new AtomosFrameworkHooks(atomosRuntime);
+				bc.registerService(ResolverHookFactory.class, hooks, null);
+				bc.registerService(CollisionHook.class, hooks, null);
+
 				AtomicLong stateStamp = new AtomicLong(hookRegistry.getContainer().getStorage().getModuleDatabase().getRevisionsTimestamp());
 				// TODO there has to be a better way to do this; perhaps we need a new hook in equinox
 				// need to ensure the class loaders for atomos bundles are created eagerly to ensure
@@ -166,7 +167,6 @@ public class AtomosHookConfigurator implements HookConfigurator {
 						}
 					}
 				});
-				AtomosHookConfigurator.this.bc = bc;
 				emptyJar = bc.getDataFile("atomosEmptyBundle.jar");
 				Files.write(emptyJar.toPath(), EMPTY_JAR);
 
@@ -210,16 +210,25 @@ public class AtomosHookConfigurator implements HookConfigurator {
 		if (installBundles) {
 			List<Bundle> bundles = new ArrayList<>();
 			for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomosBundles()) {
-				Bundle b = atomosBundle.install("atomos");
-				if (b != null) {
-					bundles.add(b);
+				try {
+					Bundle b = atomosBundle.install("atomos");
+					if (b != null && b.getBundleId() != 0) {
+						bundles.add(b);
+					}
+				} catch (BundleException e) {
+					logServices.log(AtomosRuntimeImpl.thisModule.getName(), FrameworkLogEntry.ERROR, "Error installing Atomos bundle.", e);
 				}
 			}
 			if (startBundles) {
 				for (Bundle b : bundles) {
 					BundleRevision rev = b.adapt(BundleRevision.class);
 					if ((rev.getTypes() & BundleRevision.TYPE_FRAGMENT) == 0) {
-						b.start();
+						try {
+							b.start();
+						} catch (BundleException e) {
+							logServices.log(AtomosRuntimeImpl.thisModule.getName(), FrameworkLogEntry.ERROR, "Error starting Atomos bundle.", e);
+
+						}
 					}
 				}
 				for (AtomosLayer child : atomosLayer.getChildren()) {
@@ -229,64 +238,12 @@ public class AtomosHookConfigurator implements HookConfigurator {
 		}
 	}
 
-	Bundle installAtomosBundle(String prefix, AtomosBundleInfo atomosBundle) throws BundleException {
-		if (DEBUG) {
-			System.out.println("Installing atomos bundle: " + prefix + atomosBundle.getLocation()); //$NON-NLS-1$
-		}
-		if (prefix.indexOf(':') != -1) {
-			throw new IllegalArgumentException("The prefix cannot contain ':'");
-		}
-		if (bc == null) {
-			throw new IllegalStateException("Framework has not been initialized.");
-		}
-		String location = prefix + ':' + atomosBundle.getLocation();
-		atomosRuntime.addToInstalledBundles(location, (AtomosBundleInfoImpl) atomosBundle);
-		try {
-			return bc.installBundle(location, new ReferenceInputStream(emptyJar));
-		} catch (BundleException e) {
-			if (e.getType() == BundleException.DUPLICATE_BUNDLE_ERROR) {
-				// Something changed in the location information for the atomos bundle.
-				// uninstall the existing and try again.
-				return overrideExistingInstall(location, atomosBundle);
-			}
-			throw e;
-		}
+	public BundleContext getBundleContext() {
+		return bc;
 	}
-
-	private Bundle overrideExistingInstall(String location, AtomosBundleInfo bundleInfo) throws BundleException {
-		Requirement req = new Requirement() {
-			@Override
-			public Resource getResource() {
-				return null;
-			}
-
-			@Override
-			public String getNamespace() {
-				return IdentityNamespace.IDENTITY_NAMESPACE;
-			}
-
-			@Override
-			public Map<String, String> getDirectives() {
-				String identityFilter = "(" + IdentityNamespace.IDENTITY_NAMESPACE + "=" + bundleInfo.getSymbolicName()
-						+ ")";
-				return Collections.singletonMap(Namespace.REQUIREMENT_FILTER_DIRECTIVE, identityFilter);
-			}
-
-			@Override
-			public Map<String, Object> getAttributes() {
-				return Collections.emptyMap();
-			}
-		};
-		Collection<BundleCapability> found = bc.getBundle().adapt(FrameworkWiring.class).findProviders(req);
-		if (found.isEmpty()) {
-			throw new IllegalStateException("No existing bundle found: " + bundleInfo.getSymbolicName());
-		}
-		for (BundleCapability cap : found) {
-			cap.getRevision().getBundle().uninstall();
-		}
-		return bc.installBundle(location, new ByteArrayInputStream(EMPTY_JAR));
+	public File getEmptyJar() {
+		return emptyJar;
 	}
-
 	/**
 	 * A bundle class loader that delegates to a module class loader. The purpose of
 	 * this class loader is to simply delegate local class/resource lookups to the

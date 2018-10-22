@@ -10,7 +10,6 @@
  *******************************************************************************/
 package org.atomos.framework;
 
-import java.lang.module.ResolvedModule;
 import java.util.Optional;
 
 import org.osgi.framework.Bundle;
@@ -23,9 +22,11 @@ import org.osgi.framework.Version;
 public interface AtomosBundleInfo extends Comparable<AtomosBundleInfo> {
 
 	/**
-	 * The location of the Atomos bundle.
-	 * This location plus the prefix will be used
-	 * to install the Atomos bundle.
+	 * The location of the Atomos bundle. The location
+	 * always includes the Atomos bundle's layer {@link AtomosLayer#getName() name}.
+	 * This location plus the {@link #install(String) prefix} will be used
+	 * as the install location of the Atomos bundle.
+	 * 
 	 * @return the location of the Atomos bundle.
 	 * @see AtomosBundleInfo#install(String)
 	 */
@@ -54,7 +55,7 @@ public interface AtomosBundleInfo extends Comparable<AtomosBundleInfo> {
 	 * The Atomos layer this Atomos bundle is in.
 	 * @return the Atomos layer
 	 */
-	public AtomosLayer getAtomLayer();
+	public AtomosLayer getAtomosLayer();
 
 	/**
 	 * Installs this Atomos bundle using the specified prefix.  If the Atomos bundle

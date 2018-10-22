@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.atomos.framework;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
+import org.eclipse.core.runtime.adaptor.EclipseStarter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -80,7 +82,16 @@ public class AtomosFrameworkFactoryTest {
 		Bundle[] bundles = bc.getBundles();
 		assertTrue("No bundles: " + Arrays.toString(bundles), bundles.length > 0);
 		for (Bundle b : bundles) {
-			System.out.println(b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b));
+			String msg = b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b);
+			System.out.println(msg);
+			int expected;
+			if ("osgi.annotation".equals(b.getSymbolicName())) {
+				expected = Bundle.INSTALLED;
+			} else {
+				expected = Bundle.ACTIVE;
+			}
+			assertEquals("Wrong bundle state for bundle: " + msg, expected, b.getState());
+
 		}
 	}
 

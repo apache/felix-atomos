@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.osgi.framework.BundleException;
+
 /**
  * An Atomos Layer represents a {@link ModuleLayer} that was added to
  * a {@link AtomosRuntime} using the {@link AtomosRuntime#addLayer(Configuration) addLayer}
@@ -48,4 +50,25 @@ public interface AtomosLayer {
 	 * @return the Atomos Bundles
 	 */
 	Set<AtomosBundleInfo> getAtomosBundles();
+
+	/**
+	 * The name of the Atomos Layer.  By default the Atomos Layer
+	 * name is the empty string.  Atomos Layer names are not
+	 * required to be unique.  All Atomos bundles contained in a
+	 * layer will have {@link AtomosBundleInfo#getLocation() locations}
+	 * that use the layer name as a prefix.  If the layer
+	 * name is not the empty string then the location prefix will be
+	 * the layer name followed by a colon ({@code :}).
+	 * This allows two different layers to load the same module in
+	 * different layers.
+	 * @return the name of the layer
+	 */
+	String getName();
+
+	/**
+	 * Uninstalls this Atomos Layer along with any {@link #getChildren() children}
+	 * layers.
+	 * @throws BundleException 
+	 */
+	void uninstall() throws BundleException;
 }

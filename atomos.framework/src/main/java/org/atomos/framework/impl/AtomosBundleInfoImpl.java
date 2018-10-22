@@ -106,7 +106,7 @@ public class AtomosBundleInfoImpl implements AtomosBundleInfo, Comparable<Atomos
 	}
 
 	@Override
-	public AtomosLayer getAtomLayer() {
+	public AtomosLayer getAtomosLayer() {
 		return atomosLayer;
 	}
 
@@ -156,6 +156,6 @@ public class AtomosBundleInfoImpl implements AtomosBundleInfo, Comparable<Atomos
 
 	@Override
 	public Bundle install(String prefix) throws BundleException {
-		return runtime.installAtomBundle(prefix, this);
+		return runtime.installAtomosBundle(prefix, this);
 	}
 }

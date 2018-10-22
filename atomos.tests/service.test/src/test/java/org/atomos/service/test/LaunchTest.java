@@ -17,11 +17,17 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.module.Configuration;
+import java.lang.module.ModuleFinder;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
@@ -75,19 +81,12 @@ public class LaunchTest {
 		for (Bundle b : bundles) {
 			System.out.println(b.getBundleId() + " " + b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b));
 		}
-		ServiceReference<?>[] echoRefs = bc.getAllServiceReferences(Echo.class.getName(), null);
-		assertNotNull("No Echo service ref found.", echoRefs);
-		assertEquals("Wrong number of services.", 2, echoRefs.length);
-		for (ServiceReference<?> ref : echoRefs) {
-			Echo echo = (Echo) bc.getService(ref);
-			assertNotNull("No Echo service found.", echo);
-			assertEquals("Wrong Echo.", ref.getProperty("type") + " Hello!!", echo.echo("Hello!!"));
-		}
+
+		checkServices(bc, 2);
 	}
 
 	@Test
 	public void testModuleDirServices() throws BundleException, InvalidSyntaxException {
-		System.out.println("USER DIR = " + System.getProperty("user.dir"));
 		Launch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(), AtomosRuntime.ATOMOS_MODULES_DIR + "=target/modules"});
 		testFramework = Launch.getFramework();
 		BundleContext bc = testFramework.getBundleContext();
@@ -97,14 +96,8 @@ public class LaunchTest {
 		for (Bundle b : bundles) {
 			System.out.println(b.getBundleId() + " " + b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b));
 		}
-		ServiceReference<?>[] echoRefs = bc.getAllServiceReferences(Echo.class.getName(), null);
-		assertNotNull("No Echo service ref found.", echoRefs);
-		assertEquals("Wrong number of services.", 4, echoRefs.length);
-		for (ServiceReference<?> ref : echoRefs) {
-			Echo echo = (Echo) bc.getService(ref);
-			assertNotNull("No Echo service found.", echo);
-			assertEquals("Wrong Echo.", ref.getProperty("type") + " Hello!!", echo.echo("Hello!!"));
-		}
+
+		checkServices(bc, 4);
 	}
 
 	@Test
@@ -142,6 +135,73 @@ public class LaunchTest {
 			assertNotNull("Null class from loadClass.", clazz);
 		} catch (Exception e) {
 			fail("Failed to find class: " + e.getMessage());
+		}
+	}
+
+	@Test
+	public void testAddNewLayer() throws BundleException, InvalidSyntaxException {
+		Launch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(), AtomosRuntime.ATOMOS_MODULES_DIR + "=target/modules"});
+		testFramework = Launch.getFramework();
+		BundleContext bc = testFramework.getBundleContext();
+		assertNotNull("No context found.", bc);
+		Bundle[] bundles = bc.getBundles();
+		int originalNum = bundles.length;
+		assertTrue("No bundles: " + Arrays.toString(bundles), bundles.length > 0);
+
+		checkServices(bc, 4);
+
+		AtomosRuntime atomosRuntime = bc.getService(bc.getServiceReference(AtomosRuntime.class));
+
+		Collection<AtomosLayer> layers = new ArrayList<>();
+		for (int i = 0; i < 20; i++) {
+			layers.add(installChild(atomosRuntime.getBootLayer(), "services-" + i, atomosRuntime));
+		}
+		checkServices(bc, 44);
+
+		for (Bundle b : bc.getBundles()) {
+			System.out.println(b.getBundleId() + " " + b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b));
+		}
+	
+		layers.forEach((l) -> {
+			try {
+				l.uninstall();
+			} catch (BundleException e) {
+				throw new RuntimeException(e);
+			}
+		});
+		checkServices(bc, 4);
+
+		assertEquals("Wrong number of final bundles.", originalNum, bc.getBundles().length);
+	}
+
+	private AtomosLayer installChild(AtomosLayer parent, String name, AtomosRuntime atomosRuntime) throws BundleException {
+		File modules = new File("target/modules");
+		assertTrue("Modules directory does not exist: " + modules, modules.isDirectory());
+		ModuleFinder finder = ModuleFinder.of(modules.toPath());
+		Set<String> roots = finder.findAll().stream().map((r) -> r.descriptor().name()).collect(Collectors.toSet());
+
+		Configuration modulesConfig = Configuration.resolve(ModuleFinder.of(), List.of(parent.getModuleLayer().get().configuration()), finder, roots);
+		AtomosLayer child = atomosRuntime.addLayer(modulesConfig, name);
+
+		List<Bundle> bundles = new ArrayList<>();
+		for (AtomosBundleInfo atomosBundle : child.getAtomosBundles()) {
+			bundles.add(atomosBundle.install("child"));
+		}
+		for (Bundle b : bundles) {
+			b.start();
+		}
+
+		return child;
+	}
+
+	private void checkServices(BundleContext bc, int expectedNumber) throws InvalidSyntaxException {
+		ServiceReference<?>[] echoRefs = bc.getAllServiceReferences(Echo.class.getName(), null);
+		assertNotNull("No Echo service ref found.", echoRefs);
+		assertEquals("Wrong number of services.", expectedNumber, echoRefs.length);
+		for (ServiceReference<?> ref : echoRefs) {
+			Echo echo = (Echo) bc.getService(ref);
+			assertNotNull("No Echo service found.", echo);
+			assertEquals("Wrong Echo.", ref.getProperty("type") + " Hello!!", echo.echo("Hello!!"));
 		}
 	}
 
