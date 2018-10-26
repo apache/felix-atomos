@@ -1,14 +1,26 @@
+/*******************************************************************************
+ * Copyright (c) 2018 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *******************************************************************************/
 package org.atomos.framework.impl;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.module.Configuration;
 import java.lang.module.ModuleDescriptor;
+import java.lang.module.ModuleFinder;
 import java.lang.module.ResolvedModule;
 import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,6 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.jar.JarFile;
@@ -44,16 +57,6 @@ import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 import org.osgi.framework.wiring.FrameworkWiring;
 
-/*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
 public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListener{
 	static final String JAR_PROTOCOL = "jar"; //$NON-NLS-1$
 	static final String FILE_PROTOCOL = "file"; //$NON-NLS-1$
@@ -66,69 +69,84 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 	}
 
 	volatile AtomosHookConfigurator configurator;
-	final ReentrantReadWriteLock bundleLock = new ReentrantReadWriteLock();
+	final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 	final Map<String, AtomosBundleInfoImpl> byOSGiLocation = new HashMap<>();
 	final Map<String, AtomosBundleInfoImpl> byAtomosLocation = new HashMap<>();
 	final Map<AtomosLayer, Collection<String>> byAtomosLayer = new HashMap<>();
 	final Map<Configuration, AtomosLayerImpl> byConfig = new HashMap<>();
-	final AtomosLayer bootLayer = createAtomLayer(thisConfig, "boot");
+	final Map<Long, AtomosLayerImpl> byId = new HashMap<>();
+	final AtomosLayer bootLayer;
 	final Function<String, ClassLoader> clFunction = (n) -> new AtomosClassLoader(null);
+	final AtomicLong nextLayerId = new AtomicLong(0);
+
+	public AtomosRuntimeImpl() {
+		bootLayer = createAtomLayer(thisConfig, "boot", -1);
+	}
 
 	AtomosBundleInfoImpl getByOSGiLocation(String location) {
-		bundleLock.readLock().lock();
+		lock.readLock().lock();
 		try {
 			return byOSGiLocation.get(location);
 		} finally {
-			bundleLock.readLock().unlock();
+			lock.readLock().unlock();
 		}
 	}
 
 	void addToInstalledBundles(String osgiLocation, AtomosBundleInfoImpl atomosBundle) {
-		bundleLock.writeLock().lock();
+		lock.writeLock().lock();
 		try {
 			byOSGiLocation.put(osgiLocation, atomosBundle);
 			AtomosLayer layer = atomosBundle.getAtomosLayer();
 			byAtomosLayer.computeIfAbsent(layer, (l) -> new ArrayList<>()).add(osgiLocation);
 		} finally {
-			bundleLock.writeLock().unlock();
+			lock.writeLock().unlock();
 		}
 	}
 
 	private void removeFromInstalledBundles(Bundle bundle) {
 		String location = bundle.getLocation();
-		bundleLock.writeLock().lock();
+		lock.writeLock().lock();
 		try {
 			AtomosBundleInfo removed = byOSGiLocation.remove(location);
 			byAtomosLayer.computeIfAbsent(removed.getAtomosLayer(), (l) -> new ArrayList<>()).remove(location);
 		} finally {
-			bundleLock.writeLock().unlock();
+			lock.writeLock().unlock();
 		}
 	}
 
 	AtomosBundleInfoImpl getByAtomLocation(String location) {
-		bundleLock.readLock().lock();
+		lock.readLock().lock();
 		try {
 			return byAtomosLocation.get(location);
 		} finally {
-			bundleLock.readLock().unlock();
+			lock.readLock().unlock();
 		}
 	}
 
 	AtomosLayerImpl getByConfig(Configuration config) {
-		bundleLock.readLock().lock();
+		lock.readLock().lock();
 		try {
 			return byConfig.get(config);
 		} finally {
-			bundleLock.readLock().unlock();
+			lock.readLock().unlock();
+		}
+	}
+
+	AtomosLayerImpl getById(long id) {
+		lock.readLock().lock();
+		try {
+			return byId.get(id);
+		} finally {
+			lock.readLock().unlock();
 		}
 	}
 
 	Collection<String> getInstelledLocations(AtomosLayer layer) {
-		bundleLock.readLock().lock();
+		lock.readLock().lock();
 		try {
 			return new ArrayList<>(byAtomosLayer.computeIfAbsent(layer, (l) -> new ArrayList<>()));
 		} finally {
-			bundleLock.readLock().unlock();
+			lock.readLock().unlock();
 		}
 	}
 
@@ -138,13 +156,21 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 	}
 
 	@Override
-	public AtomosLayer addLayer(Configuration layerConfig, String name) {
+	public AtomosLayer addLayer(List<AtomosLayer> parents, String name, Path... paths) {
+		return addLayer(parents, name, -1, paths);
+	}
+
+	AtomosLayer addLayer(List<AtomosLayer> parents, String name, long id, Path... paths) {
 		if (bootLayer.getModuleLayer().isEmpty()) {
 			throw new IllegalStateException("Cannot add module layers when Atomos is not loaded as module.");
 		}
-		AtomosLayer atomosLayer = createAtomLayer(layerConfig, name);
-		return atomosLayer;
+		List<Configuration> parentConfigs = parents.stream().map((l) -> l.getModuleLayer().get().configuration()).collect(Collectors.toList());
+		ModuleFinder finder = ModuleFinder.of(paths);
+		List<String> roots = finder.findAll().stream().map((m) -> m.descriptor().name()).collect(Collectors.toList());
+		Configuration config = Configuration.resolve(ModuleFinder.of(), parentConfigs, ModuleFinder.of(paths), roots);
+		return createAtomLayer(config, name, id, paths);
 	}
+
 
 	@Override
 	public AtomosLayer getBootLayer() {
@@ -195,6 +221,9 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 
 	ThreadLocal<AtomosBundleInfo> installingInfo = new ThreadLocal<>();
 	Bundle installAtomosBundle(String prefix, AtomosBundleInfo atomosBundle) throws BundleException {
+		if (prefix == null) {
+			prefix = "atomos";
+		}
 		if (AtomosHookConfigurator.DEBUG) {
 			System.out.println("Installing atomos bundle: " + prefix + atomosBundle.getLocation()); //$NON-NLS-1$
 		}
@@ -244,21 +273,42 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 		return installingInfo.get();
 	}
 
-	AtomosLayerImpl createAtomLayer(Configuration config, String name) {
+	AtomosLayerImpl createAtomLayer(Configuration config, String name, long id, Path... paths) {
 		AtomosLayerImpl existing = getByConfig(config);
 		if (existing != null) {
 			return existing;
 		}
-		bundleLock.writeLock().lock();
+		existing = getById(id);
+		if (existing != null) {
+			throw new IllegalArgumentException("The a layer already exists with the id: " + id + " " + existing.getName());
+		}
+		lock.writeLock().lock();
 		try {
-			AtomosLayerImpl result = new AtomosLayerImpl(config, name);
+			List<AtomosLayer> parents = findParents(config, name);
+			id = id < 0 ? nextLayerId.getAndIncrement() : id;
+			AtomosLayerImpl result = new AtomosLayerImpl(config, parents, id, name, paths);
 			addAtomLayer(result);
 			return result;
 		} finally {
-			bundleLock.writeLock().unlock();
+			lock.writeLock().unlock();
 		}
 	}
 
+	private List<AtomosLayer> findParents(Configuration config, String name) {
+		if (config == null || config.parents().isEmpty()) {
+			return List.of();
+		}
+		List<AtomosLayer> found = new ArrayList<>(config.parents().size());
+		for (Configuration parentConfig : config.parents()) {
+			AtomosLayerImpl existingParent = getByConfig(parentConfig);
+			if (existingParent != null) {
+				found.add(existingParent);
+			} else {
+				found.add(createAtomLayer(parentConfig, name, -1));
+			}
+		}
+		return Collections.unmodifiableList(found);
+	}
 
 	@Override
 	public void bundleChanged(BundleEvent event) {
@@ -272,6 +322,9 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 		if (byConfig.putIfAbsent(config, atomosLayer) != null) {
 			throw new IllegalStateException("AtomosLayer already exists for configuration.");
 		}
+		if (byId.putIfAbsent(atomosLayer.getId(), atomosLayer) != null) {
+			throw new IllegalStateException("AtomosLayer already exists for id: " + atomosLayer.getId());
+		}
 
 		for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomosBundles()) {
 			if (byAtomosLocation.putIfAbsent(atomosBundle.getLocation(), (AtomosBundleInfoImpl) atomosBundle) != null) {
@@ -284,16 +337,20 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 	}
 
 	class AtomosLayerImpl implements AtomosLayer {
+		private final long id;
 		private final String name;
 		private final Optional<ModuleLayer> moduleLayer;
 		private final Set<AtomosBundleInfo> atomosBundles;
 		private final List<AtomosLayer> parents;
 		private final Set<AtomosLayer> children = new HashSet<>();
+		private final List<Path> paths;
 		private volatile boolean valid = true;
 
-		AtomosLayerImpl(Configuration config, String name) {
+		AtomosLayerImpl(Configuration config, List<AtomosLayer> parents, long id, String name, Path... paths) {
+			this.id = id;
 			this.name = name == null ? "" : name;
-			this.parents = findParents(config, this.name);
+			this.paths = List.of(paths);
+			this.parents = parents;
 			this.moduleLayer = Optional.ofNullable(findModuleLayer(config));
 			this.atomosBundles = findAtomosBundles();
 
@@ -320,22 +377,6 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 
 		void removeChild(AtomosLayerImpl child) {
 			children.remove(child);
-		}
-
-		private List<AtomosLayer> findParents(Configuration config, String name) {
-			if (config == null || config.parents().isEmpty()) {
-				return List.of();
-			}
-			List<AtomosLayer> found = new ArrayList<>(config.parents().size());
-			for (Configuration parentConfig : config.parents()) {
-				AtomosLayerImpl existingParent = getByConfig(parentConfig);
-				if (existingParent != null) {
-					found.add(existingParent);
-				} else {
-					found.add(createAtomLayer(parentConfig, name));
-				}
-			}
-			return Collections.unmodifiableList(found);
 		}
 
 		private Set<AtomosBundleInfo> findAtomosBundles() {
@@ -466,11 +507,11 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 
 		@Override
 		public Set<AtomosLayer> getChildren() {
-			bundleLock.readLock().lock();
+			lock.readLock().lock();
 			try {
 				return new HashSet<>(children);
 			} finally {
-				bundleLock.readLock().unlock();
+				lock.readLock().unlock();
 			}
 		}
 
@@ -489,6 +530,15 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 			return moduleLayer;
 		}
 
+		List<Path> getPaths() {
+			return paths;
+		}
+
+		@Override
+		public long getId() {
+			return id;
+		}
+
 		@Override
 		public void uninstall() throws BundleException {
 			List<Bundle> uninstalledBundles = new ArrayList<>();
@@ -497,12 +547,12 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 				uninstallLayer(uninstalledBundles, bc);
 			}
 
-			// now remove the layer hierarchy
-			bundleLock.writeLock().lock();
+			lock.writeLock().lock();
 			try {
-				removeLayerFromHierarchy();
+				// now remove the layer from the runtime
+				removeLayerFromRuntime();
 			} finally {
-				bundleLock.writeLock().unlock();
+				lock.writeLock().unlock();
 			}
 
 			if (bc != null) {
@@ -510,13 +560,16 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 				bc.getBundle(Constants.SYSTEM_BUNDLE_LOCATION).adapt(FrameworkWiring.class).refreshBundles(uninstalledBundles);
 			}
 		}
-		private void removeLayerFromHierarchy() {
+		private void removeLayerFromRuntime() {
 			for (AtomosLayer parent : getParents()) {
 				((AtomosLayerImpl) parent).removeChild(this);
 			}
 			for (AtomosLayer child : getChildren()) {
-				((AtomosLayerImpl) child).removeLayerFromHierarchy();
+				((AtomosLayerImpl) child).removeLayerFromRuntime();
 			}
+			byAtomosLayer.remove(this);
+			byConfig.remove(getModuleLayer().map((l) -> l.configuration()).orElse(null));
+			byId.remove(getId());
 		}
 
 		void uninstallLayer(List<Bundle> uninstalledBundles, BundleContext bc) throws BundleException {

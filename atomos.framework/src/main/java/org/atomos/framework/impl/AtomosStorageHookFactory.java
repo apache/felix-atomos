@@ -12,19 +12,28 @@ package org.atomos.framework.impl;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.lang.module.ModuleDescriptor;
 import java.lang.module.ModuleDescriptor.Exports;
 import java.lang.module.ModuleDescriptor.Provides;
 import java.lang.module.ModuleDescriptor.Requires;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.eclipse.osgi.container.ModuleRevisionBuilder;
+import org.atomos.framework.AtomosBundleInfo;
+import org.atomos.framework.AtomosLayer;
+import org.atomos.framework.impl.AtomosRuntimeImpl.AtomosLayerImpl;
 import org.eclipse.osgi.container.ModuleContainerAdaptor.ModuleEvent;
+import org.eclipse.osgi.container.ModuleRevisionBuilder;
 import org.eclipse.osgi.container.ModuleRevisionBuilder.GenericInfo;
 import org.eclipse.osgi.framework.log.FrameworkLogEntry;
 import org.eclipse.osgi.internal.hookregistry.HookRegistry;
@@ -37,9 +46,8 @@ import org.osgi.framework.namespace.BundleNamespace;
 import org.osgi.framework.namespace.IdentityNamespace;
 import org.osgi.framework.namespace.PackageNamespace;
 import org.osgi.resource.Namespace;
-import org.atomos.framework.AtomosBundleInfo;
 
-public class AtomosStorageHookFactory extends StorageHookFactory<Object, Object, StorageHook<Object, Object>> {
+public class AtomosStorageHookFactory extends StorageHookFactory<AtomicBoolean, AtomicBoolean, StorageHook<AtomicBoolean, AtomicBoolean>> {
 	private final AtomosRuntimeImpl atomosRuntime;
 	private final HookRegistry hookRegistry;
 	
@@ -54,8 +62,18 @@ public class AtomosStorageHookFactory extends StorageHookFactory<Object, Object,
 	}
 
 	@Override
-	protected StorageHook<Object, Object> createStorageHook(Generation generation) {
-		return new StorageHook<Object, Object>(generation, this.getClass()) {
+	public AtomicBoolean createLoadContext(int version) {
+		return new AtomicBoolean(false);
+	}
+
+	@Override
+	public AtomicBoolean createSaveContext() {
+		return new AtomicBoolean(false);
+	}
+
+	@Override
+	protected StorageHook<AtomicBoolean, AtomicBoolean> createStorageHook(Generation generation) {
+		return new StorageHook<AtomicBoolean, AtomicBoolean>(generation, this.getClass()) {
 
 			@Override
 			public void initialize(Dictionary<String, String> manifest) throws BundleException {
@@ -63,7 +81,10 @@ public class AtomosStorageHookFactory extends StorageHookFactory<Object, Object,
 			}
 
 			@Override
-			public void load(Object loadContext, DataInputStream is) throws IOException {
+			public void load(AtomicBoolean loadContext, DataInputStream is) throws IOException {
+				if (loadContext.compareAndSet(false, true)) {
+					loadLayers(is);
+				}
 				if (is.readBoolean()) {
 					String atomosLocation = is.readUTF();
 					AtomosBundleInfoImpl atomosBundle = atomosRuntime.getByAtomLocation(atomosLocation);
@@ -84,7 +105,10 @@ public class AtomosStorageHookFactory extends StorageHookFactory<Object, Object,
 			}
 
 			@Override
-			public void save(Object saveContext, DataOutputStream os) throws IOException {
+			public void save(AtomicBoolean saveContext, DataOutputStream os) throws IOException {
+				if (saveContext.compareAndSet(false, true)) {
+					saveLayers(os);
+				}
 				String location = generation.getBundleInfo().getLocation();
 				AtomosBundleInfo bootBundle = atomosRuntime.getByOSGiLocation(location);
 				if (bootBundle != null) {
@@ -106,6 +130,96 @@ public class AtomosStorageHookFactory extends StorageHookFactory<Object, Object,
 				return super.adaptModuleRevisionBuilder(operation, origin, builder);
 			}
 		};
+	}
+
+	void loadLayers(DataInputStream in) throws IOException {
+		atomosRuntime.lock.writeLock().lock();
+		try {
+			long nextLayerId = in.readLong();
+			int numLayers = in.readInt();
+			for (int i = 0; i < numLayers; i++) {
+				readLayer(in);
+			}
+			atomosRuntime.nextLayerId.set(nextLayerId);
+		} finally {
+			atomosRuntime.lock.writeLock().unlock();
+		}
+	}
+
+	void saveLayers(DataOutputStream out) throws IOException {
+		atomosRuntime.lock.readLock().lock();
+		try {
+			out.writeLong(atomosRuntime.nextLayerId.get());
+			List<AtomosLayerImpl> writeOrder = getLayerWriteOrder((AtomosLayerImpl) atomosRuntime.getBootLayer(), new HashSet<>(), new ArrayList<>());
+			out.writeInt(writeOrder.size());
+			for (AtomosLayerImpl layer : writeOrder) {
+				writeLayer(layer, out);
+			}
+		} finally {
+			atomosRuntime.lock.readLock().unlock();
+		}
+	}
+
+	private List<AtomosLayerImpl> getLayerWriteOrder(AtomosLayer layer, Set<AtomosLayer> visited, List<AtomosLayerImpl> result) {
+		if (!visited.add(layer)) {
+			return result;
+		}
+
+		// visit all parents first
+		for (AtomosLayer parent : layer.getParents()) {
+			getLayerWriteOrder(parent, visited, result);
+		}
+
+		// add self before children
+		result.add((AtomosLayerImpl) layer);
+
+		// now visit children
+		for (AtomosLayer child : layer.getChildren()) {
+			getLayerWriteOrder(child, visited, result);
+		}
+		return result;
+	}
+
+	private void readLayer(DataInputStream in) throws IOException {
+		String name = in.readUTF();
+		long id = in.readLong();
+		int numPaths = in.readInt();
+		Path[] paths = new Path[numPaths];
+		for (int i = 0; i < numPaths; i++) {
+			paths[i] = new File(in.readUTF()).toPath();
+		}
+		int numParents = in.readInt();
+		List<AtomosLayer> parents = new ArrayList<>();
+		for (int i = 0; i < numParents; i++) {
+			long parentId = in.readLong();
+			AtomosLayerImpl parent = atomosRuntime.getById(parentId);
+			if (parent == null) {
+				throw new IllegalArgumentException("Missing parent with id: " + parentId);
+			}
+			parents.add(parent);
+		}
+		if (atomosRuntime.getById(id) == null) {
+			try {
+				atomosRuntime.addLayer(parents, name, id, paths);
+			} catch (Exception e) {
+				throw new IllegalArgumentException("Error adding persistent layer: " + e.getMessage());
+			}
+		}
+	}
+
+	private void writeLayer(AtomosLayerImpl layer, DataOutputStream out) throws IOException {
+		out.writeUTF(layer.getName());
+		out.writeLong(layer.getId());
+		List<Path> paths = layer.getPaths();
+		out.writeInt(paths.size());
+		for (Path path : paths) {
+			out.writeUTF(path.toString());
+		}
+		List<AtomosLayer> parents = layer.getParents();
+		out.writeInt(parents.size());
+		for (AtomosLayer parent : parents) {
+			out.writeLong(((AtomosLayerImpl) parent).getId());
+		}
 	}
 
 	ModuleRevisionBuilder createBuilder(AtomosBundleInfo atomosBundle, ModuleRevisionBuilder original,

@@ -27,12 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
-import org.eclipse.core.runtime.adaptor.EclipseStarter;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestName;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -43,8 +40,6 @@ import org.osgi.framework.launch.FrameworkFactory;
 public class AtomosFrameworkFactoryTest {
 	private Path storage;
 	private Framework testFramework;
-	@Rule
-	public TestName name = new TestName();
 
 	@Before
 	public void beforeTest() throws IOException {
@@ -80,7 +75,7 @@ public class AtomosFrameworkFactoryTest {
 		BundleContext bc = testFramework.getBundleContext();
 		assertNotNull("No context found.", bc);
 		Bundle[] bundles = bc.getBundles();
-		assertTrue("No bundles: " + Arrays.toString(bundles), bundles.length > 0);
+		assertTrue("No bundles: " + Arrays.toString(bundles), bundles.length > 1);
 		for (Bundle b : bundles) {
 			String msg = b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b);
 			System.out.println(msg);

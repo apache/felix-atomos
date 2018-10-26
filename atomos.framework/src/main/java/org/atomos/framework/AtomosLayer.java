@@ -66,6 +66,24 @@ public interface AtomosLayer {
 	String getName();
 
 	/**
+	 * Returns this Atomos Layer's unique identifier. This Atomos Layer is assigned a unique
+	 * identifier when it was installed in the Atomos runtime.
+	 * 
+	 * <p>
+	 * A Atomos Layer's unique identifier has the following attributes:
+	 * <ul>
+	 * <li>Is unique and persistent.</li>
+	 * <li>Is a {@code long}.</li>
+	 * <li>Its value is not reused for another layer, even after a layer is
+	 * uninstalled.</li>
+	 * <li>Does not change while a layer remains installed.</li>
+	 * </ul>
+	 * 
+	 * @return The unique identifier of this layer.
+	 */
+	long getId();
+
+	/**
 	 * Uninstalls this Atomos Layer along with any {@link #getChildren() children}
 	 * layers.
 	 * @throws BundleException 

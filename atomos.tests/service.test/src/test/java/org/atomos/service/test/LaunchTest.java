@@ -177,11 +177,8 @@ public class LaunchTest {
 	private AtomosLayer installChild(AtomosLayer parent, String name, AtomosRuntime atomosRuntime) throws BundleException {
 		File modules = new File("target/modules");
 		assertTrue("Modules directory does not exist: " + modules, modules.isDirectory());
-		ModuleFinder finder = ModuleFinder.of(modules.toPath());
-		Set<String> roots = finder.findAll().stream().map((r) -> r.descriptor().name()).collect(Collectors.toSet());
 
-		Configuration modulesConfig = Configuration.resolve(ModuleFinder.of(), List.of(parent.getModuleLayer().get().configuration()), finder, roots);
-		AtomosLayer child = atomosRuntime.addLayer(modulesConfig, name);
+		AtomosLayer child = atomosRuntime.addLayer(List.of(parent), name, modules.toPath());
 
 		List<Bundle> bundles = new ArrayList<>();
 		for (AtomosBundleInfo atomosBundle : child.getAtomosBundles()) {

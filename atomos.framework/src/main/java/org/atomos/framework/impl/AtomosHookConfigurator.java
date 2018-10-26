@@ -180,6 +180,7 @@ public class AtomosHookConfigurator implements HookConfigurator {
 				boolean startBundles = Boolean.valueOf(hookRegistry.getConfiguration().getConfiguration(AtomosRuntime.ATOMOS_BUNDLE_START, "true")); //$NON-NLS-1$
 				installAtomosBundles(atomosRuntime.getBootLayer(), installBundles, startBundles);
 				bc.registerService(AtomosRuntime.class, atomosRuntime, null);
+				new AtomosCommands(atomosRuntime).register(bc);
 			}
 
 			@Override

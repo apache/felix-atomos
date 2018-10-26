@@ -12,15 +12,13 @@ package org.atomos.framework;
 
 import java.io.File;
 import java.lang.module.Configuration;
-import java.lang.module.ModuleFinder;
 import java.lang.module.ResolvedModule;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
@@ -146,21 +144,14 @@ public interface AtomosRuntime {
 	AtomosBundleInfo getAtomBundle(String bundleLocation);
 
 	/**
-	 * Adds a {@link Configuration} to the Atomos runtime. This can be done before
-	 * or after the Atomos framework has been {@link #createFramework(Map) created}.
-	 * If done before framework creation then the Atomos bundles found will be be
-	 * automatically installed and started according to the
-	 * {@link #ATOMOS_BUNDLE_INSTALL} and {@link #ATOMOS_BUNDLE_START} settings.
-	 * <p>
-	 * If the {@link Configuration#parents() parent} configurations do not already
-	 * have existing Atomos Layers associated with them then they will also be created.
-	 * All Atomos Layers created will use the specified name.
-	 * 
-	 * @param layerConfig the configuration to use for the new layer
-	 * @param name the name of the new layer (and any new parent layers created), may be {@code null}.
-	 * @return The Atomos layer that got created
+	 * Adds a layer with the specified parents and loads modules from the specified
+	 * module paths
+	 * @param parents the parents for the new layer
+	 * @param name the name of the new layer
+	 * @param modulePaths the paths to load modules for the new layer
+	 * @return a newly created layer
 	 */
-	AtomosLayer addLayer(Configuration layerConfig, String name);
+	AtomosLayer addLayer(List<AtomosLayer> parents, String name, Path... modulePaths);
 
 	/**
 	 * The initial boot Atomos layer
@@ -215,14 +206,7 @@ public interface AtomosRuntime {
 			Configuration config = thisLayer.configuration();
 			File modulesDir = getModulesDir(config, frameworkConfig);
 			if (modulesDir != null) {
-				// Find all the modules and use all of them as roots because we want to load
-				// them all
-				ModuleFinder finder = ModuleFinder.of(modulesDir.toPath());
-				Set<String> roots = finder.findAll().stream().map((r) -> r.descriptor().name()).collect(Collectors.toSet());
-	
-				// Resolve the configuration with all the roots
-				Configuration modulesConfig = Configuration.resolve(ModuleFinder.of(), List.of(config), finder, roots);
-				atomosRuntime.addLayer(modulesConfig, "modules");
+				atomosRuntime.addLayer(List.of(atomosRuntime.getBootLayer()), "modules", modulesDir.toPath());
 			}
 		}
 		Framework framework = atomosRuntime.createFramework(frameworkConfig);
