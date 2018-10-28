@@ -75,6 +75,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 	final Map<AtomosLayer, Collection<String>> byAtomosLayer = new HashMap<>();
 	final Map<Configuration, AtomosLayerImpl> byConfig = new HashMap<>();
 	final Map<Long, AtomosLayerImpl> byId = new HashMap<>();
+	final Map<AtomosBundleInfo, String> byAtomosBundle = new HashMap<>();
 	final AtomosLayer bootLayer;
 	final Function<String, ClassLoader> clFunction = (n) -> new AtomosClassLoader(null);
 	final AtomicLong nextLayerId = new AtomicLong(0);
@@ -98,17 +99,18 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 			byOSGiLocation.put(osgiLocation, atomosBundle);
 			AtomosLayer layer = atomosBundle.getAtomosLayer();
 			byAtomosLayer.computeIfAbsent(layer, (l) -> new ArrayList<>()).add(osgiLocation);
+			byAtomosBundle.put(atomosBundle, osgiLocation);
 		} finally {
 			lock.writeLock().unlock();
 		}
 	}
 
-	private void removeFromInstalledBundles(Bundle bundle) {
-		String location = bundle.getLocation();
+	private void removeFromInstalledBundles(String osgiLocation) {
 		lock.writeLock().lock();
 		try {
-			AtomosBundleInfo removed = byOSGiLocation.remove(location);
-			byAtomosLayer.computeIfAbsent(removed.getAtomosLayer(), (l) -> new ArrayList<>()).remove(location);
+			AtomosBundleInfo removed = byOSGiLocation.remove(osgiLocation);
+			byAtomosLayer.computeIfAbsent(removed.getAtomosLayer(), (l) -> new ArrayList<>()).remove(osgiLocation);
+			byAtomosBundle.remove(removed);
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -141,7 +143,15 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 		}
 	}
 
-	Collection<String> getInstelledLocations(AtomosLayer layer) {
+	String getByAtomosBundleInfo(AtomosBundleInfo atomosBundle) {
+		lock.readLock().lock();
+		try {
+			return byAtomosBundle.get(atomosBundle);
+		} finally {
+			lock.readLock().unlock();
+		}
+	}
+	Collection<String> getInstalledLocations(AtomosLayer layer) {
 		lock.readLock().lock();
 		try {
 			return new ArrayList<>(byAtomosLayer.computeIfAbsent(layer, (l) -> new ArrayList<>()));
@@ -256,6 +266,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 		try {
 			result = bc.installBundle(location, new ReferenceInputStream(emptyJar));
 		} finally {
+			installingInfo.set(null);
 			// check if the layer is still valid
 			if (!atomosLayer.isValid()) {
 				// The atomosLayer became invalid while installing
@@ -263,8 +274,9 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 					result.uninstall();
 					result = null;
 				}
+			} else if (result == null) {
+				removeFromInstalledBundles(location);
 			}
-			installingInfo.set(null);
 		}
 		return result;
 	}
@@ -286,6 +298,9 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 		try {
 			List<AtomosLayer> parents = findParents(config, name);
 			id = id < 0 ? nextLayerId.getAndIncrement() : id;
+			if (Configuration.empty().equals(config)) {
+				name = "empty";
+			}
 			AtomosLayerImpl result = new AtomosLayerImpl(config, parents, id, name, paths);
 			addAtomLayer(result);
 			return result;
@@ -313,7 +328,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 	@Override
 	public void bundleChanged(BundleEvent event) {
 		if (event.getType() == BundleEvent.UNINSTALLED) {
-			removeFromInstalledBundles(event.getBundle());
+			removeFromInstalledBundles(event.getBundle().getLocation());
 		}
 	}
 
@@ -590,13 +605,41 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 		}
 
 		private void uninstallBundles(List<Bundle> uninstalled, BundleContext bc) throws BundleException {
-			for (String installLoc : getInstelledLocations(this)) {
+			for (String installLoc : getInstalledLocations(this)) {
 				Bundle b = bc.getBundle(installLoc);
 				if (b != null) {
 					uninstalled.add(b);
 					b.uninstall();
 				}
 			}
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder result = new StringBuilder();
+			result.append('[').append(getId()).append(']');
+			result.append(' ').append(getName());
+			List<AtomosLayer> parents = getParents();
+			if (!parents.isEmpty()) {
+				result.append(" PARENTS: {");
+				for (AtomosLayer parent : parents) {
+					result.append("[").append(parent.getId()).append(']');
+					result.append(' ').append(parent.getName()).append(", ");				
+				}
+				result.delete(result.length() - 2, result.length());
+				result.append("}");
+			}
+			Set<AtomosLayer> children = getChildren();
+			if (!children.isEmpty()) {
+				result.append(" CHILDREN: {");
+				for (AtomosLayer child : getChildren()) {
+					result.append("[").append(child.getId()).append(']');
+					result.append(' ').append(child.getName()).append(", ");				
+				}
+				result.delete(result.length() - 2, result.length());
+				result.append("}");
+			}
+			return result.toString();
 		}
 	}
 }

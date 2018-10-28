@@ -26,10 +26,12 @@ import org.osgi.framework.ServiceRegistration;
 
 public class AtomosCommands {
 
-	public String[] functions = new String[] {"list", "install"};
+	public String[] functions = new String[] {"list", "install", "uninstall"};
 	private final AtomosRuntimeImpl runtime;
+	private final BundleContext bc;
 
-	public AtomosCommands(AtomosRuntimeImpl runtime) {
+	public AtomosCommands(BundleContext bc, AtomosRuntimeImpl runtime) {
+		this.bc = bc;
 		this.runtime = runtime;
 	}
 
@@ -41,15 +43,46 @@ public class AtomosCommands {
 	}
 
 	public void list() {
-		layers(runtime.getBootLayer(), new HashSet<>());
+		layers(runtime.getBootLayer().getParents().get(0), new HashSet<>());
 	}
 
 	private void layers(AtomosLayer layer, Set<AtomosLayer> visited) {
 		if (visited.add(layer)) {
-			System.out.println(layer.getName());
+			System.out.println(layer.toString());
+			Set<AtomosBundleInfo> bundles = layer.getAtomosBundles();
+			if (!bundles.isEmpty()) {
+				System.out.println(" BUNDLES:");
+				for (AtomosBundleInfo bundle : bundles) {
+					String location = runtime.getByAtomosBundleInfo(bundle);
+					Bundle b = location == null ? null : bc.getBundle(location);
+					System.out.println("  " + bundle.getSymbolicName() + getState(b));
+				}
+			}
 			for (AtomosLayer child : layer.getChildren()) {
 				layers(child, visited);
 			}
+		}
+	}
+
+	private String getState(Bundle b) {
+		if (b == null) {
+			return " NOT_INSTALLED";
+		}
+		switch (b.getState()) {
+		case Bundle.INSTALLED:
+			return " INSTALLED";
+		case Bundle.RESOLVED:
+			return " RESOLVED";
+		case Bundle.STARTING:
+			return " STARTING";
+		case Bundle.ACTIVE:
+			return " ACTIVE";
+		case Bundle.STOPPING:
+			return " STOPPING";
+		case Bundle.UNINSTALLED:
+			return " UNINSTALLED";
+		default:
+			return " UNKNOWN";
 		}
 	}
 
@@ -59,7 +92,6 @@ public class AtomosCommands {
 		}
 
 		AtomosLayer layer = runtime.addLayer(List.of(runtime.getBootLayer()), name, moduleDir.toPath());
-		layers(layer, new HashSet<>());
 		
 		List<Bundle> bundles = new ArrayList<>();
 		for (AtomosBundleInfo atomosBundle : layer.getAtomosBundles()) {
@@ -67,6 +99,16 @@ public class AtomosCommands {
 		}
 		for (Bundle b : bundles) {
 			b.start();
+		}
+		layers(layer, new HashSet<>());
+	}
+
+	public void uninstall(long id) throws BundleException {
+		AtomosLayer layer = runtime.getById(id);
+		if (layer == null) {
+			System.out.println("No Atomos Layer with ID: " + id);
+		} else {
+			layer.uninstall();
 		}
 	}
 }
