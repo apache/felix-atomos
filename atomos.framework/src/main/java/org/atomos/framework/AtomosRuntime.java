@@ -112,6 +112,11 @@ import org.osgi.framework.launch.FrameworkFactory;
  * service registered with its bundle context.
  */
 public interface AtomosRuntime {
+	public enum LoaderType {
+		OSGI,
+		SINGLE,
+		MANY
+	}
 	/**
 	 * If set to false then the Atomos bundles will not be automatically installed.
 	 * Default is true.
@@ -148,10 +153,11 @@ public interface AtomosRuntime {
 	 * module paths
 	 * @param parents the parents for the new layer
 	 * @param name the name of the new layer
+	 * @param loaderType the type of class loader to use
 	 * @param modulePaths the paths to load modules for the new layer
 	 * @return a newly created layer
 	 */
-	AtomosLayer addLayer(List<AtomosLayer> parents, String name, Path... modulePaths);
+	AtomosLayer addLayer(List<AtomosLayer> parents, String name, LoaderType loaderType, Path... modulePaths);
 
 	/**
 	 * The initial boot Atomos layer
@@ -206,7 +212,7 @@ public interface AtomosRuntime {
 			Configuration config = thisLayer.configuration();
 			File modulesDir = getModulesDir(config, frameworkConfig);
 			if (modulesDir != null) {
-				atomosRuntime.addLayer(List.of(atomosRuntime.getBootLayer()), "modules", modulesDir.toPath());
+				atomosRuntime.addLayer(List.of(atomosRuntime.getBootLayer()), "modules", LoaderType.OSGI, modulesDir.toPath());
 			}
 		}
 		Framework framework = atomosRuntime.createFramework(frameworkConfig);

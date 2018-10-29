@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
+import org.atomos.framework.AtomosRuntime.LoaderType;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -86,12 +87,12 @@ public class AtomosCommands {
 		}
 	}
 
-	public void install(String name, File moduleDir) throws BundleException {
+	public void install(String name, String loaderType, File moduleDir) throws BundleException {
 		if (!moduleDir.isDirectory()) {
 			System.out.println("The specified path is not a directory: " + moduleDir.getAbsolutePath());
 		}
 
-		AtomosLayer layer = runtime.addLayer(List.of(runtime.getBootLayer()), name, moduleDir.toPath());
+		AtomosLayer layer = runtime.addLayer(List.of(runtime.getBootLayer()), name, LoaderType.valueOf(loaderType), moduleDir.toPath());
 		
 		List<Bundle> bundles = new ArrayList<>();
 		for (AtomosBundleInfo atomosBundle : layer.getAtomosBundles()) {

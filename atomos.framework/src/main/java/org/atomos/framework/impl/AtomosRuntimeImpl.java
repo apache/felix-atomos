@@ -81,7 +81,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 	final AtomicLong nextLayerId = new AtomicLong(0);
 
 	public AtomosRuntimeImpl() {
-		bootLayer = createAtomLayer(thisConfig, "boot", -1);
+		bootLayer = createAtomosLayer(thisConfig, "boot", -1, LoaderType.SINGLE);
 	}
 
 	AtomosBundleInfoImpl getByOSGiLocation(String location) {
@@ -166,11 +166,11 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 	}
 
 	@Override
-	public AtomosLayer addLayer(List<AtomosLayer> parents, String name, Path... paths) {
-		return addLayer(parents, name, -1, paths);
+	public AtomosLayer addLayer(List<AtomosLayer> parents, String name, LoaderType loaderType, Path... paths) {
+		return addLayer(parents, name, -1, loaderType, paths);
 	}
 
-	AtomosLayer addLayer(List<AtomosLayer> parents, String name, long id, Path... paths) {
+	AtomosLayer addLayer(List<AtomosLayer> parents, String name, long id, LoaderType loaderType, Path... paths) {
 		if (bootLayer.getModuleLayer().isEmpty()) {
 			throw new IllegalStateException("Cannot add module layers when Atomos is not loaded as module.");
 		}
@@ -178,7 +178,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 		ModuleFinder finder = ModuleFinder.of(paths);
 		List<String> roots = finder.findAll().stream().map((m) -> m.descriptor().name()).collect(Collectors.toList());
 		Configuration config = Configuration.resolve(ModuleFinder.of(), parentConfigs, ModuleFinder.of(paths), roots);
-		return createAtomLayer(config, name, id, paths);
+		return createAtomosLayer(config, name, id, loaderType, paths);
 	}
 
 
@@ -285,7 +285,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 		return installingInfo.get();
 	}
 
-	AtomosLayerImpl createAtomLayer(Configuration config, String name, long id, Path... paths) {
+	AtomosLayerImpl createAtomosLayer(Configuration config, String name, long id, LoaderType loaderType, Path... paths) {
 		AtomosLayerImpl existing = getByConfig(config);
 		if (existing != null) {
 			return existing;
@@ -301,7 +301,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 			if (Configuration.empty().equals(config)) {
 				name = "empty";
 			}
-			AtomosLayerImpl result = new AtomosLayerImpl(config, parents, id, name, paths);
+			AtomosLayerImpl result = new AtomosLayerImpl(config, parents, id, name, loaderType, paths);
 			addAtomLayer(result);
 			return result;
 		} finally {
@@ -319,7 +319,10 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 			if (existingParent != null) {
 				found.add(existingParent);
 			} else {
-				found.add(createAtomLayer(parentConfig, name, -1));
+				// If it didn't exist already we really don't know what type of loader it is;
+				// just use SINGLE for now
+				// We also don't know what paths it could be using
+				found.add(createAtomosLayer(parentConfig, name, -1, LoaderType.SINGLE));
 			}
 		}
 		return Collections.unmodifiableList(found);
@@ -354,6 +357,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 	class AtomosLayerImpl implements AtomosLayer {
 		private final long id;
 		private final String name;
+		private final LoaderType loaderType;
 		private final Optional<ModuleLayer> moduleLayer;
 		private final Set<AtomosBundleInfo> atomosBundles;
 		private final List<AtomosLayer> parents;
@@ -361,11 +365,12 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 		private final List<Path> paths;
 		private volatile boolean valid = true;
 
-		AtomosLayerImpl(Configuration config, List<AtomosLayer> parents, long id, String name, Path... paths) {
+		AtomosLayerImpl(Configuration config, List<AtomosLayer> parents, long id, String name, LoaderType loaderType, Path... paths) {
 			this.id = id;
 			this.name = name == null ? "" : name;
 			this.paths = List.of(paths);
 			this.parents = parents;
+			this.loaderType = loaderType;
 			this.moduleLayer = Optional.ofNullable(findModuleLayer(config));
 			this.atomosBundles = findAtomosBundles();
 
@@ -382,7 +387,20 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 				return ModuleLayer.empty();
 			}
 			List<ModuleLayer> parentLayers = parents.stream().sequential().map((a) -> a.getModuleLayer().get()).collect(Collectors.toList());
-			ModuleLayer.Controller controller = ModuleLayer.defineModules(config, parentLayers, clFunction);
+			ModuleLayer.Controller controller;
+			switch (loaderType) {
+			case OSGI:
+				controller = ModuleLayer.defineModules(config, parentLayers, clFunction);
+				break;
+			case SINGLE:
+				controller = ModuleLayer.defineModulesWithOneLoader(config, parentLayers, null);
+				break;
+			case MANY:
+				controller = ModuleLayer.defineModulesWithManyLoaders(config, parentLayers, null);
+				break;
+			default:
+				throw new UnsupportedOperationException(loaderType.toString());
+			}
 			return controller.layer();
 		}
 
@@ -555,6 +573,11 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 		}
 
 		@Override
+		public LoaderType getLoaderType() {
+			return loaderType;
+		}
+
+		@Override
 		public void uninstall() throws BundleException {
 			List<Bundle> uninstalledBundles = new ArrayList<>();
 			BundleContext bc = getBundleContext();
@@ -619,6 +642,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 			StringBuilder result = new StringBuilder();
 			result.append('[').append(getId()).append(']');
 			result.append(' ').append(getName());
+			result.append(' ').append(getLoaderType());
 			List<AtomosLayer> parents = getParents();
 			if (!parents.isEmpty()) {
 				result.append(" PARENTS: {");

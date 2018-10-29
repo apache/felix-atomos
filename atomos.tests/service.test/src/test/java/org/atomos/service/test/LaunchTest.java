@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
 import org.atomos.framework.AtomosRuntime;
+import org.atomos.framework.AtomosRuntime.LoaderType;
 import org.atomos.service.contract.Echo;
 import org.junit.After;
 import org.junit.Before;
@@ -178,7 +179,7 @@ public class LaunchTest {
 		File modules = new File("target/modules");
 		assertTrue("Modules directory does not exist: " + modules, modules.isDirectory());
 
-		AtomosLayer child = atomosRuntime.addLayer(List.of(parent), name, modules.toPath());
+		AtomosLayer child = atomosRuntime.addLayer(List.of(parent), name, LoaderType.OSGI, modules.toPath());
 
 		List<Bundle> bundles = new ArrayList<>();
 		for (AtomosBundleInfo atomosBundle : child.getAtomosBundles()) {

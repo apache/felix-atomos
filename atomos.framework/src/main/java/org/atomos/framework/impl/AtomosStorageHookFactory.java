@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
+import org.atomos.framework.AtomosRuntime.LoaderType;
 import org.atomos.framework.impl.AtomosRuntimeImpl.AtomosLayerImpl;
 import org.eclipse.osgi.container.ModuleContainerAdaptor.ModuleEvent;
 import org.eclipse.osgi.container.ModuleRevisionBuilder;
@@ -183,6 +184,7 @@ public class AtomosStorageHookFactory extends StorageHookFactory<AtomicBoolean, 
 	private void readLayer(DataInputStream in) throws IOException {
 		String name = in.readUTF();
 		long id = in.readLong();
+		LoaderType loaderType = LoaderType.valueOf(in.readUTF());
 		int numPaths = in.readInt();
 		Path[] paths = new Path[numPaths];
 		for (int i = 0; i < numPaths; i++) {
@@ -200,7 +202,7 @@ public class AtomosStorageHookFactory extends StorageHookFactory<AtomicBoolean, 
 		}
 		if (atomosRuntime.getById(id) == null) {
 			try {
-				atomosRuntime.addLayer(parents, name, id, paths);
+				atomosRuntime.addLayer(parents, name, id, loaderType, paths);
 			} catch (Exception e) {
 				throw new IllegalArgumentException("Error adding persistent layer: " + e.getMessage());
 			}
@@ -210,6 +212,7 @@ public class AtomosStorageHookFactory extends StorageHookFactory<AtomicBoolean, 
 	private void writeLayer(AtomosLayerImpl layer, DataOutputStream out) throws IOException {
 		out.writeUTF(layer.getName());
 		out.writeLong(layer.getId());
+		out.writeUTF(layer.getLoaderType().toString());
 		List<Path> paths = layer.getPaths();
 		out.writeInt(paths.size());
 		for (Path path : paths) {

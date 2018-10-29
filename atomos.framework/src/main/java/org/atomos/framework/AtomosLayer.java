@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.atomos.framework.AtomosRuntime.LoaderType;
 import org.osgi.framework.BundleException;
 
 /**
@@ -82,6 +83,8 @@ public interface AtomosLayer {
 	 * @return The unique identifier of this layer.
 	 */
 	long getId();
+
+	LoaderType getLoaderType();
 
 	/**
 	 * Uninstalls this Atomos Layer along with any {@link #getChildren() children}
