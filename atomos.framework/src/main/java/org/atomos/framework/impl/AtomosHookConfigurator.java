@@ -86,7 +86,7 @@ public class AtomosHookConfigurator implements HookConfigurator {
 	public AtomosHookConfigurator() {
 		AtomosRuntimeImpl bootRuntime = bootAtomRuntime.get();
 		atomosRuntime = bootRuntime == null ? new AtomosRuntimeImpl() : bootRuntime;
-		atomosRuntime.setConfigurator(this);
+		atomosRuntime.setConfigurator(null, this);
 	}
 	@Override
 	public void addHooks(HookRegistry hookRegistry) {
@@ -138,6 +138,9 @@ public class AtomosHookConfigurator implements HookConfigurator {
 		hookRegistry.addActivatorHookFactory(() -> new BundleActivator() {
 			@Override
 			public void start(BundleContext bc) throws BundleException, IOException {
+				// set the hook configuration for the runtime incase it got unset on stop
+				atomosRuntime.setConfigurator(null, AtomosHookConfigurator.this);
+
 				AtomosHookConfigurator.this.bc = bc;
 				AtomosFrameworkHooks hooks = new AtomosFrameworkHooks(atomosRuntime);
 				bc.registerService(ResolverHookFactory.class, hooks, null);
@@ -156,7 +159,7 @@ public class AtomosHookConfigurator implements HookConfigurator {
 							// many resolution events can be sent for a single resolve operation
 							if (stateStamp.get() != hookRegistry.getContainer().getStorage().getModuleDatabase().getRevisionsTimestamp()) {
 								for (Bundle b : bc.getBundles()) {
-									if (atomosRuntime.getAtomBundle(b.getLocation()) != null) {
+									if (atomosRuntime.getAtomosBundle(b.getLocation()) != null) {
 										BundleWiring wiring = b.adapt(BundleWiring.class);
 										if (wiring != null) {
 											wiring.getClassLoader();
@@ -168,7 +171,9 @@ public class AtomosHookConfigurator implements HookConfigurator {
 					}
 				});
 				emptyJar = bc.getDataFile("atomosEmptyBundle.jar");
-				Files.write(emptyJar.toPath(), EMPTY_JAR);
+				if (!emptyJar.exists()) {
+					Files.write(emptyJar.toPath(), EMPTY_JAR);
+				}
 
 				String initialBundleStartLevel = bc.getProperty(AtomosRuntime.ATOMOS_INITIAL_BUNDLE_START_LEVEL);
 				if (initialBundleStartLevel != null) {
@@ -180,12 +185,15 @@ public class AtomosHookConfigurator implements HookConfigurator {
 				boolean startBundles = Boolean.valueOf(hookRegistry.getConfiguration().getConfiguration(AtomosRuntime.ATOMOS_BUNDLE_START, "true")); //$NON-NLS-1$
 				installAtomosBundles(atomosRuntime.getBootLayer(), installBundles, startBundles);
 				bc.registerService(AtomosRuntime.class, atomosRuntime, null);
-				new AtomosCommands(bc, atomosRuntime).register(bc);
+				new AtomosCommands(atomosRuntime).register(bc);
 			}
 
 			@Override
 			public void stop(BundleContext bc) {
-
+				bc = null;
+				emptyJar = null;
+				logServices = null;
+				atomosRuntime.setConfigurator(AtomosHookConfigurator.this, null);
 			}
 		});
 

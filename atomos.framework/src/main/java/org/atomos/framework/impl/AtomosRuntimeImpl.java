@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.jar.JarFile;
@@ -68,7 +69,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 		thisConfig = thisLayer != null ? thisLayer.configuration() : null;
 	}
 
-	volatile AtomosHookConfigurator configurator;
+	final AtomicReference<AtomosHookConfigurator> configurator = new AtomicReference<>();
 	final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 	final Map<String, AtomosBundleInfoImpl> byOSGiLocation = new HashMap<>();
 	final Map<String, AtomosBundleInfoImpl> byAtomosLocation = new HashMap<>();
@@ -161,8 +162,23 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 	}
 
 	@Override
-	public AtomosBundleInfo getAtomBundle(String bundleLocation) {
+	public AtomosBundleInfo getAtomosBundle(String bundleLocation) {
 		return getByOSGiLocation(bundleLocation);
+	}
+
+	@Override
+	public Bundle getBundle(AtomosBundleInfo atomosBundle) {
+		String location = getByAtomosBundleInfo(atomosBundle);
+		if (location != null) {
+			AtomosHookConfigurator current = configurator.get();
+			if (current != null) {
+				BundleContext bc = current.getBundleContext();
+				if (bc != null) {
+					return bc.getBundle(location);
+				}
+			}
+		}
+		return null;
 	}
 
 	@Override
@@ -199,6 +215,9 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 			// Always allow the console to work
 			frameworkConfig.put("osgi.console", "");
 		}
+		if (configurator.get() != null) {
+			throw new IllegalStateException("AtomosRuntime is already be used by another Framework instance.");
+		}
 		AtomosHookConfigurator.bootAtomRuntime.set(this);
 		try {
 			ServiceLoader<FrameworkFactory> loader;
@@ -217,16 +236,28 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 		}
 	}
 
-	void setConfigurator(AtomosHookConfigurator configurator) {
-		this.configurator = configurator;
+	void setConfigurator(AtomosHookConfigurator prev, AtomosHookConfigurator next) {
+		AtomosHookConfigurator result = this.configurator.updateAndGet((p) -> {
+			if (p == prev) {
+				return next;
+			}
+			// special handling of null for cases where we are just making sure next is already set
+			if (prev == null && p == next) {
+				return next;
+			}
+			return p;
+		});
+		if (result != next) {
+			throw new IllegalStateException("Cannot use the same AtomosRuntime for multiple Frameworks.");
+		}
 	}
 
 	BundleContext getBundleContext() {
-		AtomosHookConfigurator current = configurator;
+		AtomosHookConfigurator current = configurator.get();
 		if (current == null) {
 			return null;
 		}
-		return configurator.bc;
+		return current.getBundleContext();
 	}
 
 	ThreadLocal<AtomosBundleInfo> installingInfo = new ThreadLocal<>();
@@ -238,7 +269,8 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 			System.out.println("Installing atomos bundle: " + prefix + atomosBundle.getLocation()); //$NON-NLS-1$
 		}
 
-		if (configurator == null) {
+		AtomosHookConfigurator current = configurator.get();
+		if (current == null) {
 			throw new IllegalStateException("No framework has been created.");
 		}
 
@@ -246,8 +278,8 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 			throw new IllegalArgumentException("The prefix cannot contain ':'");
 		}
 
-		BundleContext bc = configurator.getBundleContext();
-		File emptyJar = configurator.getEmptyJar();
+		BundleContext bc = current.getBundleContext();
+		File emptyJar = current.getEmptyJar();
 		if (bc == null || emptyJar == null) {
 			throw new IllegalStateException("Framework has not been initialized.");
 		}

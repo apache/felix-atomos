@@ -29,10 +29,8 @@ public class AtomosCommands {
 
 	public String[] functions = new String[] {"list", "install", "uninstall"};
 	private final AtomosRuntimeImpl runtime;
-	private final BundleContext bc;
 
-	public AtomosCommands(BundleContext bc, AtomosRuntimeImpl runtime) {
-		this.bc = bc;
+	public AtomosCommands(AtomosRuntimeImpl runtime) {
 		this.runtime = runtime;
 	}
 
@@ -54,8 +52,7 @@ public class AtomosCommands {
 			if (!bundles.isEmpty()) {
 				System.out.println(" BUNDLES:");
 				for (AtomosBundleInfo bundle : bundles) {
-					String location = runtime.getByAtomosBundleInfo(bundle);
-					Bundle b = location == null ? null : bc.getBundle(location);
+					Bundle b = runtime.getBundle(bundle);
 					System.out.println("  " + bundle.getSymbolicName() + getState(b));
 				}
 			}

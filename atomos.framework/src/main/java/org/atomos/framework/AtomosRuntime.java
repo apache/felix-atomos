@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.launch.Framework;
@@ -146,7 +147,15 @@ public interface AtomosRuntime {
 	 * @return the Atomos bundle with the specified location or {@code null} if no
 	 *         Atomos bundle is installed at the location.
 	 */
-	AtomosBundleInfo getAtomBundle(String bundleLocation);
+	AtomosBundleInfo getAtomosBundle(String bundleLocation);
+
+	/**
+	 * Returns the OSGi bundle installed which is associated with the specified
+	 * Atomos Bundle. 
+	 * @return the OSGi bundle or {@code null} if the Atomos bundle has not been installed
+	 * or if there is no OSGi Framework initialized with the Atomos Runtime.
+	 */
+	Bundle getBundle(AtomosBundleInfo atomosBundle);
 
 	/**
 	 * Adds a layer with the specified parents and loads modules from the specified
@@ -167,7 +176,9 @@ public interface AtomosRuntime {
 	AtomosLayer getBootLayer();
 
 	/**
-	 * Creates a new {@link Framework} with the specified framework configuration.
+	 * Creates a new {@link Framework} with the specified framework configuration
+	 * using this AtomosRuntime to provide the AtomosBundleInfo for installation into
+	 * the new Framework.
 	 * 
 	 * @param frameworkConfig the framework configuraiton
 	 * @return

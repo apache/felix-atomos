@@ -79,7 +79,7 @@ public class AtomosFrameworkHooks implements ResolverHookFactory, CollisionHook 
 		if (currentlyInstalling != null) {
 			for (Iterator<Bundle> iCands = collisionCandidates.iterator(); iCands.hasNext();) {
 				Bundle b = iCands.next();
-				AtomosBundleInfo candidate = atomosRuntime.getAtomBundle(b.getLocation());
+				AtomosBundleInfo candidate = atomosRuntime.getAtomosBundle(b.getLocation());
 				if (candidate != null) {
 					// Only other atomos bundles can be filtered out
 					if (!isInLayerHierarchy(currentlyInstalling.getAtomosLayer(), candidate.getAtomosLayer())) {
