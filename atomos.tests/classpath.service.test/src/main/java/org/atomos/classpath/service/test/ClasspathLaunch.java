@@ -8,7 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.atomos.service.test;
+package org.atomos.classpath.service.test;
 
 import java.util.concurrent.TimeUnit;
 
@@ -16,7 +16,7 @@ import org.atomos.framework.AtomosRuntime;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.launch.Framework;
 
-public class Launch 
+public class ClasspathLaunch 
 {
 	private static volatile Framework framework;
     public static void main( String[] args ) throws BundleException

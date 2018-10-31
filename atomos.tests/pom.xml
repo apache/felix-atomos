@@ -16,6 +16,7 @@
     <module>service.impl.b</module>
     <module>service.lib</module>
     <module>service.test</module>
+    <module>classpath.service.test</module>
     <module>service.image</module>
   </modules>
 </project>

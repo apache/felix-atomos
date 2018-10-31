@@ -301,7 +301,7 @@
 
 							<launcher>
 								<name>atomos</name>
-								<module>service.test/org.atomos.service.test.Launch</module>
+								<module>service.test/org.atomos.service.test.ModulepathLaunch</module>
 							</launcher>
 							<outputDirectory>
 								${project.build.directory}/atomos

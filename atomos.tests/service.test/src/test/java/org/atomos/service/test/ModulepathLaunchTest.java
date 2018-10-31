@@ -49,7 +49,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.launch.Framework;
 
-public class LaunchTest {
+public class ModulepathLaunchTest {
 	private Path storage;
 	private Framework testFramework;
 	@Rule
@@ -75,8 +75,8 @@ public class LaunchTest {
 
 	@Test
 	public void testModulePathServices() throws BundleException, InvalidSyntaxException {
-		Launch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
-		testFramework = Launch.getFramework();
+		ModulepathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
+		testFramework = ModulepathLaunch.getFramework();
 		BundleContext bc = testFramework.getBundleContext();
 		assertNotNull("No context found.", bc);
 		Bundle[] bundles = bc.getBundles();
@@ -90,8 +90,8 @@ public class LaunchTest {
 
 	@Test
 	public void testModuleDirServices() throws BundleException, InvalidSyntaxException, InterruptedException {
-		Launch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(), AtomosRuntime.ATOMOS_MODULES_DIR + "=target/modules"});
-		testFramework = Launch.getFramework();
+		ModulepathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(), AtomosRuntime.ATOMOS_MODULES_DIR + "=target/modules"});
+		testFramework = ModulepathLaunch.getFramework();
 		BundleContext bc = testFramework.getBundleContext();
 		assertNotNull("No context found.", bc);
 		Bundle[] bundles = bc.getBundles();
@@ -105,8 +105,8 @@ public class LaunchTest {
 
 	@Test
 	public void testLoadFromModule() throws BundleException, InvalidSyntaxException, InterruptedException {
-		Launch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(), AtomosRuntime.ATOMOS_MODULES_DIR + "=target/modules"});
-		testFramework = Launch.getFramework();
+		ModulepathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(), AtomosRuntime.ATOMOS_MODULES_DIR + "=target/modules"});
+		testFramework = ModulepathLaunch.getFramework();
 		BundleContext bc = testFramework.getBundleContext();
 		assertNotNull("No context found.", bc);
 		Bundle[] bundles = bc.getBundles();
@@ -143,8 +143,8 @@ public class LaunchTest {
 
 	@Test
 	public void testAddNewLayers() throws BundleException, InvalidSyntaxException, InterruptedException {
-		Launch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(), AtomosRuntime.ATOMOS_MODULES_DIR + "=target/modules"});
-		testFramework = Launch.getFramework();
+		ModulepathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(), AtomosRuntime.ATOMOS_MODULES_DIR + "=target/modules"});
+		testFramework = ModulepathLaunch.getFramework();
 		BundleContext bc = testFramework.getBundleContext();
 		assertNotNull("No context found.", bc);
 		Bundle[] bundles = bc.getBundles();
@@ -179,8 +179,8 @@ public class LaunchTest {
 
 	@Test
 	public void testPersistLayers() throws BundleException, InvalidSyntaxException, InterruptedException {
-		Launch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
-		testFramework = Launch.getFramework();
+		ModulepathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
+		testFramework = ModulepathLaunch.getFramework();
 		BundleContext bc = testFramework.getBundleContext();
 		assertNotNull("No context found.", bc);
 
@@ -216,8 +216,8 @@ public class LaunchTest {
 		testFramework.waitForStop(10000);
 
 		// test persistent load with a new Runtime
-		Launch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
-		testFramework = Launch.getFramework();
+		ModulepathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
+		testFramework = ModulepathLaunch.getFramework();
 		bc = testFramework.getBundleContext();
 		assertNotNull("No context found.", bc);
 
@@ -235,8 +235,8 @@ public class LaunchTest {
 
 	@Test
 	public void testLoaderType() throws BundleException, InvalidSyntaxException, InterruptedException, ClassNotFoundException {
-		Launch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
-		testFramework = Launch.getFramework();
+		ModulepathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
+		testFramework = ModulepathLaunch.getFramework();
 		BundleContext bc = testFramework.getBundleContext();
 		assertNotNull("No context found.", bc);
 
@@ -248,8 +248,8 @@ public class LaunchTest {
 
 	@Test
 	public void testInvalidUseOfRuntime() throws BundleException, InterruptedException{
-		Launch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
-		testFramework = Launch.getFramework();
+		ModulepathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
+		testFramework = ModulepathLaunch.getFramework();
 		BundleContext bc = testFramework.getBundleContext();
 		assertNotNull("No context found.", bc);
 
