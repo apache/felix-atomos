@@ -82,18 +82,11 @@ import org.osgi.framework.launch.FrameworkFactory;
  * module path.
  * 
  * <pre>
- * ModuleLayer thisLayer = getClass().getModule().getLayer();
- * Configuration thisConfig = thisLayer.configuration();
+ * AtomosRuntime atomosRuntime = AtomosRuntime.createAtomosRuntime();
  * 
- * // Find all the modules in a directory and use all of them
- * // as roots because we want to load them all
- * File modulesDir = getModulesDir();
- * ModuleFinder finder = ModuleFinder.of(modulesDir.toPath());
- * Set<String> roots = finder.findAll().stream().map((r) -> r.descriptor().name()).collect(Collectors.toSet());
- * 
- * // Resolve the configuration with all the roots
- * Configuration modulesConfig = Configuration.resolve(ModuleFinder.of(), List.of(thisConfig), finder, roots);
- * atomosRuntime.addLayer(modulesConfig);
+ * // Add a new layer using a Path that contains a set of modules to load
+ * Path modulesDir = getModulesDir();
+ * atomosRuntime.addLayer(List.of(atomosRuntime.getBootLayer()), "child", LoaderType.OSGI, modulesDir);
  *
  * // The Atomos runtime must be used to create the framework in order
  * // use the additional children layers added
@@ -215,7 +208,7 @@ public interface AtomosRuntime {
 	 *                         framework
 	 */
 	static Framework launch(Map<String, String> frameworkConfig) throws BundleException {
-		AtomosRuntime atomosRuntime = createAtomRuntime();
+		AtomosRuntime atomosRuntime = createAtomosRuntime();
 
 		ModuleLayer thisLayer = AtomosRuntime.class.getModule().getLayer();
 		if (thisLayer != null) {
@@ -277,7 +270,7 @@ public interface AtomosRuntime {
 	 * instance. If Atomos is running as a Java Module then this AtomosRuntime can
 	 * be used to create additional layers by using the
 	 * {@link #addLayer(Configuration)} method. If the additional layers are added
-	 * before {@link #createFramework(Map) creating} and and {@link Framework#init()
+	 * before {@link #createFramework(Map) creating} and {@link Framework#init()
 	 * initializing} the framework then the Atomos bundles found in the added layers
 	 * will be automatically installed and started according to the
 	 * {@link #ATOMOS_BUNDLE_INSTALL} and {@link #ATOMOS_BUNDLE_START} options.
@@ -288,7 +281,7 @@ public interface AtomosRuntime {
 	 * 
 	 * @return a new AtomosRuntime.
 	 */
-	static AtomosRuntime createAtomRuntime() {
+	static AtomosRuntime createAtomosRuntime() {
 		ServiceLoader<AtomosRuntime> loader;
 		if (AtomosRuntime.class.getModule().getLayer() == null) {
 			loader = ServiceLoader.load(AtomosRuntime.class, AtomosRuntime.class.getClassLoader());
