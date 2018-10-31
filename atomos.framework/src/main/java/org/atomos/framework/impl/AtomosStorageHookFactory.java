@@ -18,6 +18,8 @@ import java.lang.module.ModuleDescriptor;
 import java.lang.module.ModuleDescriptor.Exports;
 import java.lang.module.ModuleDescriptor.Provides;
 import java.lang.module.ModuleDescriptor.Requires;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -188,7 +190,13 @@ public class AtomosStorageHookFactory extends StorageHookFactory<AtomicBoolean, 
 		int numPaths = in.readInt();
 		Path[] paths = new Path[numPaths];
 		for (int i = 0; i < numPaths; i++) {
-			paths[i] = new File(in.readUTF()).toPath();
+			String sURI = in.readUTF();
+			try {
+				URI uri = new URI(sURI);
+				paths[i] = Path.of(uri);
+			} catch (URISyntaxException e) {
+				throw new IOException(e);
+			}
 		}
 		int numParents = in.readInt();
 		List<AtomosLayer> parents = new ArrayList<>();
@@ -216,7 +224,7 @@ public class AtomosStorageHookFactory extends StorageHookFactory<AtomicBoolean, 
 		List<Path> paths = layer.getPaths();
 		out.writeInt(paths.size());
 		for (Path path : paths) {
-			out.writeUTF(path.toString());
+			out.writeUTF(path.toUri().toString());
 		}
 		List<AtomosLayer> parents = layer.getParents();
 		out.writeInt(parents.size());
