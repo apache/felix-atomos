@@ -14,6 +14,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,8 +22,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 import org.atomos.framework.AtomosRuntime;
+import org.atomos.framework.AtomosRuntime.LoaderType;
 import org.atomos.service.contract.Echo;
 import org.junit.After;
 import org.junit.Before;
@@ -73,7 +76,27 @@ public class ClasspathLaunchTest {
 			System.out.println(b.getBundleId() + " " + b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b));
 		}
 		checkServices(bc, 4);
-		assertNull("Found a ModuleLayer.", bc.getService(bc.getServiceReference(AtomosRuntime.class)).getBootLayer().getModuleLayer().orElse(null));
+		AtomosRuntime runtime = getRuntime(bc);
+		assertNull("Found a ModuleLayer.", runtime.getBootLayer().getModuleLayer().orElse(null));
+	}
+
+	private AtomosRuntime getRuntime(BundleContext bc) {
+		ServiceReference<AtomosRuntime> ref = bc.getServiceReference(AtomosRuntime.class);
+		assertNotNull("No reference found.", ref);
+		AtomosRuntime runtime = bc.getService(ref);
+		assertNotNull("No service found.", runtime);
+		return runtime;
+	}
+
+	@Test
+	public void testInvalidCreateLayer() throws BundleException {
+		AtomosRuntime runtime = AtomosRuntime.createAtomosRuntime();
+		try {
+			runtime.addLayer(List.of(runtime.getBootLayer()), "invalid", LoaderType.OSGI, storage);
+			fail("Expected exception when addLayer is called.");
+		} catch (IllegalStateException e) {
+			// expected
+		}
 	}
 
 	private void checkServices(BundleContext bc, int expectedNumber) throws InvalidSyntaxException {
