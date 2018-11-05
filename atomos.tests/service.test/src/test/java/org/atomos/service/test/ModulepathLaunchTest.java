@@ -79,13 +79,32 @@ public class ModulepathLaunchTest {
 		testFramework = ModulepathLaunch.getFramework();
 		BundleContext bc = testFramework.getBundleContext();
 		assertNotNull("No context found.", bc);
-		Bundle[] bundles = bc.getBundles();
-		assertTrue("No bundles: " + Arrays.toString(bundles), bundles.length > 0);
-		for (Bundle b : bundles) {
-			System.out.println(b.getBundleId() + " " + b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b));
-		}
+		checkBundleStates(bc.getBundles());
 
 		checkServices(bc, 2);
+	}
+
+	private void checkBundleStates(Bundle[] bundles) {
+		assertTrue("No bundles: " + Arrays.toString(bundles), bundles.length > 0);
+		for (Bundle b : bundles) {
+			String msg = b.getBundleId() + " " + b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b);
+			System.out.println(msg);
+			int expected;
+			if ("osgi.annotation".equals(b.getSymbolicName()) || "org.osgi.service.component.annotations".equals(b.getSymbolicName())) {
+				expected = Bundle.INSTALLED;
+			} else {
+				expected = Bundle.ACTIVE;
+			}
+			if (b.getState() != expected && expected == Bundle.ACTIVE) {
+				// for debugging
+				try {
+					b.start();
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
+			}
+			assertEquals("Wrong bundle state for bundle: " + msg, expected, b.getState());
+		}
 	}
 
 	@Test
@@ -94,11 +113,7 @@ public class ModulepathLaunchTest {
 		testFramework = ModulepathLaunch.getFramework();
 		BundleContext bc = testFramework.getBundleContext();
 		assertNotNull("No context found.", bc);
-		Bundle[] bundles = bc.getBundles();
-		assertTrue("No bundles: " + Arrays.toString(bundles), bundles.length > 0);
-		for (Bundle b : bundles) {
-			System.out.println(b.getBundleId() + " " + b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b));
-		}
+		checkBundleStates(bc.getBundles());
 
 		checkServices(bc, 4);
 	}
@@ -109,11 +124,8 @@ public class ModulepathLaunchTest {
 		testFramework = ModulepathLaunch.getFramework();
 		BundleContext bc = testFramework.getBundleContext();
 		assertNotNull("No context found.", bc);
-		Bundle[] bundles = bc.getBundles();
-		assertTrue("No bundles: " + Arrays.toString(bundles), bundles.length > 0);
-		for (Bundle b : bundles) {
-			System.out.println(b.getBundleId() + " " + b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b));
-		}
+		checkBundleStates(bc.getBundles());
+
 		ServiceReference<AtomosRuntime> atomosRef = bc.getServiceReference(AtomosRuntime.class);
 		assertNotNull("No Atomos runtime.", atomosRef);
 
@@ -161,9 +173,7 @@ public class ModulepathLaunchTest {
 		}
 		checkServices(bc, 44);
 
-		for (Bundle b : bc.getBundles()) {
-			System.out.println(b.getBundleId() + " " + b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b));
-		}
+		checkBundleStates(bc.getBundles());
 	
 		layers.forEach((l) -> {
 			try {

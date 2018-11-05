@@ -86,7 +86,6 @@ public class AtomosFrameworkFactoryTest {
 				expected = Bundle.ACTIVE;
 			}
 			assertEquals("Wrong bundle state for bundle: " + msg, expected, b.getState());
-
 		}
 	}
 

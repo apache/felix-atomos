@@ -41,11 +41,6 @@
 			<version>${atomos.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.atomos</groupId>
-			<artifactId>service.test</artifactId>
-			<version>${atomos.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.scr</artifactId>
 			<version>2.1.8</version>
@@ -285,6 +280,7 @@
 							<ignoreSigningInformation>true</ignoreSigningInformation>
 							<modulePath>
 								<path>${project.build.directory}/modules</path>
+								<path>${project.build.directory}/${project.artifactId}-${project.version}.jar</path>
 							</modulePath>
 							<modules>
 								<module>atomos.framework</module>
@@ -295,13 +291,13 @@
 								<module>org.eclipse.osgi</module>
 								<module>service.impl</module>
 								<module>service.impl.activator</module>
-								<module>service.test</module>
+								<module>service.image</module>
 							</modules>
 
 
 							<launcher>
 								<name>atomos</name>
-								<module>service.test/org.atomos.service.test.ModulepathLaunch</module>
+								<module>service.image/org.atomos.service.image.GogoConsole</module>
 							</launcher>
 							<outputDirectory>
 								${project.build.directory}/atomos

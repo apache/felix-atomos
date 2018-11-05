@@ -1,5 +1,3 @@
-import org.atomos.framework.AtomosRuntime;
-
 /*******************************************************************************
  * Copyright (c) 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
@@ -10,10 +8,20 @@ import org.atomos.framework.AtomosRuntime;
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-module service.test {
-	requires atomos.framework;
-	requires service.impl;
-	requires service.impl.activator;
-	requires org.apache.felix.scr;
-	uses AtomosRuntime;
+package org.atomos.service.image;
+
+import java.util.concurrent.TimeUnit;
+
+import org.atomos.framework.AtomosRuntime;
+import org.osgi.framework.BundleException;
+
+public class GogoConsole 
+{
+    public static void main( String[] args ) throws BundleException
+    {
+    	long start = System.nanoTime();
+    	AtomosRuntime.launch(AtomosRuntime.getConfiguration(args));
+    	long total = System.nanoTime() - start;
+    	System.out.println("Total time: " + TimeUnit.NANOSECONDS.toMillis(total));
+    }
 }

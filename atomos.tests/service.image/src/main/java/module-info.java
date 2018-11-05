@@ -10,10 +10,13 @@ import org.atomos.framework.AtomosRuntime;
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-module service.test {
+module service.image {
 	requires atomos.framework;
 	requires service.impl;
 	requires service.impl.activator;
 	requires org.apache.felix.scr;
+	requires org.apache.felix.gogo.command;
+	requires org.apache.felix.gogo.runtime;
+	requires org.apache.felix.gogo.shell;
 	uses AtomosRuntime;
 }
