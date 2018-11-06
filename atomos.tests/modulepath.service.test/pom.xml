@@ -9,7 +9,7 @@
 		<artifactId>atomos.tests</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>service.test</artifactId>
+	<artifactId>modulepath.service.test</artifactId>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

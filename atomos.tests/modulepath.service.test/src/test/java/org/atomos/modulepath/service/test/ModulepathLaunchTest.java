@@ -8,7 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.atomos.service.test;
+package org.atomos.modulepath.service.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
