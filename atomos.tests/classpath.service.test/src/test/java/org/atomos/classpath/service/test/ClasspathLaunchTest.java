@@ -70,11 +70,8 @@ public class ClasspathLaunchTest {
 		testFramework = ClasspathLaunch.getFramework();
 		BundleContext bc = testFramework.getBundleContext();
 		assertNotNull("No context found.", bc);
-		Bundle[] bundles = bc.getBundles();
-		assertTrue("No bundles: " + Arrays.toString(bundles), bundles.length > 0);
-		for (Bundle b : bundles) {
-			System.out.println(b.getBundleId() + " " + b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b));
-		}
+		checkBundleStates(bc.getBundles());
+
 		checkServices(bc, 4);
 		AtomosRuntime runtime = getRuntime(bc);
 		assertNull("Found a ModuleLayer.", runtime.getBootLayer().getModuleLayer().orElse(null));
@@ -129,4 +126,26 @@ public class ClasspathLaunchTest {
 		}
 	}
 
+	private void checkBundleStates(Bundle[] bundles) {
+		assertTrue("No bundles: " + Arrays.toString(bundles), bundles.length > 0);
+		for (Bundle b : bundles) {
+			String msg = b.getBundleId() + " " + b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b);
+			System.out.println(msg);
+			int expected;
+			if ("osgi.annotation".equals(b.getSymbolicName()) || "org.osgi.service.component.annotations".equals(b.getSymbolicName())) {
+				expected = Bundle.INSTALLED;
+			} else {
+				expected = Bundle.ACTIVE;
+			}
+			if (b.getState() != expected && expected == Bundle.ACTIVE) {
+				// for debugging
+				try {
+					b.start();
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
+			}
+			assertEquals("Wrong bundle state for bundle: " + msg, expected, b.getState());
+		}
+	}
 }
