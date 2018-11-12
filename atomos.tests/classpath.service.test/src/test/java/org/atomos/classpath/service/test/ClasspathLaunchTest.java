@@ -87,11 +87,11 @@ public class ClasspathLaunchTest {
 
 	@Test
 	public void testInvalidCreateLayer() throws BundleException {
-		AtomosRuntime runtime = AtomosRuntime.createAtomosRuntime();
+		AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
 		try {
 			runtime.addLayer(List.of(runtime.getBootLayer()), "invalid", LoaderType.OSGI, storage);
 			fail("Expected exception when addLayer is called.");
-		} catch (IllegalStateException e) {
+		} catch (UnsupportedOperationException e) {
 			// expected
 		}
 	}

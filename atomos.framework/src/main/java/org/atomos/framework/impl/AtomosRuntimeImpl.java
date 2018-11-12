@@ -188,7 +188,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 
 	AtomosLayer addLayer(List<AtomosLayer> parents, String name, long id, LoaderType loaderType, Path... paths) {
 		if (bootLayer.getModuleLayer().isEmpty()) {
-			throw new IllegalStateException("Cannot add module layers when Atomos is not loaded as module.");
+			throw new UnsupportedOperationException("Cannot add module layers when Atomos is not loaded as module.");
 		}
 		List<Configuration> parentConfigs = parents.stream().map((l) -> l.getModuleLayer().get().configuration()).collect(Collectors.toList());
 		ModuleFinder finder = ModuleFinder.of(paths);
@@ -204,7 +204,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 	}
 
 	@Override
-	public Framework createFramework(Map<String, String> frameworkConfig) {
+	public Framework newFramework(Map<String, String> frameworkConfig) {
 		frameworkConfig = frameworkConfig == null ? new HashMap<>() : new HashMap<>(frameworkConfig);
 		if (frameworkConfig.get(Constants.FRAMEWORK_SYSTEMPACKAGES) == null) {
 			// this is to prevent the framework from exporting all the packages provided

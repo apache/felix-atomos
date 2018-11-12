@@ -27,27 +27,54 @@ import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 
 /**
- * The Atomos runtime provides a {@link FrameworkFactory} for constructing OSGi
- * Framework instances. The Atomos Framework instance will have a set of Atomos
- * bundles discovered and installed automatically when the Atomos Framework is
- * {@link Framework#init() initialized}. The Atomos bundles will be loaded from
- * the Java modules included the module path and will use the class loader
+ * The Atomos runtime extends {@link FrameworkFactory} for creating new OSGi
+ * {@link Framework} instances with bundles loaded from the module or class
+ * path. The Framework instance will have a set of bundles discovered and
+ * installed automatically when the Framework is {@link Framework#init()
+ * initialized}.
+ * <p>
+ * When loading Atomos from the module path the bundles will be loaded from the
+ * Java modules included on the module path and will use the class loader
  * provided by the Java module system. This implies that the normal protection
- * provided by the OSGi module layer will not be available to the code loaded
- * out of Atomos bundles. Code in one boot bundle will be able to access and
- * load code from other boot bundles even when the package is not exported.
- * Other limitations are also imposed because a single class loader is used to
- * load all boot bundles. For example, multiple versions of a package cannot be
- * supported because the class loader can only define a single package of a
- * given name.
+ * provided by the OSGi module layer will not be available to the classes loaded
+ * out of the module path bundles. Classes in one bundle will be able to load
+ * classes from other bundles even when the package is not exported. But the
+ * Java module system will provide protection against modules trying to execute
+ * code from packages that are not exported. This means you may find cases where
+ * a bundle can load a class from another bundle but then get runtime exceptions
+ * when trying to execute methods on the class. Other limitations are also
+ * imposed because a single class loader is used to load all bundles. For
+ * example, multiple versions of a package cannot be supported because the class
+ * loader can only define a single package of a given name.
  * <p>
- * Atomos bundles are discovered using the module layer which loads the Atomos
- * framework. This is typically the boot layer. Atomos bundles are discovered by
- * searching the current module layer for for the available modules as well as
- * the modules available in the parent layers. These Atomos bundles will be
- * installed with a location prefix "atomos:".
+ * When loading from the module path Atomos bundles are discovered using the
+ * module layer which loads the Atomos framework. This is typically the boot
+ * layer. Atomos bundles are discovered by searching the current module layer
+ * for the available modules as well as the modules available in the parent
+ * layers until the {@link ModuleLayer#empty() empty} layer is reached.
  * <p>
- * The Atomos Framework can be created using the OSGi launcher APIs like a
+ * When loading Atomos from the class path (i.e as an unnamed module) the
+ * bundles will be loaded from JARs included on the class path along side the
+ * Atomos JARs and will use the application class loader provided by the JVM.
+ * This also implies that the normal protection provided by the OSGi module
+ * layer will not be available to the classes loaded out of the class path
+ * bundles. But unlike when loading bundles from the module path, the Java
+ * module system will not provide any protection against executing code from
+ * other bundles from private packages. This mode also suffers from the typical
+ * issues that arise if you have multiple JARs on the class path that provide
+ * the same package. When in module path mode the JVM will fail to launch and
+ * inform you that it detected duplicate packages from the modules on the module
+ * path. But in class path mode the JVM does no such check, this leaves you open
+ * to have unexpected shadowing if you have multple versions of the same package
+ * on the class path.
+ * <p>
+ * When loading from the class path Atomos bundles are discovered by searching
+ * the class path for bundle manifests (META-INF/MANIFEST.MF) resources and
+ * discovering any that contain OSGI meta-data (e.g. Bundle-SymbolicName). The
+ * boot layer is also searched and loads all boot modules as bundles similar to
+ * when loading from the module path.
+ * <p>
+ * The Framework can be created using the {@link FrameworkFactory} APIs like a
  * normal OSGi Framework or for more advanced scenarios the Atomos runtime can
  * be used to setup additional module layer configurations before launching the
  * framework.
@@ -70,7 +97,7 @@ import org.osgi.framework.launch.FrameworkFactory;
  * Java platform itself) can be available for import from bundles installed into
  * the framework. But with Atomos you may load all your bundles within the boot
  * layer itself. In that case you obviously do not want all the packages from
- * the bundles in the boot layer also exported by the system bundle. Setting
+ * the bundles in the boot layer also be exported by the system bundle. Setting
  * {@link Constants#FRAMEWORK_SYSTEMPACKAGES} to the empty value will prevent
  * this from happening. Atomos still needs to make the packages exported by the
  * Java platform modules available for import. In order to do this Atomos will
@@ -82,7 +109,7 @@ import org.osgi.framework.launch.FrameworkFactory;
  * module path.
  * 
  * <pre>
- * AtomosRuntime atomosRuntime = AtomosRuntime.createAtomosRuntime();
+ * AtomosRuntime atomosRuntime = AtomosRuntime.newAtomosRuntime();
  * 
  * // Add a new layer using a Path that contains a set of modules to load
  * Path modulesDir = getModulesDir();
@@ -90,9 +117,12 @@ import org.osgi.framework.launch.FrameworkFactory;
  *
  * // The Atomos runtime must be used to create the framework in order
  * // use the additional children layers added
- * Framework framework = atomosRuntime.createFramework(frameworkConfig);
+ * Framework framework = atomosRuntime.newFramework(frameworkConfig);
  * framework.start();
  * </pre>
+ * 
+ * When using the AtomosRuntime to create a new Framework the {@link Constants#FRAMEWORK_SYSTEMPACKAGES}
+ * is set to the empty value automatically.
  * 
  * By default all Atomos bundles will be installed and started in the OSGi
  * framework when the framework is started. If {@link #ATOMOS_BUNDLE_INSTALL
@@ -105,12 +135,11 @@ import org.osgi.framework.launch.FrameworkFactory;
  * system.bundle of the initialized framework will also have an AtomosRuntime
  * service registered with its bundle context.
  */
-public interface AtomosRuntime {
+public interface AtomosRuntime extends FrameworkFactory {
 	public enum LoaderType {
-		OSGI,
-		SINGLE,
-		MANY
+		OSGI, SINGLE, MANY
 	}
+
 	/**
 	 * If set to false then the Atomos bundles will not be automatically installed.
 	 * Default is true.
@@ -144,20 +173,24 @@ public interface AtomosRuntime {
 
 	/**
 	 * Returns the OSGi bundle installed which is associated with the specified
-	 * Atomos Bundle. 
-	 * @return the OSGi bundle or {@code null} if the Atomos bundle has not been installed
-	 * or if there is no OSGi Framework initialized with the Atomos Runtime.
+	 * Atomos Bundle.
+	 * 
+	 * @return the OSGi bundle or {@code null} if the Atomos bundle has not been
+	 *         installed or if there is no OSGi Framework initialized with the
+	 *         Atomos Runtime.
 	 */
 	Bundle getBundle(AtomosBundleInfo atomosBundle);
 
 	/**
 	 * Adds a layer with the specified parents and loads modules from the specified
 	 * module paths
-	 * @param parents the parents for the new layer
-	 * @param name the name of the new layer
-	 * @param loaderType the type of class loader to use
+	 * 
+	 * @param parents     the parents for the new layer
+	 * @param name        the name of the new layer
+	 * @param loaderType  the type of class loader to use
 	 * @param modulePaths the paths to load modules for the new layer
 	 * @return a newly created layer
+	 * @throws UnsupportedOperationException if Atomos is not loaded as a named module.
 	 */
 	AtomosLayer addLayer(List<AtomosLayer> parents, String name, LoaderType loaderType, Path... modulePaths);
 
@@ -170,13 +203,16 @@ public interface AtomosRuntime {
 
 	/**
 	 * Creates a new {@link Framework} with the specified framework configuration
-	 * using this AtomosRuntime to provide the AtomosBundleInfo for installation into
-	 * the new Framework.
+	 * using this AtomosRuntime to provide the AtomosBundleInfo for installation
+	 * into the new Framework.
 	 * 
-	 * @param frameworkConfig the framework configuraiton
-	 * @return
+	 * @see FrameworkFactory#newFramework(Map)
+	 * @param frameworkConfig the framework configuration
+	 * @return A new, configured {@link Framework} instance. The framework instance
+	 *         must be in the {@link Bundle#INSTALLED} state.
 	 */
-	Framework createFramework(Map<String, String> frameworkConfig);
+	@Override
+	Framework newFramework(Map<String, String> frameworkConfig);
 
 	/**
 	 * A main method that can be used by executable jars to initialize and start an
@@ -208,7 +244,7 @@ public interface AtomosRuntime {
 	 *                         framework
 	 */
 	static Framework launch(Map<String, String> frameworkConfig) throws BundleException {
-		AtomosRuntime atomosRuntime = createAtomosRuntime();
+		AtomosRuntime atomosRuntime = newAtomosRuntime();
 
 		ModuleLayer thisLayer = AtomosRuntime.class.getModule().getLayer();
 		if (thisLayer != null) {
@@ -216,10 +252,11 @@ public interface AtomosRuntime {
 			Configuration config = thisLayer.configuration();
 			File modulesDir = getModulesDir(config, frameworkConfig);
 			if (modulesDir != null) {
-				atomosRuntime.addLayer(List.of(atomosRuntime.getBootLayer()), "modules", LoaderType.OSGI, modulesDir.toPath());
+				atomosRuntime.addLayer(List.of(atomosRuntime.getBootLayer()), "modules", LoaderType.OSGI,
+						modulesDir.toPath());
 			}
 		}
-		Framework framework = atomosRuntime.createFramework(frameworkConfig);
+		Framework framework = atomosRuntime.newFramework(frameworkConfig);
 		framework.start();
 		return framework;
 	}
@@ -266,22 +303,22 @@ public interface AtomosRuntime {
 	}
 
 	/**
-	 * creates a new AtomosRuntime that can be used to create a new Atomos framework
+	 * Creates a new AtomosRuntime that can be used to create a new Atomos framework
 	 * instance. If Atomos is running as a Java Module then this AtomosRuntime can
 	 * be used to create additional layers by using the
 	 * {@link #addLayer(Configuration)} method. If the additional layers are added
-	 * before {@link #createFramework(Map) creating} and {@link Framework#init()
+	 * before {@link #newFramework(Map) creating} and {@link Framework#init()
 	 * initializing} the framework then the Atomos bundles found in the added layers
 	 * will be automatically installed and started according to the
 	 * {@link #ATOMOS_BUNDLE_INSTALL} and {@link #ATOMOS_BUNDLE_START} options.
 	 * <p>
-	 * Note that this AtomosRuntime {@link #createFramework(Map)} must be used for a
+	 * Note that this AtomosRuntime {@link #newFramework(Map)} must be used for a
 	 * new {@link Framework framework} instance to use the layers added to this
 	 * AtomosRuntime.
 	 * 
 	 * @return a new AtomosRuntime.
 	 */
-	static AtomosRuntime createAtomosRuntime() {
+	static AtomosRuntime newAtomosRuntime() {
 		ServiceLoader<AtomosRuntime> loader;
 		if (AtomosRuntime.class.getModule().getLayer() == null) {
 			loader = ServiceLoader.load(AtomosRuntime.class, AtomosRuntime.class.getClassLoader());

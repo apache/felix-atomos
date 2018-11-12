@@ -24,7 +24,7 @@ import org.osgi.framework.BundleException;
  * method or the Atomos Layer could represent the {@link AtomosRuntime#getBootLayer() boot layer}.
  * An Atomos Layer will contain one or more {@link AtomosBundleInfo atomos bundles} which can
  * then be used to {@link AtomosBundleInfo#install(String) install } them as OSGi bundles into the
- * {@link AtomosRuntime#createFramework(java.util.Map) framework}.
+ * {@link AtomosRuntime#newFramework(java.util.Map) framework}.
  */
 public interface AtomosLayer {
 	/**

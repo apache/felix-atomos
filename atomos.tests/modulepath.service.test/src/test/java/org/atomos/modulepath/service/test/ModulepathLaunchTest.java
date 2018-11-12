@@ -266,7 +266,7 @@ public class ModulepathLaunchTest {
 		AtomosRuntime atomosRuntime = bc.getService(bc.getServiceReference(AtomosRuntime.class));
 		
 		try {
-			atomosRuntime.createFramework(Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+			atomosRuntime.newFramework(Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
 			fail();
 		} catch (IllegalStateException e) {
 			// expected
