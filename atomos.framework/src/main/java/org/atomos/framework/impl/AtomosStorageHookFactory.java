@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
@@ -50,6 +51,8 @@ import org.osgi.framework.namespace.PackageNamespace;
 import org.osgi.resource.Namespace;
 
 public class AtomosStorageHookFactory extends StorageHookFactory<AtomicBoolean, AtomicBoolean, StorageHook<AtomicBoolean, AtomicBoolean>> {
+	static final String OSGI_CONTRACT_NAMESPACE = "osgi.contract";
+	static final String OSGI_VERSION_ATTR = "version:Version";
 	private final AtomosRuntimeImpl atomosRuntime;
 	private final HookRegistry hookRegistry;
 	
@@ -271,8 +274,11 @@ public class AtomosStorageHookFactory extends StorageHookFactory<AtomicBoolean, 
 			for (Exports exports : desc.exports()) {
 				// TODO map targets to x-friends directive.
 				builder.addCapability(PackageNamespace.PACKAGE_NAMESPACE, Map.of(),
-						Map.of(PackageNamespace.PACKAGE_NAMESPACE, exports.source()));
+						Map.of(PackageNamespace.PACKAGE_NAMESPACE, exports.source(), PackageNamespace.CAPABILITY_VERSION_ATTRIBUTE, Version.emptyVersion));
 			}
+
+			// add a contract based on the module name
+			addOSGiContractCapability(builder, desc);
 
 			// only do requires for non bundle modules
 			// map requires to require bundle
@@ -340,5 +346,17 @@ public class AtomosStorageHookFactory extends StorageHookFactory<AtomicBoolean, 
 		origReqs.forEach((r) -> builder.addRequirement(r.getNamespace(), r.getDirectives(), r.getAttributes()));
 
 		return builder;
+	}
+
+	private void addOSGiContractCapability(ModuleRevisionBuilder builder, ModuleDescriptor desc) {
+		Map<String, Object> attributes = Map.of(OSGI_CONTRACT_NAMESPACE, desc.name(), OSGI_VERSION_ATTR, builder.getVersion());
+		Map<String, String> directives = Map.of();
+		String uses = null;
+		Set<Exports> exports = desc.exports();
+		if (!exports.isEmpty()) {
+			uses = exports.stream().map(e -> e.source()).sorted().collect(Collectors.joining(","));
+			directives = Map.of(PackageNamespace.CAPABILITY_USES_DIRECTIVE, uses);
+		}
+		builder.addCapability(OSGI_CONTRACT_NAMESPACE, directives, attributes);
 	}
 }
