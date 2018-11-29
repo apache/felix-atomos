@@ -12,6 +12,7 @@ import org.atomos.framework.AtomosRuntime;
  *******************************************************************************/
 module service.test {
 	requires atomos.framework;
+	requires service.contract;
 	requires service.impl;
 	requires service.impl.activator;
 	requires org.apache.felix.scr;

@@ -66,16 +66,31 @@ public class AtomosFrameworkFactoryTest {
 		List<FrameworkFactory> factories = new ArrayList<>();
 		loader.forEach((f) -> factories.add(f));
 		assertFalse("No factory found.", factories.isEmpty());
+
 		FrameworkFactory factory = factories.get(0);
 		assertNotNull("null factory.", factory);
-		Map<String, String> config = new HashMap<>();
-		config.put(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath());
+
+		Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath());
 		testFramework = factory.newFramework(config);
+		doTestFramework(testFramework);
+	}
+
+	@Test
+	public void testRuntime() throws BundleException {
+		AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
+		Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath());
+		testFramework = runtime.newFramework(config);
+		doTestFramework(testFramework);
+	}
+
+	private void doTestFramework(Framework testFramework) throws BundleException {
 		testFramework.start();
 		BundleContext bc = testFramework.getBundleContext();
 		assertNotNull("No context found.", bc);
 		Bundle[] bundles = bc.getBundles();
-		assertTrue("No bundles: " + Arrays.toString(bundles), bundles.length > 1);
+
+		assertEquals("Wrong number of bundles.", ModuleLayer.boot().modules().size(), bundles.length);
+
 		for (Bundle b : bundles) {
 			String msg = b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b);
 			System.out.println(msg);
@@ -89,6 +104,7 @@ public class AtomosFrameworkFactoryTest {
 		}
 	}
 
+	
 	private String getState(Bundle b) {
 		switch (b.getState()) {
 		case Bundle.UNINSTALLED:

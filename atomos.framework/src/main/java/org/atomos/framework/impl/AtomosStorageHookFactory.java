@@ -12,7 +12,6 @@ package org.atomos.framework.impl;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.lang.module.ModuleDescriptor;
 import java.lang.module.ModuleDescriptor.Exports;
@@ -22,6 +21,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -38,7 +38,6 @@ import org.atomos.framework.impl.AtomosRuntimeImpl.AtomosLayerImpl;
 import org.eclipse.osgi.container.ModuleContainerAdaptor.ModuleEvent;
 import org.eclipse.osgi.container.ModuleRevisionBuilder;
 import org.eclipse.osgi.container.ModuleRevisionBuilder.GenericInfo;
-import org.eclipse.osgi.framework.log.FrameworkLogEntry;
 import org.eclipse.osgi.internal.hookregistry.HookRegistry;
 import org.eclipse.osgi.internal.hookregistry.StorageHookFactory;
 import org.eclipse.osgi.internal.hookregistry.StorageHookFactory.StorageHook;
@@ -239,24 +238,13 @@ public class AtomosStorageHookFactory extends StorageHookFactory<AtomicBoolean, 
 		if (atomosBundle.getModule().isEmpty()) {
 			return null;
 		}
-		boolean origHasBSN = original.getSymbolicName() != null;
-
-		if (origHasBSN) {
-			if (!original.getSymbolicName().equals(atomosBundle.getSymbolicName())) {
-				hookRegistry.getContainer().getLogServices().log(AtomosRuntimeImpl.thisModule.getName(), FrameworkLogEntry.ERROR,
-						"Bundle symbolic name does not match the module name: " + original.getSymbolicName() + " vs "
-								+ atomosBundle.getSymbolicName(),
-						null);
-			}
-		}
-
 		List<GenericInfo> origCaps = original.getCapabilities();
 		List<GenericInfo> origReqs = original.getRequirements();
 
 		ModuleDescriptor desc = atomosBundle.getModule().get().getDescriptor();
 		ModuleRevisionBuilder builder = new ModuleRevisionBuilder();
 
-		if (origHasBSN) {
+		if (original.getSymbolicName() != null) {
 			builder.setSymbolicName(original.getSymbolicName());
 			builder.setVersion(original.getVersion());
 			builder.setTypes(original.getTypes());
@@ -326,14 +314,28 @@ public class AtomosStorageHookFactory extends StorageHookFactory<AtomicBoolean, 
 					Map.of(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE, uses));
 		}
 
+		boolean bnsMatchesModuleName = builder.getSymbolicName().equals(desc.name());
 		// add back the original
 		origCaps.forEach((c) -> {
 			Map<String, String> directives = c.getDirectives();
-			if (directives.containsKey(Namespace.CAPABILITY_USES_DIRECTIVE)) {
-				directives = new HashMap<>(directives);
-				directives.remove(Namespace.CAPABILITY_USES_DIRECTIVE);
+			Map<String, Object> attributes = c.getAttributes();
+			if (BundleNamespace.BUNDLE_NAMESPACE.equals(c.getNamespace()) && !bnsMatchesModuleName) {
+				attributes = new HashMap<>(attributes);
+				Object name = attributes.get(BundleNamespace.BUNDLE_NAMESPACE);
+				List<String> names = new ArrayList<>();
+				if (name instanceof Collection) {
+					@SuppressWarnings("unchecked")
+					Collection<String> aliases = (Collection<String>) name;
+					names.addAll(aliases);
+				} else {
+					names.add((String) name);
+				}
+				if (!names.contains(desc.name())) {
+					names.add(desc.name());
+				}
+				attributes.put(BundleNamespace.BUNDLE_NAMESPACE, names);
 			}
-			builder.addCapability(c.getNamespace(), directives, c.getAttributes());
+			builder.addCapability(c.getNamespace(), directives, attributes);
 		});
 		origReqs.forEach((r) -> builder.addRequirement(r.getNamespace(), r.getDirectives(), r.getAttributes()));
 
