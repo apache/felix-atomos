@@ -27,12 +27,14 @@ import java.util.zip.ZipFile;
 import org.eclipse.osgi.framework.log.FrameworkLogEntry;
 import org.eclipse.osgi.internal.debug.Debug;
 import org.eclipse.osgi.internal.framework.EquinoxContainer;
+import org.eclipse.osgi.internal.framework.EquinoxEventPublisher;
 import org.eclipse.osgi.internal.messages.Msg;
 import org.eclipse.osgi.storage.BundleInfo;
 import org.eclipse.osgi.storage.Storage.StorageException;
 import org.eclipse.osgi.storage.bundlefile.BundleEntry;
 import org.eclipse.osgi.storage.bundlefile.BundleFile;
 import org.eclipse.osgi.util.NLS;
+import org.osgi.framework.FrameworkEvent;
 
 /**
  * A BundleFile that uses a ZipFile as it base file.
@@ -135,11 +137,13 @@ public class JarBundleFile extends BundleFile {
 		} catch (IOException e) {
 			if (debug.DEBUG_BUNDLE_FILE)
 				Debug.printStackTrace(e);
-			generation.getBundleInfo().getStorage().getLogServices().log(EquinoxContainer.NAME, FrameworkLogEntry.ERROR, "Unable to extract content: " + generation.getRevision() + ": " + entry, e); //$NON-NLS-1$ //$NON-NLS-2$
+			EquinoxEventPublisher publisher = generation.getBundleInfo().getStorage().getConfiguration().getHookRegistry().getContainer().getEventPublisher();
+			publisher.publishFrameworkEvent(FrameworkEvent.ERROR, generation.getRevision().getBundle(), e);
 		} catch (StorageException e) {
 			if (debug.DEBUG_BUNDLE_FILE)
 				Debug.printStackTrace(e);
-			generation.getBundleInfo().getStorage().getLogServices().log(EquinoxContainer.NAME, FrameworkLogEntry.ERROR, "Unable to extract content: " + generation.getRevision() + ": " + entry, e); //$NON-NLS-1$ //$NON-NLS-2$
+			EquinoxEventPublisher publisher = generation.getBundleInfo().getStorage().getConfiguration().getHookRegistry().getContainer().getEventPublisher();
+			publisher.publishFrameworkEvent(FrameworkEvent.ERROR, generation.getRevision().getBundle(), e);	
 		}
 		return null;
 	}

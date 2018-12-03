@@ -113,7 +113,6 @@
 										exports org.eclipse.osgi.internal.loader.classpath;
 										exports org.eclipse.osgi.internal.loader.sources;
 										exports org.eclipse.osgi.internal.location;
-										exports org.eclipse.osgi.internal.log;
 										exports org.eclipse.osgi.internal.messages;
 										exports org.eclipse.osgi.internal.permadmin;
 										exports org.eclipse.osgi.internal.provisional.service.security;

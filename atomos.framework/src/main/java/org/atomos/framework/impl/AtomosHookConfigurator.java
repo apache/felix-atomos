@@ -27,9 +27,9 @@ import java.util.zip.ZipEntry;
 import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
 import org.atomos.framework.AtomosRuntime;
-import org.eclipse.osgi.framework.log.FrameworkLogEntry;
 import org.eclipse.osgi.internal.debug.Debug;
 import org.eclipse.osgi.internal.framework.EquinoxConfiguration;
+import org.eclipse.osgi.internal.framework.EquinoxContainer;
 import org.eclipse.osgi.internal.hookregistry.BundleFileWrapperFactoryHook;
 import org.eclipse.osgi.internal.hookregistry.ClassLoaderHook;
 import org.eclipse.osgi.internal.hookregistry.HookConfigurator;
@@ -37,7 +37,6 @@ import org.eclipse.osgi.internal.hookregistry.HookRegistry;
 import org.eclipse.osgi.internal.loader.BundleLoader;
 import org.eclipse.osgi.internal.loader.EquinoxClassLoader;
 import org.eclipse.osgi.internal.loader.ModuleClassLoader;
-import org.eclipse.osgi.internal.log.EquinoxLogServices;
 import org.eclipse.osgi.storage.BundleInfo.Generation;
 import org.eclipse.osgi.storage.bundlefile.BundleFile;
 import org.eclipse.osgi.storage.bundlefile.BundleFileWrapper;
@@ -81,7 +80,7 @@ public class AtomosHookConfigurator implements HookConfigurator {
 	private final AtomosRuntimeImpl atomosRuntime;
 	volatile BundleContext bc;
 	volatile File emptyJar;
-	volatile EquinoxLogServices logServices;
+	volatile EquinoxContainer container;
 
 	public AtomosHookConfigurator() {
 		AtomosRuntimeImpl bootRuntime = bootAtomRuntime.get();
@@ -92,7 +91,7 @@ public class AtomosHookConfigurator implements HookConfigurator {
 	public void addHooks(HookRegistry hookRegistry) {
 		DEBUG = hookRegistry.getContainer().getConfiguration().getDebugOptions().getBooleanOption(DEBUG_ATOM_FWK,
 				false);
-		logServices = hookRegistry.getContainer().getLogServices();
+		container = hookRegistry.getContainer();
 		if (atomosRuntime.getBootLayer().getAtomosBundles().isEmpty()) {
 			// nothing for us to do here
 			if (DEBUG) {
@@ -192,7 +191,6 @@ public class AtomosHookConfigurator implements HookConfigurator {
 			public void stop(BundleContext bc) {
 				bc = null;
 				emptyJar = null;
-				logServices = null;
 				atomosRuntime.setConfigurator(AtomosHookConfigurator.this, null);
 			}
 		});
@@ -225,7 +223,8 @@ public class AtomosHookConfigurator implements HookConfigurator {
 						bundles.add(b);
 					}
 				} catch (BundleException e) {
-					logServices.log(AtomosRuntimeImpl.thisModule.getName(), FrameworkLogEntry.ERROR, "Error installing Atomos bundle.", e);
+					RuntimeException error = new RuntimeException("Error installing Atomos bundle.", e);
+					container.getEventPublisher().publishFrameworkEvent(FrameworkEvent.ERROR, bc.getBundle(), error);
 				}
 			}
 			if (startBundles) {
@@ -235,7 +234,8 @@ public class AtomosHookConfigurator implements HookConfigurator {
 						try {
 							b.start();
 						} catch (BundleException e) {
-							logServices.log(AtomosRuntimeImpl.thisModule.getName(), FrameworkLogEntry.ERROR, "Error starting Atomos bundle.", e);
+							RuntimeException error = new RuntimeException("Error starting Atomos bundle.", e);
+							container.getEventPublisher().publishFrameworkEvent(FrameworkEvent.ERROR, bc.getBundle(), error);
 
 						}
 					}

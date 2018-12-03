@@ -33,6 +33,7 @@ import org.eclipse.osgi.container.ModuleRevision;
 import org.eclipse.osgi.framework.log.FrameworkLogEntry;
 import org.eclipse.osgi.internal.debug.Debug;
 import org.eclipse.osgi.internal.framework.EquinoxContainer;
+import org.eclipse.osgi.internal.framework.EquinoxEventPublisher;
 import org.eclipse.osgi.internal.messages.Msg;
 import org.eclipse.osgi.storage.BundleInfo;
 import org.eclipse.osgi.storage.Storage.StorageException;
@@ -40,6 +41,7 @@ import org.eclipse.osgi.storage.bundlefile.BundleEntry;
 import org.eclipse.osgi.storage.bundlefile.BundleFile;
 import org.eclipse.osgi.storage.bundlefile.MRUBundleFileList;
 import org.eclipse.osgi.util.NLS;
+import org.osgi.framework.FrameworkEvent;
 // NOTE this was copied from Equinox ZipBundleFile to handle MRUBundleFileList
 // TODO should look at enhancing ZipBundleFile to have an abstract class that handles
 // the MRUBundleFileList logic
@@ -261,12 +263,14 @@ public class ModuleReaderBundleFile extends BundleFile {
 			} catch (StorageException e) {
 				if (debug.DEBUG_BUNDLE_FILE)
 					Debug.printStackTrace(e);
-				generation.getBundleInfo().getStorage().getLogServices().log(EquinoxContainer.NAME, FrameworkLogEntry.ERROR, "Unable to extract content: " + generation.getRevision() + ": " + path, e); //$NON-NLS-1$ //$NON-NLS-2$
+				EquinoxEventPublisher publisher = generation.getBundleInfo().getStorage().getConfiguration().getHookRegistry().getContainer().getEventPublisher();
+				publisher.publishFrameworkEvent(FrameworkEvent.ERROR, generation.getRevision().getBundle(), e);
 			}
 		} catch (IOException e) {
-					if (debug.DEBUG_BUNDLE_FILE)
-						Debug.printStackTrace(e);
-					generation.getBundleInfo().getStorage().getLogServices().log(EquinoxContainer.NAME, FrameworkLogEntry.ERROR, "Unable to extract content: " + generation.getRevision() + ": " + path, e); //$NON-NLS-1$ //$NON-NLS-2$
+			if (debug.DEBUG_BUNDLE_FILE)
+				Debug.printStackTrace(e);
+			EquinoxEventPublisher publisher = generation.getBundleInfo().getStorage().getConfiguration().getHookRegistry().getContainer().getEventPublisher();
+			publisher.publishFrameworkEvent(FrameworkEvent.ERROR, generation.getRevision().getBundle(), e);
 		} finally {
 			openLock.unlock();
 		}
