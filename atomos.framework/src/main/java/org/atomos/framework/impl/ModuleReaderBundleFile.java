@@ -30,9 +30,7 @@ import java.util.stream.Collectors;
 
 import org.eclipse.osgi.container.ModuleContainerAdaptor.ContainerEvent;
 import org.eclipse.osgi.container.ModuleRevision;
-import org.eclipse.osgi.framework.log.FrameworkLogEntry;
 import org.eclipse.osgi.internal.debug.Debug;
-import org.eclipse.osgi.internal.framework.EquinoxContainer;
 import org.eclipse.osgi.internal.framework.EquinoxEventPublisher;
 import org.eclipse.osgi.internal.messages.Msg;
 import org.eclipse.osgi.storage.BundleInfo;
