@@ -19,6 +19,8 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.hooks.bundle.CollisionHook;
 import org.osgi.framework.hooks.resolver.ResolverHook;
 import org.osgi.framework.hooks.resolver.ResolverHookFactory;
+import org.osgi.framework.namespace.BundleNamespace;
+import org.osgi.framework.namespace.PackageNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
@@ -35,20 +37,44 @@ public class AtomosFrameworkHooks implements ResolverHookFactory, CollisionHook 
 		public void filterSingletonCollisions(BundleCapability singleton,
 				Collection<BundleCapability> collisionCandidates) {
 			AtomosBundleInfo atomosBundle = atomosRuntime.getByOSGiLocation(singleton.getRevision().getBundle().getLocation());
-			if (atomosBundle != null) {
-				// only filter collisions for atomos bundles; normal bundles have normal collision rules
-				for (Iterator<BundleCapability> iCands = collisionCandidates.iterator(); iCands.hasNext();) {
-					BundleCapability candidate = iCands.next();
-					if (!isVisible(atomosBundle, candidate)) {
-						iCands.remove();
-					}
-				}
-			}
+			filterNotVisible(atomosBundle, collisionCandidates);
 		}
 
 		@Override
 		public void filterMatches(BundleRequirement requirement, Collection<BundleCapability> candidates) {
 			AtomosBundleInfo atomosBundle = atomosRuntime.getByOSGiLocation(requirement.getRevision().getBundle().getLocation());
+			switch (requirement.getNamespace()) {
+			case PackageNamespace.PACKAGE_NAMESPACE:
+			case BundleNamespace.BUNDLE_NAMESPACE:
+				filterBasedOnReadEdges(atomosBundle, candidates);
+				return;
+			default:
+				filterNotVisible(atomosBundle, candidates);
+				return;
+			}
+			
+		}
+
+		private void filterBasedOnReadEdges(AtomosBundleInfo atomosBundle, Collection<BundleCapability> candidates) {
+			if (atomosBundle.getModule().isEmpty()) {
+				filterNotVisible(atomosBundle, candidates);
+			} else {
+				Module m = atomosBundle.getModule().get();
+				for (Iterator<BundleCapability> iCands = candidates.iterator(); iCands.hasNext();) {
+					BundleCapability candidate = iCands.next();
+					AtomosBundleInfo candidateAtomos = atomosRuntime.getByOSGiLocation(candidate.getRevision().getBundle().getLocation());
+					if (candidateAtomos == null || candidateAtomos.getModule().isEmpty()) {
+						iCands.remove();
+					} else {
+						if (!m.canRead(candidateAtomos.getModule().get())) {
+							iCands.remove();
+						}
+					}
+				}
+			}
+		}
+
+		private void filterNotVisible(AtomosBundleInfo atomosBundle, Collection<BundleCapability> candidates) {
 			if (atomosBundle != null) {
 				for (Iterator<BundleCapability> iCands = candidates.iterator(); iCands.hasNext();) {
 					BundleCapability candidate = iCands.next();
