@@ -13,7 +13,6 @@
 	<artifactId>service.impl.activator</artifactId>
 
 	<name>service.impl.activator</name>
-	<url>http://maven.apache.org</url>
 
 	<dependencies>
 		<dependency>

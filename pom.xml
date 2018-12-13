@@ -10,7 +10,7 @@
 	<packaging>pom</packaging>
 
 	<name>atomos</name>
-	<url>http://maven.apache.org</url>
+	<url>https://github.com/tjwatson/atomos</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
