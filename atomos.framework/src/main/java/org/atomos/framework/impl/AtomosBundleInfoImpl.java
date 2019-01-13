@@ -13,6 +13,8 @@ package org.atomos.framework.impl;
 import java.io.File;
 import java.io.IOException;
 import java.lang.module.ResolvedModule;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Optional;
 import java.util.jar.JarFile;
 
@@ -146,6 +148,16 @@ public class AtomosBundleInfoImpl implements AtomosBundleInfo, Comparable<Atomos
 		}
 		if (jarFile.isPresent()) {
 			return new JarBundleFile(jarFile.get(), bundleFile.getBaseFile(), generation, debug);
+		}
+		throw new IllegalStateException("No content available for the bundle file.");
+	}
+
+	URL getContentURL() throws MalformedURLException {
+		if (file.isPresent()) {
+			return file.get().toURI().toURL();
+		}
+		if (jarFile.isPresent()) {
+			return new File(jarFile.get().getName()).toURI().toURL();
 		}
 		throw new IllegalStateException("No content available for the bundle file.");
 	}

@@ -36,6 +36,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.launch.Framework;
@@ -104,7 +105,13 @@ public class ClasspathLaunchTest {
 			Echo echo = (Echo) bc.getService(ref);
 			assertNotNull("No Echo service found.", echo);
 			assertEquals("Wrong Echo.", ref.getProperty("type") + " Hello!!", echo.echo("Hello!!"));
+			checkClassBundle(echo, ref);
 		}
+	}
+
+	private void checkClassBundle(Object service, ServiceReference<?> ref) {
+		Bundle b = FrameworkUtil.getBundle(service.getClass());
+		assertEquals("Wrong bundle.", ref.getBundle(), b);
 	}
 
 	private String getState(Bundle b) {

@@ -9,7 +9,7 @@ public class AtomosFrameworkUtilHelper extends FrameworkUtilHelper {
 	public Bundle getBundle(Class<?> classFromBundle) {
 		AtomosRuntimeImpl current = atomosRuntime;
 		if (current != null) {
-			return atomosRuntime.getBundle(classFromBundle.getModule());
+			return atomosRuntime.getBundle(classFromBundle);
 		}
 		return null;
 	}

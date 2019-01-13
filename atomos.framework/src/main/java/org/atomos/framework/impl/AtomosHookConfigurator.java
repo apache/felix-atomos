@@ -218,9 +218,11 @@ public class AtomosHookConfigurator implements HookConfigurator {
 			List<Bundle> bundles = new ArrayList<>();
 			for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomosBundles()) {
 				try {
-					Bundle b = atomosBundle.install("atomos");
-					if (b != null && b.getBundleId() != 0) {
-						bundles.add(b);
+					if (atomosRuntime.getBundle(atomosBundle) == null) {
+						Bundle b = atomosBundle.install("atomos");
+						if (b != null && b.getBundleId() != 0) {
+							bundles.add(b);
+						}
 					}
 				} catch (BundleException e) {
 					RuntimeException error = new RuntimeException("Error installing Atomos bundle.", e);

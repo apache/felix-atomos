@@ -17,6 +17,7 @@ import java.lang.module.ModuleDescriptor;
 import java.lang.module.ModuleFinder;
 import java.lang.module.ResolvedModule;
 import java.net.JarURLConnection;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -75,6 +76,7 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 	final Map<String, AtomosBundleInfoImpl> byAtomosLocation = new HashMap<>();
 	final Map<AtomosLayer, Collection<String>> byAtomosLayer = new HashMap<>();
 	final Map<Module, String> byModule = new HashMap<>();
+	final Map<URL, String> byCodePath = new HashMap<>();
 	final Map<Configuration, AtomosLayerImpl> byConfig = new HashMap<>();
 	final Map<Long, AtomosLayerImpl> byId = new HashMap<>();
 	final Map<AtomosBundleInfo, String> byAtomosBundle = new HashMap<>();
@@ -102,7 +104,14 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 			AtomosLayer layer = atomosBundle.getAtomosLayer();
 			byAtomosLayer.computeIfAbsent(layer, (l) -> new ArrayList<>()).add(osgiLocation);
 			byAtomosBundle.put(atomosBundle, osgiLocation);
-			atomosBundle.getModule().ifPresent((m) -> byModule.put(m, osgiLocation));
+			atomosBundle.getModule().ifPresentOrElse((m) -> byModule.put(m, osgiLocation),
+					()->{
+						try {
+							byCodePath.put(atomosBundle.getContentURL(), osgiLocation);
+						} catch (MalformedURLException e) {
+							throw new RuntimeException(e);
+						}
+					});
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -111,10 +120,17 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 	private void removeFromInstalledBundles(String osgiLocation) {
 		lock.writeLock().lock();
 		try {
-			AtomosBundleInfo removed = byOSGiLocation.remove(osgiLocation);
+			AtomosBundleInfoImpl removed = byOSGiLocation.remove(osgiLocation);
 			byAtomosLayer.computeIfAbsent(removed.getAtomosLayer(), (l) -> new ArrayList<>()).remove(osgiLocation);
 			byAtomosBundle.remove(removed);
-			removed.getModule().ifPresent((m) -> byModule.remove(m));
+			removed.getModule().ifPresentOrElse((m) -> byModule.remove(m),
+					() ->{
+						try {
+							byCodePath.remove(removed.getContentURL());
+						} catch (MalformedURLException e) {
+							throw new RuntimeException(e);
+						}
+					});
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -704,8 +720,14 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 		}
 	}
 
-	Bundle getBundle(Module module) {
-		String location = byModule.get(module);
+	Bundle getBundle(Class<?> classFromBundle) {
+		String location = null;
+		Module m = classFromBundle.getModule();
+		if (m != null && m.isNamed()) {
+			location = byModule.get(m);
+		} else {
+			location = byCodePath.get(getCodePath(classFromBundle));
+		}
 		if (location != null) {
 			AtomosHookConfigurator current = configurator.get();
 			if (current != null) {
@@ -716,5 +738,9 @@ public class AtomosRuntimeImpl implements AtomosRuntime, SynchronousBundleListen
 			}
 		}
 		return null;
+	}
+
+	private URL getCodePath(Class<?> classFromBundle) {
+		return classFromBundle.getProtectionDomain().getCodeSource().getLocation();
 	}
 }
