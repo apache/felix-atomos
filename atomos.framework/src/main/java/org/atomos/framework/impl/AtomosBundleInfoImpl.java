@@ -45,6 +45,7 @@ public class AtomosBundleInfoImpl implements AtomosBundleInfo, Comparable<Atomos
 
 	private final Optional<JarFile> jarFile;
 	private final Optional<File> file;
+	private final Optional<URL> contentURL;
 
 	/**
 	 * The bundle location used to install the bundle with.
@@ -86,6 +87,18 @@ public class AtomosBundleInfoImpl implements AtomosBundleInfo, Comparable<Atomos
 		this.version = version;
 		this.jarFile = Optional.ofNullable(jarFile);
 		this.file = Optional.ofNullable(file);
+		URL content = null;
+		try {
+			if (this.file.isPresent()) {
+				content = this.file.get().toURI().toURL();
+			}
+			if (this.jarFile.isPresent()) {
+				content = new File(this.jarFile.get().getName()).toURI().toURL();
+			}
+		} catch (MalformedURLException e) {
+			throw new IllegalArgumentException(e);
+		}
+		this.contentURL = Optional.ofNullable(content);
 	}
 	@Override
 	public String getLocation() {
@@ -152,14 +165,8 @@ public class AtomosBundleInfoImpl implements AtomosBundleInfo, Comparable<Atomos
 		throw new IllegalStateException("No content available for the bundle file.");
 	}
 
-	URL getContentURL() throws MalformedURLException {
-		if (file.isPresent()) {
-			return file.get().toURI().toURL();
-		}
-		if (jarFile.isPresent()) {
-			return new File(jarFile.get().getName()).toURI().toURL();
-		}
-		throw new IllegalStateException("No content available for the bundle file.");
+	URL getContentURL() {
+		return contentURL.orElseThrow(() -> new IllegalStateException("No content available for the bundle file."));
 	}
 
 	public String toString() {
