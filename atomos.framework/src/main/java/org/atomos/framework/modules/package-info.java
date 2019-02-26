@@ -8,4 +8,4 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.atomos.framework.impl;
+package org.atomos.framework.modules;

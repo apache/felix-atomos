@@ -50,18 +50,6 @@
 			<artifactId>org.apache.felix.scr</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.gogo.command</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.gogo.runtime</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.gogo.shell</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>

@@ -8,7 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.atomos.framework.impl;
+package org.atomos.framework.modules;
 
 import java.io.File;
 import java.io.FilterInputStream;

@@ -45,11 +45,17 @@ public interface AtomosBundleInfo extends Comparable<AtomosBundleInfo> {
 	public Version getVersion();
 
 	/**
-	 * The module of the Atomos bundle.  If not running
-	 * in a module layer then the optional will have a null value.
-	 * @return the module or null if not running in a module layer.
+	 * Adapt this Atomos bundle to the specified type. For example,
+	 * if running in a module layer then the module of the Atomos
+	 * bundle is returned in the optional value.
+	 * @param <A> The type to which this Atomos bundle is to be adapted.
+	 * @param type Class object for the type to which this Atomos bundle is to be
+	 *        adapted.
+	 * @return The object, of the specified type, to which this Atomos bundle has been
+	 *         adapted or {@code null} if this bundle cannot be adapted to the
+	 *         specified type.
 	 */
-	public Optional<Module> getModule();
+	public <T> Optional<T> adapt(Class<T> type);
 
 	/**
 	 * The Atomos layer this Atomos bundle is in.

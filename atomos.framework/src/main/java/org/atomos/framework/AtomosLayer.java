@@ -10,7 +10,6 @@
  *******************************************************************************/
 package org.atomos.framework;
 
-import java.lang.module.Configuration;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -28,11 +27,17 @@ import org.osgi.framework.BundleException;
  */
 public interface AtomosLayer {
 	/**
-	 * The {@link ModuleLayer} associated with this Atomos Layer. If not running
-	 * in a module layer then the optional will have a null value.
-	 * @return the ModuleLayer or null if not running in a module layer
+	 * Adapt this Atomos layer to the specified type. For example,
+	 * if running in a module layer then the layer can be adapted
+	 * to a ModuleLayer associated with this Atmos Layer.
+	 * @param <A> The type to which this Atomos bundle is to be adapted.
+	 * @param type Class object for the type to which this Atomos bundle is to be
+	 *        adapted.
+	 * @return The object, of the specified type, to which this Atomos bundle has been
+	 *         adapted or {@code null} if this bundle cannot be adapted to the
+	 *         specified type.
 	 */
-	Optional<ModuleLayer> getModuleLayer();
+	public <T> Optional<T> adapt(Class<T> type);
 
 	/**
 	 * The Atomos Layer children of this layer
@@ -84,6 +89,10 @@ public interface AtomosLayer {
 	 */
 	long getId();
 
+	/**
+	 * Returns the loader type used for this Atomos layer.
+	 * @return the loader type
+	 */
 	LoaderType getLoaderType();
 
 	/**

@@ -8,7 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.atomos.framework.impl;
+package org.atomos.framework.base;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -27,6 +27,7 @@ import java.util.zip.ZipEntry;
 import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
 import org.atomos.framework.AtomosRuntime;
+import org.atomos.framework.base.AtomosRuntimeBase.AtomosLayerBase.AtomosBundleInfoBase;
 import org.eclipse.osgi.internal.debug.Debug;
 import org.eclipse.osgi.internal.framework.EquinoxConfiguration;
 import org.eclipse.osgi.internal.framework.EquinoxContainer;
@@ -75,16 +76,16 @@ public class AtomosHookConfigurator implements HookConfigurator {
 		}
 	}
 
-	static final ThreadLocal<AtomosRuntimeImpl> bootAtomRuntime = new ThreadLocal<>();
+	static final ThreadLocal<AtomosRuntimeBase> bootAtomRuntime = new ThreadLocal<>();
 
-	private final AtomosRuntimeImpl atomosRuntime;
+	private final AtomosRuntimeBase atomosRuntime;
 	volatile BundleContext bc;
 	volatile File emptyJar;
 	volatile EquinoxContainer container;
 
 	public AtomosHookConfigurator() {
-		AtomosRuntimeImpl bootRuntime = bootAtomRuntime.get();
-		atomosRuntime = bootRuntime == null ? new AtomosRuntimeImpl() : bootRuntime;
+		AtomosRuntimeBase bootRuntime = bootAtomRuntime.get();
+		atomosRuntime = bootRuntime == null ? AtomosRuntimeBase.newAtomosRuntime() : bootRuntime;
 		atomosRuntime.setConfigurator(null, this);
 	}
 	@Override
@@ -106,7 +107,7 @@ public class AtomosHookConfigurator implements HookConfigurator {
 			@Override
 			public ModuleClassLoader createClassLoader(ClassLoader parent, EquinoxConfiguration configuration,
 					BundleLoader delegate, Generation generation) {
-				AtomosBundleInfoImpl atomosBundle = atomosRuntime.getByOSGiLocation(generation.getBundleInfo().getLocation());
+				AtomosBundleInfoBase atomosBundle = atomosRuntime.getByOSGiLocation(generation.getBundleInfo().getLocation());
 				if (atomosBundle != null) {
 					return createAtomosClassLoader(atomosBundle, parent, configuration, delegate, generation);
 				}
@@ -121,7 +122,7 @@ public class AtomosHookConfigurator implements HookConfigurator {
 			@Override
 			public BundleFileWrapper wrapBundleFile(BundleFile bundleFile, Generation generation, boolean base) {
 				String location = generation.getBundleInfo().getLocation();
-				AtomosBundleInfoImpl atomosBundle = (AtomosBundleInfoImpl) atomosRuntime.getByOSGiLocation(location);
+				AtomosBundleInfoBase atomosBundle = (AtomosBundleInfoBase) atomosRuntime.getByOSGiLocation(location);
 				if (atomosBundle != null) {
 					try {
 						return new AtomosBundleFileWrapper(atomosBundle, bundleFile, generation, mruList, debug);
@@ -198,18 +199,13 @@ public class AtomosHookConfigurator implements HookConfigurator {
 		hookRegistry.addStorageHookFactory(new AtomosStorageHookFactory(atomosRuntime, hookRegistry));
 	}
 
-	ModuleClassLoader createAtomosClassLoader(AtomosBundleInfoImpl atomosBundle, ClassLoader parent,
+	ModuleClassLoader createAtomosClassLoader(AtomosBundleInfoBase atomosBundle, ClassLoader parent,
 			EquinoxConfiguration configuration, BundleLoader delegate, Generation generation) {
-		ClassLoader delegateTo;
-		if (atomosBundle.getModule().isPresent()) {
-			delegateTo = atomosBundle.getModule().get().getClassLoader();
-			if (delegateTo instanceof AtomosClassLoader) {
-				((AtomosClassLoader) delegateTo).init(configuration, delegate, generation);
-				return (ModuleClassLoader) delegateTo;
-			}			
-		} else {
-			delegateTo = HookRegistry.class.getClassLoader();
-		}
+		ClassLoader delegateTo = atomosRuntime.getClassLoader(atomosBundle);
+		if (delegateTo instanceof AtomosClassLoader) {
+			((AtomosClassLoader) delegateTo).init(configuration, delegate, generation);
+			return (ModuleClassLoader) delegateTo;
+		}			
 		return new AtomosDelegateLoader(parent, configuration, delegate, generation, delegateTo);
 	}
 

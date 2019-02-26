@@ -75,7 +75,7 @@ public class ClasspathLaunchTest {
 
 		checkServices(bc, 4);
 		AtomosRuntime runtime = getRuntime(bc);
-		assertNull("Found a ModuleLayer.", runtime.getBootLayer().getModuleLayer().orElse(null));
+		assertNull("Found a ModuleLayer.", runtime.getBootLayer().adapt(ModuleLayer.class).orElse(null));
 	}
 
 	private AtomosRuntime getRuntime(BundleContext bc) {
@@ -139,7 +139,7 @@ public class ClasspathLaunchTest {
 			String msg = b.getBundleId() + " " + b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b);
 			System.out.println(msg);
 			int expected;
-			if ("osgi.annotation".equals(b.getSymbolicName()) || "org.osgi.service.component.annotations".equals(b.getSymbolicName())) {
+			if ("osgi.annotation".equals(b.getSymbolicName()) || "org.osgi.service.component.annotations".equals(b.getSymbolicName()) || b.getSymbolicName().startsWith("org.eclipse.jdt.junit")) {
 				expected = Bundle.INSTALLED;
 			} else {
 				expected = Bundle.ACTIVE;

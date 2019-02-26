@@ -13,7 +13,7 @@
  *     Rob Harrop - SpringSource Inc. (bug 253942)
  *******************************************************************************/
 
-package org.atomos.framework.impl;
+package org.atomos.framework.base;
 
 import java.io.File;
 import java.io.IOException;

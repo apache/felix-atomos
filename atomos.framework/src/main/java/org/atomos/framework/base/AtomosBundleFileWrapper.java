@@ -8,11 +8,13 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.atomos.framework.impl;
+package org.atomos.framework.base;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
+
+import org.atomos.framework.base.AtomosRuntimeBase.AtomosLayerBase.AtomosBundleInfoBase;
 import org.eclipse.osgi.internal.debug.Debug;
 import org.eclipse.osgi.storage.BundleInfo.Generation;
 import org.eclipse.osgi.storage.bundlefile.*;
@@ -20,7 +22,7 @@ import org.eclipse.osgi.storage.bundlefile.*;
 public class AtomosBundleFileWrapper extends BundleFileWrapper {
 	private final BundleFile bootContent;
 
-	public AtomosBundleFileWrapper(AtomosBundleInfoImpl bootBundle, BundleFile bundleFile, Generation generation, MRUBundleFileList mruList, Debug debug) throws IOException {
+	public AtomosBundleFileWrapper(AtomosBundleInfoBase bootBundle, BundleFile bundleFile, Generation generation, MRUBundleFileList mruList, Debug debug) throws IOException {
 		super(bundleFile);
 		bootContent = bootBundle.getBundleFile(bundleFile, generation, mruList, debug);
 	}

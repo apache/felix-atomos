@@ -143,7 +143,7 @@ public class ModulepathLaunchTest {
 		Module serviceLibModule = null;
 		for(AtomosBundleInfo atomosBundle : child.getAtomosBundles()) {
 			if (atomosBundle.getSymbolicName().equals("service.lib")) {
-				serviceLibModule = atomosBundle.getModule().get();
+				serviceLibModule = atomosBundle.adapt(Module.class).get();
 			}
 		}
 		try {
@@ -361,8 +361,10 @@ public class ModulepathLaunchTest {
 	}
 
 	private void checkClassBundle(Object service, ServiceReference<?> ref) {
-		Bundle b = FrameworkUtil.getBundle(service.getClass());
+		Class<?> serviceClass = service.getClass();	
+		Bundle b = FrameworkUtil.getBundle(serviceClass);
 		assertEquals("Wrong bundle.", ref.getBundle(), b);
+		assertEquals("Wrong module name", b.getSymbolicName(), service.getClass().getModule().getName());
 	}
 
 	private String getState(Bundle b) {

@@ -8,13 +8,12 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.atomos.framework.impl;
+package org.atomos.framework.base;
 
 import java.util.Collection;
 import java.util.Iterator;
 
 import org.atomos.framework.AtomosBundleInfo;
-import org.atomos.framework.AtomosLayer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.hooks.bundle.CollisionHook;
 import org.osgi.framework.hooks.resolver.ResolverHook;
@@ -37,7 +36,7 @@ public class AtomosFrameworkHooks implements ResolverHookFactory, CollisionHook 
 		public void filterSingletonCollisions(BundleCapability singleton,
 				Collection<BundleCapability> collisionCandidates) {
 			AtomosBundleInfo atomosBundle = atomosRuntime.getByOSGiLocation(singleton.getRevision().getBundle().getLocation());
-			filterNotVisible(atomosBundle, collisionCandidates);
+			atomosRuntime.filterNotVisible(atomosBundle, collisionCandidates);
 		}
 
 		@Override
@@ -46,43 +45,13 @@ public class AtomosFrameworkHooks implements ResolverHookFactory, CollisionHook 
 			switch (requirement.getNamespace()) {
 			case PackageNamespace.PACKAGE_NAMESPACE:
 			case BundleNamespace.BUNDLE_NAMESPACE:
-				filterBasedOnReadEdges(atomosBundle, candidates);
+				atomosRuntime.filterBasedOnReadEdges(atomosBundle, candidates);
 				return;
 			default:
-				filterNotVisible(atomosBundle, candidates);
+				atomosRuntime.filterNotVisible(atomosBundle, candidates);
 				return;
 			}
 			
-		}
-
-		private void filterBasedOnReadEdges(AtomosBundleInfo atomosBundle, Collection<BundleCapability> candidates) {
-			if (atomosBundle.getModule().isEmpty()) {
-				filterNotVisible(atomosBundle, candidates);
-			} else {
-				Module m = atomosBundle.getModule().get();
-				for (Iterator<BundleCapability> iCands = candidates.iterator(); iCands.hasNext();) {
-					BundleCapability candidate = iCands.next();
-					AtomosBundleInfo candidateAtomos = atomosRuntime.getByOSGiLocation(candidate.getRevision().getBundle().getLocation());
-					if (candidateAtomos == null || candidateAtomos.getModule().isEmpty()) {
-						iCands.remove();
-					} else {
-						if (!m.canRead(candidateAtomos.getModule().get())) {
-							iCands.remove();
-						}
-					}
-				}
-			}
-		}
-
-		private void filterNotVisible(AtomosBundleInfo atomosBundle, Collection<BundleCapability> candidates) {
-			if (atomosBundle != null) {
-				for (Iterator<BundleCapability> iCands = candidates.iterator(); iCands.hasNext();) {
-					BundleCapability candidate = iCands.next();
-					if (!isVisible(atomosBundle, candidate)) {
-						iCands.remove();
-					}
-				}
-			}
 		}
 
 		@Override
@@ -91,8 +60,8 @@ public class AtomosFrameworkHooks implements ResolverHookFactory, CollisionHook 
 		}
 
 	}
-	final AtomosRuntimeImpl atomosRuntime;
-	AtomosFrameworkHooks(AtomosRuntimeImpl atomosRuntime) {
+	final AtomosRuntimeBase atomosRuntime;
+	AtomosFrameworkHooks(AtomosRuntimeBase atomosRuntime) {
 		this.atomosRuntime = atomosRuntime;
 	}
 	@Override
@@ -108,34 +77,11 @@ public class AtomosFrameworkHooks implements ResolverHookFactory, CollisionHook 
 				AtomosBundleInfo candidate = atomosRuntime.getAtomosBundle(b.getLocation());
 				if (candidate != null) {
 					// Only other atomos bundles can be filtered out
-					if (!isInLayerHierarchy(currentlyInstalling.getAtomosLayer(), candidate.getAtomosLayer())) {
+					if (!atomosRuntime.isInLayerHierarchy(currentlyInstalling.getAtomosLayer(), candidate.getAtomosLayer())) {
 						iCands.remove();
 					}
 				}
 			}
 		}
-	}
-
-	boolean isVisible(AtomosBundleInfo atomosBundle, BundleCapability candidate) {
-		AtomosBundleInfo candidateAtomos = atomosRuntime.getByOSGiLocation(candidate.getRevision().getBundle().getLocation());
-		if (candidateAtomos == null) {
-			// atomos bundles cannot see normal bundles
-			return false;
-		} else {
-			AtomosLayer thisLayer = atomosBundle.getAtomosLayer();
-			return isInLayerHierarchy(thisLayer, candidateAtomos.getAtomosLayer());				
-		}
-	}
-
-	private boolean isInLayerHierarchy(AtomosLayer thisLayer, AtomosLayer candLayer) {
-		if (thisLayer.equals(candLayer)) {
-			return true;
-		}
-		for (AtomosLayer parent : thisLayer.getParents()) {
-			if (isInLayerHierarchy(parent, candLayer)) {
-				return true;
-			}
-		}
-		return false;
 	}
 }

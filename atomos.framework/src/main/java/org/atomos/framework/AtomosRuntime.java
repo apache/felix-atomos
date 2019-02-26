@@ -11,15 +11,12 @@
 package org.atomos.framework;
 
 import java.io.File;
-import java.lang.module.Configuration;
-import java.lang.module.ResolvedModule;
-import java.net.URI;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ServiceLoader;
 
+import org.atomos.framework.base.AtomosRuntimeBase;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
@@ -136,6 +133,9 @@ import org.osgi.framework.launch.FrameworkFactory;
  * service registered with its bundle context.
  */
 public interface AtomosRuntime extends FrameworkFactory {
+	/**
+	 * The loader type used for the class loaders of an Atomos layer.
+	 */
 	public enum LoaderType {
 		OSGI, SINGLE, MANY
 	}
@@ -190,10 +190,26 @@ public interface AtomosRuntime extends FrameworkFactory {
 	 * @param loaderType  the type of class loader to use
 	 * @param modulePaths the paths to load modules for the new layer
 	 * @return a newly created layer
-	 * @throws UnsupportedOperationException if Atomos is not loaded as a named module.
+	 * @throws UnsupportedOperationException if {@link #modulesSupported()} returns false.
 	 */
 	AtomosLayer addLayer(List<AtomosLayer> parents, String name, LoaderType loaderType, Path... modulePaths);
 
+	/**
+	 * A convenience method that adds the modules found at the specified path
+	 * to a new child layer of the boot layer.
+	 * @param name The name of the layer.
+	 * @param path The path to the modules.  If {@code null} then the default will try to
+	 * determine the location on disk of the atomos.framework module and look for a
+	 * folder with the same name as the specified name of the layer.
+	 * @throws UnsupportedOperationException if {@link #modulesSupported()} returns false.
+	 */
+	AtomosLayer addModules(String name, Path path);
+
+	/**
+	 * Returns {@code true} if modules and additional layers are supported.
+	 * @return if modules and additional layers are supported.
+	 */
+	boolean modulesSupported();
 	/**
 	 * The initial boot Atomos layer
 	 * 
@@ -245,39 +261,15 @@ public interface AtomosRuntime extends FrameworkFactory {
 	 */
 	static Framework launch(Map<String, String> frameworkConfig) throws BundleException {
 		AtomosRuntime atomosRuntime = newAtomosRuntime();
-
-		ModuleLayer thisLayer = AtomosRuntime.class.getModule().getLayer();
-		if (thisLayer != null) {
-			// Get the ResolvedModule for the launcher module
-			Configuration config = thisLayer.configuration();
-			File modulesDir = getModulesDir(config, frameworkConfig);
-			if (modulesDir != null) {
-				atomosRuntime.addLayer(List.of(atomosRuntime.getBootLayer()), "modules", LoaderType.OSGI,
-						modulesDir.toPath());
-			}
+		if (atomosRuntime.modulesSupported()) {
+			String modulesDirPath = frameworkConfig.get(ATOMOS_MODULES_DIR);
+			Path modulesPath = modulesDirPath == null ? null : new File(modulesDirPath).toPath();
+			atomosRuntime.addModules("modules", modulesPath);
 		}
+
 		Framework framework = atomosRuntime.newFramework(frameworkConfig);
 		framework.start();
 		return framework;
-	}
-
-	static private File getModulesDir(Configuration layerConfig, Map<String, String> frameworkConfig) {
-		String modulesDirPath = frameworkConfig.get(ATOMOS_MODULES_DIR);
-		File modulesDir = null;
-		if (modulesDirPath != null) {
-			// use the configured modules dir
-			modulesDir = new File(modulesDirPath);
-		} else {
-			ResolvedModule resolved = layerConfig.findModule(AtomosRuntime.class.getModule().getName()).get();
-			URI location = resolved.reference().location().get();
-			if (location.getScheme().equals("file")) {
-				// Use the module location as the relative base to locate the modules folder
-				File thisModuleFile = new File(location);
-				File candidate = new File(thisModuleFile.getParent(), "modules");
-				modulesDir = candidate;
-			}
-		}
-		return modulesDir != null && modulesDir.isDirectory() ? modulesDir : null;
 	}
 
 	/**
@@ -306,7 +298,7 @@ public interface AtomosRuntime extends FrameworkFactory {
 	 * Creates a new AtomosRuntime that can be used to create a new Atomos framework
 	 * instance. If Atomos is running as a Java Module then this AtomosRuntime can
 	 * be used to create additional layers by using the
-	 * {@link #addLayer(Configuration)} method. If the additional layers are added
+	 * {@link #addLayer(List, String, LoaderType, Path...)} method. If the additional layers are added
 	 * before {@link #newFramework(Map) creating} and {@link Framework#init()
 	 * initializing} the framework then the Atomos bundles found in the added layers
 	 * will be automatically installed and started according to the
@@ -319,15 +311,6 @@ public interface AtomosRuntime extends FrameworkFactory {
 	 * @return a new AtomosRuntime.
 	 */
 	static AtomosRuntime newAtomosRuntime() {
-		ServiceLoader<AtomosRuntime> loader;
-		if (AtomosRuntime.class.getModule().getLayer() == null) {
-			loader = ServiceLoader.load(AtomosRuntime.class, AtomosRuntime.class.getClassLoader());
-		} else {
-			loader = ServiceLoader.load( //
-					AtomosRuntime.class.getModule().getLayer(), //
-					AtomosRuntime.class);
-		}
-		return loader.findFirst() //
-				.orElseThrow(() -> new RuntimeException("No AtomosRuntime implementation found."));
+		return AtomosRuntimeBase.newAtomosRuntime();
 	}
 }

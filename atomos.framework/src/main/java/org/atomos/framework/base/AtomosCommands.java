@@ -8,10 +8,11 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.atomos.framework.impl;
+package org.atomos.framework.base;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -28,9 +29,9 @@ import org.osgi.framework.ServiceRegistration;
 public class AtomosCommands {
 
 	public String[] functions = new String[] {"list", "install", "uninstall"};
-	private final AtomosRuntimeImpl runtime;
+	private final AtomosRuntimeBase runtime;
 
-	public AtomosCommands(AtomosRuntimeImpl runtime) {
+	public AtomosCommands(AtomosRuntimeBase runtime) {
 		this.runtime = runtime;
 	}
 
@@ -89,7 +90,7 @@ public class AtomosCommands {
 			System.out.println("The specified path is not a directory: " + moduleDir.getAbsolutePath());
 		}
 
-		AtomosLayer layer = runtime.addLayer(List.of(runtime.getBootLayer()), name, LoaderType.valueOf(loaderType), moduleDir.toPath());
+		AtomosLayer layer = runtime.addLayer(Collections.singletonList(runtime.getBootLayer()), name, LoaderType.valueOf(loaderType), moduleDir.toPath());
 		
 		List<Bundle> bundles = new ArrayList<>();
 		for (AtomosBundleInfo atomosBundle : layer.getAtomosBundles()) {
