@@ -10,6 +10,10 @@
  *******************************************************************************/
 package org.atomos.framework.base;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+
 import org.eclipse.osgi.internal.debug.Debug;
 import org.eclipse.osgi.internal.framework.EquinoxConfiguration;
 import org.eclipse.osgi.internal.loader.BundleLoader;
@@ -20,6 +24,15 @@ import org.eclipse.osgi.storage.BundleInfo.Generation;
 public class AtomosClassLoader extends ModuleClassLoader {
 	private static final boolean ATOM_REGISTERED_AS_PARALLEL = ClassLoader.registerAsParallelCapable();
 
+	public static Function<String, ClassLoader> createClassLoaderFunction() {
+		return new Function<String, ClassLoader>() {
+			final Map<String, AtomosClassLoader> loaders = new ConcurrentHashMap<>();
+			@Override
+			public ClassLoader apply(String moduleName) {
+				return loaders.computeIfAbsent(moduleName, (m) -> new AtomosClassLoader(null));
+			}
+		};
+	}
 	private volatile Generation generation;
 	private volatile Debug debug;
 	private volatile ClasspathManager manager;

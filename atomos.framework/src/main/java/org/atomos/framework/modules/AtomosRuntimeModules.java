@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.atomos.framework.AtomosBundleInfo;
@@ -65,7 +64,6 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase {
 	static final String OSGI_VERSION_ATTR = "version:Version";
 	static final Module thisModule = AtomosRuntimeModules.class.getModule();
 	static final Configuration thisConfig = thisModule.getLayer() == null ? null : thisModule.getLayer().configuration();
-	static final Function<String, ClassLoader> clFunction = (n) -> new AtomosClassLoader(null);
 
 	final Map<Configuration, AtomosLayerBase> byConfig = new HashMap<>();
 	private final AtomosLayer bootLayer = createBootLayer();
@@ -184,7 +182,7 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase {
 		ModuleLayer.Controller controller;
 		switch (loaderType) {
 		case OSGI:
-			controller = ModuleLayer.defineModules(config, parentLayers, clFunction);
+			controller = ModuleLayer.defineModules(config, parentLayers, AtomosClassLoader.createClassLoaderFunction());
 			break;
 		case SINGLE:
 			controller = ModuleLayer.defineModulesWithOneLoader(config, parentLayers, null);
