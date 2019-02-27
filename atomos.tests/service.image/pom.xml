@@ -44,6 +44,10 @@
 			<artifactId>org.apache.felix.scr</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>osgi.promise</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.gogo.command</artifactId>
 			<scope>compile</scope>
@@ -171,17 +175,29 @@
 								</module>
 								<module>
 									<artifact>
+										<groupId>org.osgi</groupId>
+										<artifactId>osgi.promise</artifactId>
+									</artifact>
+									<moduleInfoSource>
+										module osgi.promise {
+
+										exports org.osgi.util.function;
+										exports org.osgi.util.promise;
+										}
+									</moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
 										<groupId>org.apache.felix</groupId>
 										<artifactId>org.apache.felix.scr</artifactId>
 									</artifact>
 									<moduleInfoSource>
 										module org.apache.felix.scr {
-										requires
-										java.logging;
+										requires java.logging;
 										requires java.management;
-
 										requires transitive org.apache.felix.gogo.runtime;
 										requires transitive org.eclipse.osgi;
+										requires transitive osgi.promise;
 
 										exports org.apache.felix.scr.component;
 										exports org.apache.felix.scr.impl;
@@ -201,7 +217,6 @@
 										exports org.osgi.service.component;
 										exports org.osgi.service.component.runtime;
 										exports org.osgi.service.component.runtime.dto;
-										exports org.osgi.util.promise;
 										exports org.xmlpull.v1;
 
 										}
@@ -280,6 +295,7 @@
 								<module>org.apache.felix.gogo.shell</module>
 								<module>org.apache.felix.scr</module>
 								<module>org.eclipse.osgi</module>
+								<module>osgi.promise</module>
 								<module>service.impl</module>
 								<module>service.impl.activator</module>
 								<module>service.image</module>

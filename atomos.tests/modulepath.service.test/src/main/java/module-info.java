@@ -16,5 +16,6 @@ module service.test {
 	requires service.impl;
 	requires service.impl.activator;
 	requires org.apache.felix.scr;
+	requires osgi.promise;
 	uses AtomosRuntime;
 }
