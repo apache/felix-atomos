@@ -18,5 +18,6 @@ module service.image {
 	requires org.apache.felix.gogo.command;
 	requires org.apache.felix.gogo.runtime;
 	requires org.apache.felix.gogo.shell;
+	requires jdk.jdwp.agent;
 	uses AtomosRuntime;
 }
