@@ -10,10 +10,11 @@
  *******************************************************************************/
 package org.atomos.framework.base;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.JarURLConnection;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -30,25 +31,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.jar.Attributes;
 import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
 import org.atomos.framework.AtomosRuntime;
 import org.atomos.framework.base.AtomosRuntimeBase.AtomosLayerBase.AtomosBundleInfoBase;
-import org.eclipse.osgi.container.ModuleRevisionBuilder;
-import org.eclipse.osgi.internal.debug.Debug;
-import org.eclipse.osgi.internal.framework.EquinoxContainer;
-import org.eclipse.osgi.internal.hookregistry.HookRegistry;
-import org.eclipse.osgi.storage.BundleInfo.Generation;
-import org.eclipse.osgi.storage.bundlefile.BundleFile;
-import org.eclipse.osgi.storage.bundlefile.DirBundleFile;
-import org.eclipse.osgi.storage.bundlefile.MRUBundleFileList;
-import org.eclipse.osgi.storage.url.reference.ReferenceInputStream;
-import org.eclipse.osgi.util.ManifestElement;
+import org.atomos.framework.substrate.AtomosRuntimeSubstrate;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -56,16 +51,25 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.framework.Version;
+import org.osgi.framework.connect.ConnectContent;
+import org.osgi.framework.connect.ConnectFactory;
+import org.osgi.framework.connect.FrameworkUtilHelper;
+import org.osgi.framework.hooks.bundle.CollisionHook;
+import org.osgi.framework.hooks.resolver.ResolverHookFactory;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.FrameworkWiring;
 
-public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBundleListener{
-	static final String JAR_PROTOCOL = "jar"; //$NON-NLS-1$
-	static final String FILE_PROTOCOL = "file"; //$NON-NLS-1$
+public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBundleListener, FrameworkUtilHelper {
+	static final boolean DEBUG = false;
+	static final String JAR_PROTOCOL = "jar";
+	static final String FILE_PROTOCOL = "file";
 
-	private final AtomicReference<AtomosHookConfigurator> configurator = new AtomicReference<>();
+	private final AtomicBoolean newFrameworkCreated = new AtomicBoolean();
+	private final AtomicReference<BundleContext> context = new AtomicReference<>();
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 	private final Map<String, AtomosBundleInfoBase> byOSGiLocation = new HashMap<>();
 	private final Map<String, AtomosBundleInfoBase> byAtomosLocation = new HashMap<>();
@@ -74,12 +78,18 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	final Map<Long, AtomosLayerBase> byId = new HashMap<>();
 	private final Map<AtomosBundleInfo, String> byAtomosBundle = new HashMap<>();
 	protected final AtomicLong nextLayerId = new AtomicLong(0);
+	private final AtomicReference<File> storeRoot = new AtomicReference<>();
 
 	public static AtomosRuntimeBase newAtomosRuntime() {
 		try {
 			Class.forName("java.lang.Module");
 			return (AtomosRuntimeBase) Class.forName("org.atomos.framework.modules.AtomosRuntimeModules").getConstructor().newInstance();
 		} catch (ClassNotFoundException e) {
+			File substrateLib = new File("substrate_lib");
+			// TODO this is temporary; will need a way to map bundle resources into native substrate image
+			if (substrateLib.isDirectory()) {
+				return new AtomosRuntimeSubstrate();
+			}
 			return new AtomosRuntimeClassPath();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -183,12 +193,9 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	public final Bundle getBundle(AtomosBundleInfo atomosBundle) {
 		String location = getByAtomosBundleInfo(atomosBundle);
 		if (location != null) {
-			AtomosHookConfigurator current = configurator.get();
-			if (current != null) {
-				BundleContext bc = current.getBundleContext();
-				if (bc != null) {
-					return bc.getBundle(location);
-				}
+			BundleContext bc = context.get();
+			if (bc != null) {
+				return bc.getBundle(location);
 			}
 		}
 		return null;
@@ -203,6 +210,9 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 
 	@Override
 	public Framework newFramework(Map<String, String> frameworkConfig) {
+		if (!newFrameworkCreated.compareAndSet(false, true)) {
+			throw new IllegalStateException("AtomosRuntime already used to create a new framework instance");
+		}
 		frameworkConfig = frameworkConfig == null ? new HashMap<>() : new HashMap<>(frameworkConfig);
 		if (modulesSupported() && frameworkConfig.get(Constants.FRAMEWORK_SYSTEMPACKAGES) == null) {
 			// this is to prevent the framework from exporting all the packages provided
@@ -213,43 +223,19 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 			// Always allow the console to work
 			frameworkConfig.put("osgi.console", "");
 		}
-		if (configurator.get() != null) {
-			throw new IllegalStateException("AtomosRuntime is already be used by another Framework instance.");
-		}
-		AtomosHookConfigurator.bootAtomRuntime.set(this);
-		try {
-			return findFrameworkFactory().newFramework(frameworkConfig);
-		} finally {
-			AtomosHookConfigurator.bootAtomRuntime.set(null);
-		}
+		AtomosConnectFactory connectFactory = new AtomosConnectFactory(this);
+		return findFrameworkFactory().newFramework(frameworkConfig, connectFactory);
+	}
+
+	@Override
+	public ConnectFactory newConnectFactory() {
+		return new AtomosConnectFactory(this);
 	}
 
 	abstract protected FrameworkFactory findFrameworkFactory();
 
-	final void setConfigurator(AtomosHookConfigurator prev, AtomosHookConfigurator next) {
-		AtomosHookConfigurator result = this.configurator.updateAndGet((p) -> {
-			if (p == prev) {
-				return next;
-			}
-			// special handling of null for cases where we are just making sure next is already set
-			if (prev == null && p == next) {
-				return next;
-			}
-			return p;
-		});
-		if (result != next) {
-			throw new IllegalStateException("Cannot use the same AtomosRuntime for multiple Frameworks.");
-		}
-
-		AtomosFrameworkUtilHelper.atomosRuntime = this;
-	}
-
-	final BundleContext getBundleContext() {
-		AtomosHookConfigurator current = configurator.get();
-		if (current == null) {
-			return null;
-		}
-		return current.getBundleContext();
+	protected final BundleContext getBundleContext() {
+		return context.get();
 	}
 
 	final ThreadLocal<AtomosBundleInfo> installingInfo = new ThreadLocal<>();
@@ -257,22 +243,16 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 		if (prefix == null) {
 			prefix = "atomos";
 		}
-		if (AtomosHookConfigurator.DEBUG) {
+		if (AtomosRuntimeBase.DEBUG) {
 			System.out.println("Installing atomos bundle: " + prefix + atomosBundle.getLocation()); //$NON-NLS-1$
-		}
-
-		AtomosHookConfigurator current = configurator.get();
-		if (current == null) {
-			throw new IllegalStateException("No framework has been created.");
 		}
 
 		if (prefix.indexOf(':') != -1) {
 			throw new IllegalArgumentException("The prefix cannot contain ':'");
 		}
 
-		BundleContext bc = current.getBundleContext();
-		File emptyJar = current.getEmptyJar();
-		if (bc == null || emptyJar == null) {
+		BundleContext bc = context.get();
+		if (bc == null) {
 			throw new IllegalStateException("Framework has not been initialized.");
 		}
 		String location = atomosBundle.getLocation();
@@ -288,7 +268,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 		installingInfo.set(atomosBundle);
 		Bundle result = null;
 		try {
-			result = bc.installBundle(location, new ReferenceInputStream(emptyJar));
+			result = bc.installBundle(location, new ByteArrayInputStream(new byte[0]));
 		} finally {
 			installingInfo.set(null);
 			// check if the layer is still valid
@@ -325,6 +305,10 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 		for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomosBundles()) {
 			if (byAtomosLocation.putIfAbsent(atomosBundle.getLocation(), (AtomosBundleInfoBase) atomosBundle) != null) {
 				throw new IllegalStateException("Atomos bundle location already exists: " + atomosBundle.getLocation());
+			}
+			if (Constants.SYSTEM_BUNDLE_LOCATION.equals(atomosBundle.getLocation())) {
+				// system bundle location is always marked as installed
+				addToInstalledBundles(Constants.SYSTEM_BUNDLE_LOCATION, (AtomosBundleInfoBase) atomosBundle);
 			}
 		}
 		for (AtomosLayer parent : atomosLayer.getParents()) {
@@ -381,15 +365,30 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 						// ignore parent manifests
 						continue;
 					}
-					Map<String, String> headers = ManifestElement.parseBundleManifest(manifest.openStream(), null);
-					String bsnHeader = headers.get(Constants.BUNDLE_SYMBOLICNAME);
-					ManifestElement[] element = ManifestElement.parseHeader(Constants.BUNDLE_SYMBOLICNAME, bsnHeader);
-					String symbolicName = element != null ? element[0].getValue() : null;
+					Attributes headers = new Manifest(manifest.openStream()).getMainAttributes();
+					String symbolicName = headers.getValue(Constants.BUNDLE_SYMBOLICNAME);
 					if (symbolicName != null) {
+						int semiColon = symbolicName.indexOf(';');
+						if (semiColon != -1) {
+							symbolicName = symbolicName.substring(0, semiColon);
+						}
+						symbolicName = symbolicName.trim();
+
 						Object content = getBundleContent(manifest);
 						if (content != null) {
+							ConnectContent connectContent;
+							URL url;
+							if (content instanceof File) {
+								connectContent = new FileConnectContent((File) content);
+								url = ((File) content).toURI().toURL();
+								
+							} else {
+								connectContent = new JarConnectContent((JarFile) content);
+								url = new File(((JarFile) content).getName()).toURI().toURL();
+							}
+
 							String location;
-							if (EquinoxContainer.NAME.equals(symbolicName)) {
+							if (connectContent.getEntry("META-INF/services/org.osgi.framework.launch.FrameworkFactory").isPresent()) {
 								location = Constants.SYSTEM_BUNDLE_LOCATION;
 							} else {
 								location = content instanceof File ? ((File) content).getPath() : ((JarFile) content).getName();
@@ -397,16 +396,13 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 									location = getName() + ":" + location;
 								}
 							}
-							Version version = Version.parseVersion(headers.get(Constants.BUNDLE_VERSION));
-							if (content instanceof File) {
-								bootBundles.add(new AtomosBundleInfoDir((File) content, location, symbolicName, version));
-							} else {
-								bootBundles.add(new AtomosBundleInfoJar((JarFile) content, location, symbolicName, version));
-							}
+							Version version = Version.parseVersion(headers.getValue(Constants.BUNDLE_VERSION));
+
+							bootBundles.add(new AtomosBundleInfoClassPath(location, symbolicName, version, connectContent, url));
 						}
 					}
 				}
-			} catch (IOException | BundleException e) {
+			} catch (IOException e) {
 				throw new IllegalStateException("Error finding class path bundles.", e);
 			}
 			return Collections.unmodifiableSet(bootBundles);
@@ -600,10 +596,16 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 			 */
 			private final Version version;
 
-			public AtomosBundleInfoBase(String location, String symbolicName, Version version) {
+			/**
+			 * Connect content
+			 */
+			private final ConnectContent content;
+
+			public AtomosBundleInfoBase(String location, String symbolicName, Version version, ConnectContent content) {
 				this.location = location;
 				this.symbolicName = symbolicName;
 				this.version = version;
+				this.content = content;
 			}
 
 			@Override
@@ -637,7 +639,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 					return false;
 				}
 				AtomosBundleInfoBase info = (AtomosBundleInfoBase) o;
-				return getSymbolicName().equals(info.getSymbolicName()) && getVersion().equals(info.getVersion());
+				return getSymbolicName().equals(info.getSymbolicName()) && getVersion().equals(info.getVersion()) && getAtomosLayer() == info.getAtomosLayer();
 			}
 
 			@Override
@@ -658,10 +660,12 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 				return getLocation().compareTo(o.getLocation());
 			}
 
-			protected abstract BundleFile getBundleFile(BundleFile bundleFile, Generation generation, MRUBundleFileList mruList, Debug debug) throws IOException;
 			protected abstract Object getKey();
 
-			abstract protected URL getContentURL();
+			@Override
+			public ConnectContent getConnectContent() {
+				return content;
+			}
 
 			public final String toString() {
 				return symbolicName;
@@ -673,80 +677,30 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 			}
 		}
 
-		public class AtomosBundleInfoDir extends AtomosBundleInfoBase {
+		public class AtomosBundleInfoClassPath extends AtomosBundleInfoBase {
 
-			private final File dir;
 			private final URL contentURL;
 
 
-			public AtomosBundleInfoDir(File dir, String location, String symbolicName, Version version) {
-				super(location, symbolicName, version);
-				this.dir = dir;
-				try {
-					this.contentURL = dir.toURI().toURL();
-				} catch (MalformedURLException e) {
-					throw new IllegalArgumentException(e);
-				}
-			}
-
-			@Override
-			protected final BundleFile getBundleFile(BundleFile bundleFile, Generation generation, MRUBundleFileList mruList, Debug debug) throws IOException {
-				return new DirBundleFile(dir, true);
-			}
-
-			@Override
-			protected final URL getContentURL() {
-				return contentURL;
+			public AtomosBundleInfoClassPath(String location, String symbolicName, Version version, ConnectContent connectContent, URL url) {
+				super(location, symbolicName, version, connectContent);
+				this.contentURL = url;
 			}
 
 			@Override
 			protected final Object getKey() {
-				return getContentURL();
-			}
-		}
-
-		public class AtomosBundleInfoJar extends AtomosBundleInfoBase {
-
-			private final JarFile jarFile;
-			private final URL contentURL;
-
-
-			public AtomosBundleInfoJar(JarFile jarFile, String location, String symbolicName, Version version) {
-				super(location, symbolicName, version);
-				this.jarFile = jarFile;
-				try {
-					this.contentURL = new File(jarFile.getName()).toURI().toURL();
-				} catch (MalformedURLException e) {
-					throw new IllegalArgumentException(e);
-				}
-			}
-
-			@Override
-			protected final BundleFile getBundleFile(BundleFile bundleFile, Generation generation, MRUBundleFileList mruList, Debug debug) throws IOException {
-				return new JarBundleFile(jarFile, bundleFile.getBaseFile(), generation, debug);
-			}
-
-			@Override
-			protected final URL getContentURL() {
 				return contentURL;
-			}
-
-			@Override
-			protected final Object getKey() {
-				return getContentURL();
 			}
 		}
 	}
 
-	final Bundle getBundle(Class<?> classFromBundle) {
+	@Override
+	public final Bundle getBundle(Class<?> classFromBundle) {
 		String location = getBundleLocation(classFromBundle);
 		if (location != null) {
-			AtomosHookConfigurator current = configurator.get();
-			if (current != null) {
-				BundleContext bc = current.bc;
-				if (bc != null) {
-					return bc.getBundle(location);
-				}
+			BundleContext bc = context.get();
+			if (bc != null) {
+				return bc.getBundle(location);
 			}
 		}
 		return null;
@@ -800,12 +754,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 		}
 		return false;
 	}
-
-	abstract protected ClassLoader getClassLoader(AtomosBundleInfoBase atomosBundle);
 	
-	abstract protected ModuleRevisionBuilder createBuilder(AtomosBundleInfoBase atomosBundle, ModuleRevisionBuilder original,
-			HookRegistry hookRegistry);
-
 	@Override
 	public AtomosLayer addModules(String name, Path path) {
 		throw new UnsupportedOperationException("Cannot add module layers when Atomos is not loaded as module.");
@@ -817,5 +766,94 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	@SuppressWarnings("unchecked")
 	public static <T> Set<T> asSet(Set<? extends T> l) {
 		return (Set<T>) l;
+	}
+
+	Thread saveOnVMExit = new Thread(() -> {
+		BundleContext bc = context.get();
+		if (bc != null) {
+			try {
+				new AtomosStorage(this).saveLayers(storeRoot.get(), bc.getBundles());
+			} catch (IOException e) {
+				throw new RuntimeException("Failed to save atomos runtime.", e);
+			}
+		}
+	});
+
+	void start(BundleContext bc) throws BundleException {
+		this.context.set(bc);
+		Runtime.getRuntime().addShutdownHook(saveOnVMExit);
+		AtomosFrameworkUtilHelper.addHelper(this);
+
+		bc.addBundleListener(this);
+
+		AtomosFrameworkHooks hooks = new AtomosFrameworkHooks(this);
+		bc.registerService(ResolverHookFactory.class, hooks, null);
+		bc.registerService(CollisionHook.class, hooks, null);
+
+		String initialBundleStartLevel = bc.getProperty(AtomosRuntime.ATOMOS_INITIAL_BUNDLE_START_LEVEL);
+		if (initialBundleStartLevel != null) {
+			// set the default initial bundle startlevel before installing the atomos bundles
+			FrameworkStartLevel fwkStartLevel = bc.getBundle().adapt(FrameworkStartLevel.class);
+			fwkStartLevel.setInitialBundleStartLevel(Integer.parseInt(initialBundleStartLevel));
+		}
+		boolean installBundles = Boolean.valueOf(getProperty(bc, AtomosRuntime.ATOMOS_BUNDLE_INSTALL, "true"));
+		boolean startBundles = Boolean.valueOf(getProperty(bc, AtomosRuntime.ATOMOS_BUNDLE_START, "true"));
+		installAtomosBundles(getBootLayer(), installBundles, startBundles);
+		bc.registerService(AtomosRuntime.class, this, null);
+		new AtomosCommands(this).register(bc);
+	}
+
+	void stop(BundleContext bc) throws BundleException {
+		this.context.compareAndSet(bc, null);
+		Runtime.getRuntime().removeShutdownHook(saveOnVMExit);
+		try {
+			new AtomosStorage(this).saveLayers(storeRoot.get(), bc.getBundles());
+		} catch (IOException e) {
+			throw new BundleException("Failed to save atomos runtime.", e);
+		}
+
+		bc.removeBundleListener(this);
+
+		AtomosFrameworkUtilHelper.removeHelper(this);
+	}
+
+	private String getProperty(BundleContext bc, String key, String defaultValue) {
+		String result = bc.getProperty(key);
+		return result == null ? defaultValue : result;
+	}
+
+	private void installAtomosBundles(AtomosLayer atomosLayer, boolean installBundles, boolean startBundles) throws BundleException {
+		if (installBundles) {
+			List<Bundle> bundles = new ArrayList<>();
+			for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomosBundles()) {
+				if (getBundle(atomosBundle) == null) {
+					Bundle b = atomosBundle.install("atomos");
+					if (b != null && b.getBundleId() != 0) {
+						bundles.add(b);
+					}
+				}
+			}
+			if (startBundles) {
+				for (Bundle b : bundles) {
+					BundleRevision rev = b.adapt(BundleRevision.class);
+					if ((rev.getTypes() & BundleRevision.TYPE_FRAGMENT) == 0) {
+						b.start();
+					}
+				}
+				for (AtomosLayer child : atomosLayer.getChildren()) {
+					installAtomosBundles(child, installBundles, startBundles);
+				}
+			}
+		}
+	}
+	public void initialize(File storage, Map<String, String> configuration) {
+		if (!storeRoot.compareAndSet(null, storage)) {
+			throw new IllegalStateException("This AtomosRuntime is already being used by store: " + storeRoot.get());
+		}
+		try {
+			new AtomosStorage(this).loadLayers(storage);
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 }

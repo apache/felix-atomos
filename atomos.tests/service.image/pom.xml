@@ -155,6 +155,7 @@
 										exports org.eclipse.osgi.util;
 										exports org.osgi.dto;
 										exports org.osgi.framework;
+										exports org.osgi.framework.connect;
 										exports org.osgi.framework.dto;
 										exports org.osgi.framework.hooks.bundle;
 										exports org.osgi.framework.hooks.resolver;
@@ -180,7 +181,6 @@
 
 										provides org.osgi.framework.launch.FrameworkFactory with org.eclipse.osgi.launch.EquinoxFactory;
 
-										uses org.eclipse.osgi.internal.hookregistry.FrameworkUtilHelper;
 										}
 									</moduleInfoSource>
 								</module>

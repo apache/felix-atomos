@@ -7,7 +7,9 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/package org.atomos.framework.base;
+ *******************************************************************************/
+
+package org.atomos.framework.base;
 
 import java.nio.file.Path;
 import java.util.Collection;
@@ -19,9 +21,6 @@ import java.util.Set;
 
 import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
-import org.atomos.framework.base.AtomosRuntimeBase.AtomosLayerBase.AtomosBundleInfoBase;
-import org.eclipse.osgi.container.ModuleRevisionBuilder;
-import org.eclipse.osgi.internal.hookregistry.HookRegistry;
 import org.osgi.framework.launch.FrameworkFactory;
 import org.osgi.framework.wiring.BundleCapability;
 
@@ -88,18 +87,6 @@ public class AtomosRuntimeClassPath extends AtomosRuntimeBase {
 	@Override
 	public AtomosLayer getBootLayer() {
 		return bootLayer ;
-	}
-
-	@Override
-	protected ModuleRevisionBuilder createBuilder(AtomosBundleInfoBase atomosBundle, ModuleRevisionBuilder original,
-			HookRegistry hookRegistry) {
-		// do nothing for class path runtime
-		return null;
-	}
-
-	@Override
-	protected ClassLoader getClassLoader(AtomosBundleInfoBase atomosBundle) {
-		return HookRegistry.class.getClassLoader();
 	}
 
 	@Override

@@ -10,142 +10,83 @@
  *******************************************************************************/
 package org.atomos.framework.base;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Dictionary;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
 import org.atomos.framework.AtomosRuntime.LoaderType;
 import org.atomos.framework.base.AtomosRuntimeBase.AtomosLayerBase;
 import org.atomos.framework.base.AtomosRuntimeBase.AtomosLayerBase.AtomosBundleInfoBase;
-import org.eclipse.osgi.container.ModuleContainerAdaptor.ModuleEvent;
-import org.eclipse.osgi.container.ModuleRevisionBuilder;
-import org.eclipse.osgi.internal.hookregistry.HookRegistry;
-import org.eclipse.osgi.internal.hookregistry.StorageHookFactory;
-import org.eclipse.osgi.internal.hookregistry.StorageHookFactory.StorageHook;
-import org.eclipse.osgi.storage.BundleInfo.Generation;
-import org.osgi.framework.BundleException;
+import org.osgi.framework.Bundle;
 
-public class AtomosStorageHookFactory extends StorageHookFactory<AtomicBoolean, AtomicBoolean, StorageHook<AtomicBoolean, AtomicBoolean>> {
-	static final String OSGI_CONTRACT_NAMESPACE = "osgi.contract";
-	static final String OSGI_VERSION_ATTR = "version:Version";
+public class AtomosStorage {
+	private final static int VERSION = 1;
+	private final String ATOMOS_STORE = "atomosStore.data";
 	private final AtomosRuntimeBase atomosRuntime;
-	private final HookRegistry hookRegistry;
 	
-	public AtomosStorageHookFactory(AtomosRuntimeBase atomosRuntime, HookRegistry hookRegistry) {
+	public AtomosStorage(AtomosRuntimeBase atomosRuntime) {
 		this.atomosRuntime = atomosRuntime;
-		this.hookRegistry = hookRegistry;
 	}
 
-	@Override
-	public int getStorageVersion() {
-		return 1;
-	}
-
-	@Override
-	public AtomicBoolean createLoadContext(int version) {
-		return new AtomicBoolean(false);
-	}
-
-	@Override
-	public AtomicBoolean createSaveContext() {
-		return new AtomicBoolean(false);
-	}
-
-	@Override
-	protected StorageHook<AtomicBoolean, AtomicBoolean> createStorageHook(Generation generation) {
-		return new StorageHook<AtomicBoolean, AtomicBoolean>(generation, this.getClass()) {
-
-			@Override
-			public void initialize(Dictionary<String, String> manifest) throws BundleException {
-				// nothing
-			}
-
-			@Override
-			public void load(AtomicBoolean loadContext, DataInputStream is) throws IOException {
-				if (loadContext.compareAndSet(false, true)) {
-					loadLayers(is);
-				}
-				if (is.readBoolean()) {
-					String atomosLocation = is.readUTF();
-					AtomosBundleInfoBase atomosBundle = atomosRuntime.getByAtomosLocation(atomosLocation);
-					if (atomosBundle != null) {
-						String osgiLocation = generation.getBundleInfo().getLocation();
-						int firstColon = osgiLocation.indexOf(':');
-						if (firstColon >= 0) {
-							if (atomosLocation.equals(osgiLocation.substring(firstColon + 1))) {
-								atomosRuntime.addToInstalledBundles(osgiLocation, atomosBundle);
-								return;
-							}
-						}
-					}
-					// We throw an IllegalArgumentException to force a clean start.
-					// NOTE this is really depends on an internal of the framework.
-					throw new IllegalArgumentException();
-				}
-			}
-
-			@Override
-			public void save(AtomicBoolean saveContext, DataOutputStream os) throws IOException {
-				if (saveContext.compareAndSet(false, true)) {
-					saveLayers(os);
-				}
-				String location = generation.getBundleInfo().getLocation();
-				AtomosBundleInfo bootBundle = atomosRuntime.getByOSGiLocation(location);
-				if (bootBundle != null) {
-					os.writeBoolean(true);
-					os.writeUTF(bootBundle.getLocation());
-				} else {
-					os.writeBoolean(false);
-				}
-			}
-
-			@Override
-			public ModuleRevisionBuilder adaptModuleRevisionBuilder(ModuleEvent operation,
-					org.eclipse.osgi.container.Module origin, ModuleRevisionBuilder builder) {
-				Generation generation = getGeneration();
-				AtomosBundleInfoBase atomosBundle = atomosRuntime.getByOSGiLocation(generation.getBundleInfo().getLocation());
-				if (atomosBundle != null) {
-					return createBuilder(atomosBundle, builder, hookRegistry);
-				}
-				return super.adaptModuleRevisionBuilder(operation, origin, builder);
-			}
-		};
-	}
-
-	void loadLayers(DataInputStream in) throws IOException {
+	void loadLayers(File root) throws IOException {
 		atomosRuntime.lockWrite();
-		try {
+		try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(root, ATOMOS_STORE))))) {
+			int persistentVersion = in.readInt();
+			if (persistentVersion > VERSION) {
+				throw new IOException("Atomos persistent version is greater than supported version: " + VERSION + "<" + persistentVersion);
+			}
 			long nextLayerId = in.readLong();
 			int numLayers = in.readInt();
 			for (int i = 0; i < numLayers; i++) {
 				readLayer(in);
 			}
 			atomosRuntime.nextLayerId.set(nextLayerId);
+		} catch (FileNotFoundException e){
+			// ignore no file
 		} finally {
 			atomosRuntime.unlockWrite();
 		}
 	}
 
-	void saveLayers(DataOutputStream out) throws IOException {
+	void saveLayers(File root, Bundle[] bundles) throws IOException {
+		File atomosStore = new File(root, ATOMOS_STORE);
 		atomosRuntime.lockRead();
-		try {
+		try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(atomosStore)))){
+			out.writeInt(VERSION);
 			out.writeLong(atomosRuntime.nextLayerId.get());
 			List<AtomosLayerBase> writeOrder = getLayerWriteOrder((AtomosLayerBase) atomosRuntime.getBootLayer(), new HashSet<>(), new ArrayList<>());
 			out.writeInt(writeOrder.size());
 			for (AtomosLayerBase layer : writeOrder) {
 				writeLayer(layer, out);
+			}
+
+			out.writeInt(bundles.length);
+			for (Bundle b : bundles) {
+				String osgiLocation = b.getLocation();
+				AtomosBundleInfo atomosBundle = atomosRuntime.getByOSGiLocation(osgiLocation);
+				if (atomosBundle != null) {
+					out.writeBoolean(true);
+					out.writeUTF(osgiLocation);
+					out.writeUTF(atomosBundle.getLocation());
+				} else {
+					out.writeBoolean(false);
+				}
 			}
 		} finally {
 			atomosRuntime.unlockRead();
@@ -205,6 +146,21 @@ public class AtomosStorageHookFactory extends StorageHookFactory<AtomicBoolean, 
 				throw new IllegalArgumentException("Error adding persistent layer: " + e.getMessage());
 			}
 		}
+
+		int numBundles = in.readInt();
+		for (int i = 0; i < numBundles; i++) {
+			String osgiLocation = in.readUTF();
+			String atomosLocation = in.readUTF();
+			AtomosBundleInfoBase atomosBundle = atomosRuntime.getByAtomosLocation(atomosLocation);
+			if (atomosBundle != null) {
+				int firstColon = osgiLocation.indexOf(':');
+				if (firstColon >= 0) {
+					if (atomosLocation.equals(osgiLocation.substring(firstColon + 1))) {
+						atomosRuntime.addToInstalledBundles(osgiLocation, atomosBundle);
+					}
+				}
+			}
+		}
 	}
 
 	private void writeLayer(AtomosLayerBase layer, DataOutputStream out) throws IOException {
@@ -221,10 +177,14 @@ public class AtomosStorageHookFactory extends StorageHookFactory<AtomicBoolean, 
 		for (AtomosLayer parent : parents) {
 			out.writeLong(((AtomosLayerBase) parent).getId());
 		}
+		Collection<String> installedLocations = atomosRuntime.getInstalledLocations(layer);
+		out.writeInt(installedLocations.size());
+		for (String osgiLocation : installedLocations) {
+			AtomosBundleInfoBase atomosBundle = atomosRuntime.getByOSGiLocation(osgiLocation);
+			String atomosLocation = atomosBundle.getLocation();
+			out.writeUTF(osgiLocation);
+			out.writeUTF(atomosLocation);
+		}
 	}
 
-	ModuleRevisionBuilder createBuilder(AtomosBundleInfoBase atomosBundle, ModuleRevisionBuilder original,
-			HookRegistry hookRegistry) {
-		return atomosRuntime.createBuilder(atomosBundle, original, hookRegistry);
-	}
 }

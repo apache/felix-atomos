@@ -15,6 +15,7 @@ import java.util.Optional;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
+import org.osgi.framework.connect.ConnectContent;
 
 /**
  * Information about an Atomos bundle.
@@ -71,5 +72,7 @@ public interface AtomosBundleInfo extends Comparable<AtomosBundleInfo> {
 	 * @throws BundleException if an error occurs installing the Atomos bundle
 	 */
 	public Bundle install(String prefix) throws BundleException;
+
+	public ConnectContent getConnectContent();
 
 }

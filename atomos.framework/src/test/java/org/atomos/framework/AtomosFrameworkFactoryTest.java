@@ -69,7 +69,7 @@ public class AtomosFrameworkFactoryTest {
 		assertNotNull("null factory.", factory);
 
 		Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath());
-		testFramework = factory.newFramework(config);
+		testFramework = factory.newFramework(config, AtomosRuntime.newAtomosRuntime().newConnectFactory());
 		doTestFramework(testFramework);
 	}
 

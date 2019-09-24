@@ -13,6 +13,7 @@ package org.atomos.modulepath.service.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -27,6 +28,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -175,7 +177,31 @@ public class ModulepathLaunchTest {
 		checkServices(bc, 44);
 
 		checkBundleStates(bc.getBundles());
-	
+
+		List<Bundle> allChildBundles = layers.stream().flatMap((l) -> l.getAtomosBundles().stream()).
+				map((a) -> atomosRuntime.getBundle(a)).filter(Objects::nonNull).collect(Collectors.toList());
+
+		AtomosLayer firstChild = layers.iterator().next();
+		Set<AtomosBundleInfo> firstChildInfos = firstChild.getAtomosBundles();
+
+		List<Bundle> firstChildBundles = firstChildInfos.stream().map((a) -> atomosRuntime.getBundle(a)).filter(Objects::nonNull).collect(Collectors.toList());
+
+		assertEquals("Wrong number of bundles in first child.", 3, firstChildBundles.size());
+		firstChildBundles.forEach((b) -> {
+			try {
+				b.uninstall();
+			} catch (BundleException e) {
+				throw new RuntimeException(e);
+			}
+		});
+
+		firstChildBundles.forEach((b) -> {
+			assertNull("No AtomsBundle expected.", atomosRuntime.getAtomosBundle(b.getLocation()));
+		});
+
+		firstChildBundles = firstChildInfos.stream().map((a) -> atomosRuntime.getBundle(a)).filter(Objects::nonNull).collect(Collectors.toList());
+		assertEquals("Wrong number of bundles in first child.", 0, firstChildBundles.size());
+
 		layers.forEach((l) -> {
 			try {
 				l.uninstall();
@@ -184,6 +210,10 @@ public class ModulepathLaunchTest {
 			}
 		});
 		checkServices(bc, 4);
+
+		allChildBundles.forEach((b) -> {
+			assertNull("No AtomsBundle expected.", atomosRuntime.getAtomosBundle(b.getLocation()));
+		});
 
 		assertEquals("Wrong number of final bundles.", originalNum, bc.getBundles().length);
 	}
@@ -196,9 +226,9 @@ public class ModulepathLaunchTest {
 		assertNotNull("No context found.", bc);
 
 		AtomosRuntime atomosRuntime1 = bc.getService(bc.getServiceReference(AtomosRuntime.class));
-		installChild(atomosRuntime1.getBootLayer(), "OSGI", atomosRuntime1, LoaderType.OSGI);
 		installChild(atomosRuntime1.getBootLayer(), "SINGLE", atomosRuntime1, LoaderType.SINGLE);
 		installChild(atomosRuntime1.getBootLayer(), "MANY", atomosRuntime1, LoaderType.MANY);
+		installChild(atomosRuntime1.getBootLayer(), "OSGI", atomosRuntime1, LoaderType.OSGI);
 
 		checkBundleStates(bc.getBundles());
 		checkServices(bc, 8);
@@ -210,7 +240,7 @@ public class ModulepathLaunchTest {
 		testFramework.start();
 		bc = testFramework.getBundleContext();
 
-		AtomosLayer child1 = installChild(atomosRuntime1.getBootLayer(), "OSGI2", atomosRuntime1, LoaderType.OSGI);
+		AtomosLayer child1 = installChild(atomosRuntime1.getBootLayer(), "SINGLE2", atomosRuntime1, LoaderType.SINGLE);
 
 		checkServices(bc, 10);
 
@@ -240,9 +270,29 @@ public class ModulepathLaunchTest {
 		assertEquals("Wrong number of children.", 3, bootLayer.getChildren().size());
 
 		List<AtomosLayer> children = bootLayer.getChildren().stream().sorted((l1, l2) -> Long.compare(l1.getId(), l2.getId())).collect(Collectors.toList());
-		checkLayer(children.get(0), LoaderType.OSGI, 2);
-		checkLayer(children.get(1), LoaderType.SINGLE, 3);
-		checkLayer(children.get(2), LoaderType.MANY, 4);
+		checkLayer(children.get(0), LoaderType.SINGLE, 2);
+		checkLayer(children.get(1), LoaderType.MANY, 3);
+		checkLayer(children.get(2), LoaderType.OSGI, 4);
+
+		// uninstall service.impl.a bundle from the first child
+		children.iterator().next().getAtomosBundles().stream().
+			map((a) -> atomosRuntime2.getBundle(a)).filter(Objects::nonNull).
+				filter((b) -> b.getSymbolicName().equals("service.impl.a")).findFirst().orElseThrow().uninstall();
+		checkServices(bc, 7);
+
+		testFramework.stop();
+		testFramework.waitForStop(10000);
+
+		// startup with the option not to force install all atomos bundles
+		ModulepathLaunch.main(new String[] {
+				Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(),
+				AtomosRuntime.ATOMOS_BUNDLE_INSTALL + "=false"
+		});
+		testFramework = ModulepathLaunch.getFramework();
+		bc = testFramework.getBundleContext();
+		assertNotNull("No context found.", bc);
+
+		checkServices(bc, 7);
 	}
 
 	@Test
@@ -292,7 +342,8 @@ public class ModulepathLaunchTest {
 		switch (loaderType) {
 		case OSGI:
 			for (ClassLoader classLoader : classLoaders) {
-				assertTrue("Class loader is not a BundleReference", classLoader instanceof BundleReference);
+				// TODO do the following when we have an implementation of ModuleConnectLoader
+				// assertTrue("Class loader is not a BundleReference", classLoader instanceof BundleReference);
 			}
 			assertEquals("Wrong number of class loaders.", 3, classLoaders.size());
 			break;

@@ -20,11 +20,12 @@ import org.atomos.framework.base.AtomosRuntimeBase;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.connect.ConnectFactory;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 
 /**
- * The Atomos runtime extends {@link FrameworkFactory} for creating new OSGi
+ * The Atomos runtime can be used for creating new OSGi
  * {@link Framework} instances with bundles loaded from the module or class
  * path. The Framework instance will have a set of bundles discovered and
  * installed automatically when the Framework is {@link Framework#init()
@@ -132,7 +133,7 @@ import org.osgi.framework.launch.FrameworkFactory;
  * system.bundle of the initialized framework will also have an AtomosRuntime
  * service registered with its bundle context.
  */
-public interface AtomosRuntime extends FrameworkFactory {
+public interface AtomosRuntime {
 	/**
 	 * The loader type used for the class loaders of an Atomos layer.
 	 */
@@ -217,6 +218,8 @@ public interface AtomosRuntime extends FrameworkFactory {
 	 */
 	AtomosLayer getBootLayer();
 
+	ConnectFactory newConnectFactory();
+
 	/**
 	 * Creates a new {@link Framework} with the specified framework configuration
 	 * using this AtomosRuntime to provide the AtomosBundleInfo for installation
@@ -227,7 +230,6 @@ public interface AtomosRuntime extends FrameworkFactory {
 	 * @return A new, configured {@link Framework} instance. The framework instance
 	 *         must be in the {@link Bundle#INSTALLED} state.
 	 */
-	@Override
 	Framework newFramework(Map<String, String> frameworkConfig);
 
 	/**
