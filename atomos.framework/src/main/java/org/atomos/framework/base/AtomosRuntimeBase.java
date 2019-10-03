@@ -39,7 +39,6 @@ import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
 import org.atomos.framework.AtomosRuntime;
 import org.atomos.framework.base.AtomosRuntimeBase.AtomosLayerBase.AtomosBundleInfoBase;
-import org.atomos.framework.modules.AtomosRuntimeModules;
 import org.eclipse.osgi.container.ModuleRevisionBuilder;
 import org.eclipse.osgi.internal.debug.Debug;
 import org.eclipse.osgi.internal.framework.EquinoxContainer;
@@ -79,9 +78,11 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	public static AtomosRuntimeBase newAtomosRuntime() {
 		try {
 			Class.forName("java.lang.Module");
-			return new AtomosRuntimeModules();
+			return (AtomosRuntimeBase) Class.forName("org.atomos.framework.modules.AtomosRuntimeModules").getConstructor().newInstance();
 		} catch (ClassNotFoundException e) {
 			return new AtomosRuntimeClassPath();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 	protected AtomosRuntimeBase() {
