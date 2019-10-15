@@ -1,15 +1,5 @@
 [
   {
-    "name" : "org.eclipse.osgi.launch.EquinoxFactory",
-    "allPublicConstructors" : true,
-    "allPublicMethods" : true
-  },
-  {
-    "name" : "org.atomos.framework.base.AtomosFrameworkUtilHelper",
-    "allPublicConstructors" : true,
-    "allPublicMethods" : true
-  },
-  {
     "name" : "org.eclipse.osgi.internal.connect.ConnectHookConfigurator",
     "allPublicConstructors" : true,
     "allPublicMethods" : true
@@ -94,5 +84,60 @@
   {
     "name" : "java.lang.Boolean",
     "allPublicConstructors" : true
+  },
+  {
+    "name" : "org.apache.felix.http.whiteboard.internal.WhiteboardActivator",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.http.jetty.internal.JettyActivator",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.webconsole.internal.OsgiManagerActivator",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.eclipse.jetty.servlet.ServletMapping[]",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.eclipse.jetty.servlet.FilterMapping[]",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.webconsole.internal.core.ServicesServlet",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.webconsole.internal.system.VMStatPlugin",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.webconsole.internal.configuration.ConfigManager",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.webconsole.internal.core.BundlesServlet",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.webconsole.internal.misc.LicenseServlet",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.webconsole.internal.compendium.LogServlet",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
   }
 ]

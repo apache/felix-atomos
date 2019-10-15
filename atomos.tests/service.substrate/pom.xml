@@ -73,7 +73,35 @@
 		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.gogo.shell</artifactId>
-			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.http.jetty</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.http.api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.http.whiteboard</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.webconsole</artifactId>
+			<classifier>all</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.http.servlet-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.service.cm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.service.event</artifactId>
 		</dependency>
 	</dependencies>
 	<build>
@@ -124,7 +152,7 @@
 				<configuration>
 					<imageName>atomos</imageName>
 					<mainClass>org.atomos.service.substrate.GogoConsole</mainClass>
-					<buildArgs>-H:-UseServiceLoaderFeature -H:+ReportUnsupportedElementsAtRuntime --allow-incomplete-classpath --no-fallback -H:ReflectionConfigurationFiles=${project.basedir}/graal_class_config.json -H:ResourceConfigurationFiles=${project.basedir}/graal_resource_config.json --initialize-at-build-time=org.apache.felix.resolver,org.eclipse.osgi.container,org.eclipse.osgi.framework.util,org.eclipse.osgi.report.resolution,org.eclipse.osgi.internal.framework.EquinoxContainerAdaptor,org.eclipse.osgi.internal.permadmin.PermissionInfoCollection,org.eclipse.osgi.internal.framework.EquinoxBundle -H:+ReportExceptionStackTraces</buildArgs>
+					<buildArgs>-H:+ReportUnsupportedElementsAtRuntime --allow-incomplete-classpath --no-fallback -H:ReflectionConfigurationFiles=${project.basedir}/graal_class_config.json -H:ResourceConfigurationFiles=${project.basedir}/graal_resource_config.json --initialize-at-build-time=org.apache.felix.resolver,org.eclipse.osgi.container,org.eclipse.osgi.framework.util,org.eclipse.osgi.report.resolution,org.eclipse.osgi.internal.framework.EquinoxContainerAdaptor,org.eclipse.osgi.internal.permadmin.PermissionInfoCollection,org.eclipse.osgi.internal.framework.EquinoxBundle,javax.servlet -H:+ReportExceptionStackTraces</buildArgs>
 				</configuration>
 			</plugin>
 		</plugins>
