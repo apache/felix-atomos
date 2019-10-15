@@ -1,0 +1,98 @@
+[
+  {
+    "name" : "org.eclipse.osgi.launch.EquinoxFactory",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.atomos.framework.base.AtomosFrameworkUtilHelper",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.eclipse.osgi.internal.connect.ConnectHookConfigurator",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.eclipse.osgi.internal.signedcontent.SignedBundleHook",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.eclipse.osgi.internal.cds.CDSHookConfigurator",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.eclipse.osgi.internal.framework.SystemBundleActivator",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.scr.impl.Activator",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.gogo.shell.Activator",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.gogo.command.Activator",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.gogo.runtime.activator.Activator",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.atomos.service.impl.activator.Activator",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.atomos.service.impl.EchoImpl",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.gogo.shell.Shell",
+    "allDeclaredConstructors" : true,
+    "allPublicMethods" : true,
+    "allDeclaredMethods" : true,
+    "allPublicFields" : true,
+    "allDeclaredFields" : true
+  },
+  {
+    "name" : "org.apache.felix.gogo.command.Basic",
+    "allDeclaredConstructors" : true,
+    "allPublicMethods" : true,
+    "allDeclaredMethods" : true,
+    "allPublicFields" : true,
+    "allDeclaredFields" : true
+  },
+  {
+    "name" : "org.apache.felix.gogo.command.Inspect",
+    "allDeclaredConstructors" : true,
+    "allPublicMethods" : true,
+    "allDeclaredMethods" : true,
+    "allPublicFields" : true,
+    "allDeclaredFields" : true
+  },
+  {
+    "name" : "org.apache.felix.gogo.command.Files",
+    "allDeclaredConstructors" : true,
+    "allPublicMethods" : true,
+    "allDeclaredMethods" : true,
+    "allPublicFields" : true,
+    "allDeclaredFields" : true
+  },
+  {
+    "name" : "java.lang.Boolean",
+    "allPublicConstructors" : true
+  }
+]
