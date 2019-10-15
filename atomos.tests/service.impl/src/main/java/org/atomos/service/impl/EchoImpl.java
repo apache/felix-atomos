@@ -14,6 +14,7 @@ import org.osgi.service.component.annotations.Component;
 import org.atomos.service.contract.Echo;
 
 @Component(property = {"type=impl.component"})
+@org.osgi.annotation.bundle.Requirement(namespace = "osgi.ee", filter = "(&(osgi.ee=JavaSE)(version=1.8))")
 public class EchoImpl implements Echo {
 
 	@Override

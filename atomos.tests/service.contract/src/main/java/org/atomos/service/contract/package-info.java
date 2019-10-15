@@ -10,4 +10,5 @@
  *******************************************************************************/
 @org.osgi.annotation.bundle.Export
 @org.osgi.annotation.versioning.Version("1.0.0")
+@org.osgi.annotation.bundle.Requirement(namespace = "osgi.ee", filter = "(&(osgi.ee=JavaSE)(version=1.8))")
 package org.atomos.service.contract;

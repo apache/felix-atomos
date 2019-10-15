@@ -16,11 +16,44 @@
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>
+			<artifactId>osgi.annotation</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.service.component.annotations</artifactId>
 		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>default-compile</id>
+						<configuration>
+							<!-- compile everything with the default to ensure module-info is correctg -->
+							<release>${java.version}</release>
+						</configuration>
+					</execution>
+					<!-- compile the packages that must work with java 8 -->
+					<!-- This causes Eclipse workspace to fail to build -->
+					<execution>
+						<id>java8-compile</id>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<excludes>
+								<exclude>module-info.java</exclude>
+							</excludes>
+							<release>8</release>
+						</configuration>
+					</execution>
+					<!-- -->
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>biz.aQute.bnd</groupId>
 				<artifactId>bnd-maven-plugin</artifactId>

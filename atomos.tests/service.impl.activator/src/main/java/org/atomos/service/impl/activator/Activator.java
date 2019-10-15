@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.atomos.service.impl.activator;
 
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -19,12 +20,13 @@ import org.osgi.framework.Constants;
 import org.atomos.service.contract.Echo;
 
 @org.osgi.annotation.bundle.Header(name = Constants.BUNDLE_ACTIVATOR, value = "${@class}")
+@org.osgi.annotation.bundle.Requirement(namespace = "osgi.ee", filter = "(&(osgi.ee=JavaSE)(version=1.8))")
 public class Activator implements BundleActivator {
 
 	@Override
 	public void start(BundleContext context) throws Exception {
 		Echo impl = (m) -> "impl.activator " + m;
-		context.registerService(Echo.class, impl, new Hashtable<String, String>(Map.of("type", "impl.activator")));
+		context.registerService(Echo.class, impl, new Hashtable<String, String>(Collections.singletonMap("type", "impl.activator")));
 		System.out.println("Registered Echo service from activator.");
 	}
 
