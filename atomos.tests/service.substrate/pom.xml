@@ -152,7 +152,17 @@
 				<configuration>
 					<imageName>atomos</imageName>
 					<mainClass>org.atomos.service.substrate.GogoConsole</mainClass>
-					<buildArgs>-H:+ReportUnsupportedElementsAtRuntime --allow-incomplete-classpath --no-fallback -H:ReflectionConfigurationFiles=${project.basedir}/graal_class_config.json -H:ResourceConfigurationFiles=${project.basedir}/graal_resource_config.json --initialize-at-build-time=org.apache.felix.resolver,org.eclipse.osgi.container,org.eclipse.osgi.framework.util,org.eclipse.osgi.report.resolution,org.eclipse.osgi.internal.framework.EquinoxContainerAdaptor,org.eclipse.osgi.internal.permadmin.PermissionInfoCollection,org.eclipse.osgi.internal.framework.EquinoxBundle,javax.servlet -H:+ReportExceptionStackTraces</buildArgs>
+					<buildArgs>
+						-Dosgi.connect.substrate=${project.build.directory}
+						-H:+ReportUnsupportedElementsAtRuntime
+						--allow-incomplete-classpath
+						--no-fallback
+						-H:ReflectionConfigurationFiles=${project.basedir}/graal_class_config.json
+						-H:ResourceConfigurationFiles=${project.basedir}/graal_resource_config.json
+						--initialize-at-build-time=org.eclipse.osgi,org.eclipse.equinox.log,org.atomos.framework,org.osgi.framework,org.osgi.dto,org.osgi.service.condpermadmin,org.osgi.service.log,org.osgi.service.packageadmin,org.osgi.service.permissionadmin,org.osgi.service.resolver,org.osgi.service.startlevel,org.osgi.service.url,org.osgi.util.tracker,org.osgi.resource,org.apache.felix.resolver,javax.servlet
+						-H:+ReportExceptionStackTraces
+						-H:+TraceClassInitialization
+					</buildArgs>
 				</configuration>
 			</plugin>
 		</plugins>

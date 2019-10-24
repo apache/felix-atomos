@@ -10,13 +10,12 @@
  *******************************************************************************/
 package org.atomos.service.substrate;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import org.atomos.framework.AtomosRuntime;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.launch.Framework;
+
 import sun.misc.Signal;
 
 public class GogoConsole 
@@ -25,12 +24,12 @@ public class GogoConsole
     {
     	long start = System.nanoTime();
     	Signal.handle(new Signal("INT"), sig -> System.exit(0));
-    	Framework framework = AtomosRuntime.launch(AtomosRuntime.getConfiguration(args));
+    	AtomosRuntime.launch(AtomosRuntime.getConfiguration(args));
     	long total = System.nanoTime() - start;
     	System.out.println("Total time: " + TimeUnit.NANOSECONDS.toMillis(total));
-    	BundleContext bc = framework.getBundleContext();
-    	for (Bundle b : bc.getBundles()) {
-			System.out.println(b + " " + b.getState());
-		}
+
+     	if (Arrays.asList(args).contains("-exit")) {
+     		System.exit(0);
+     	}
     }
 }

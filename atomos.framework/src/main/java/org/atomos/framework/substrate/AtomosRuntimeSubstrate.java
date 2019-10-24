@@ -27,7 +27,6 @@ import java.util.jar.JarFile;
 import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
 import org.atomos.framework.base.AtomosRuntimeBase;
-import org.atomos.framework.base.JarConnectContent;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 import org.osgi.framework.connect.ConnectContent;
@@ -104,12 +103,12 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 
 		Set<AtomosBundleInfoBase> findSubstrateAtomosBundles() {
 			Set<AtomosBundleInfoBase> result = new HashSet<>();
-			File substrateLib = new File("substrate_lib");
+			File substrateLib = getSubstrateLibDir();
+
 			if (substrateLib.isDirectory()) {
 				for (File f : substrateLib.listFiles()) {
 					if (f.isFile()) {
-						try {
-							JarFile jar = new JarFile(f);
+						try (JarFile jar = new JarFile(f)) {
 							Attributes headers = jar.getManifest().getMainAttributes();
 							String symbolicName = headers.getValue(Constants.BUNDLE_SYMBOLICNAME);
 							if (symbolicName != null) {
@@ -119,18 +118,18 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 								}
 								symbolicName = symbolicName.trim();
 
-								ConnectContent connectContent = new JarConnectContent(jar);
+								ConnectContent connectContent = new SubstrateConnectContent(f.getName());
+								connectContent.open();
 								String location;
 								if (connectContent.getEntry("META-INF/services/org.osgi.framework.launch.FrameworkFactory").isPresent()) {
 									location = Constants.SYSTEM_BUNDLE_LOCATION;
 								} else {
-									location = jar.getName();
+									location = f.getName();
 									if (!getName().isEmpty()) {
 										location = getName() + ":" + location;
 									}
 								}
 								Version version = Version.parseVersion(headers.getValue(Constants.BUNDLE_VERSION));
-
 								result.add(new AtomosBundleInfoSubstrate(location, symbolicName, version, connectContent));
 							}
 						} catch (IOException e) {

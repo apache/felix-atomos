@@ -67,6 +67,8 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	static final boolean DEBUG = false;
 	static final String JAR_PROTOCOL = "jar";
 	static final String FILE_PROTOCOL = "file";
+	public static final String OSGI_CONNECT_SUBSTRATE = "osgi.connect.substrate";
+	public static final String SUBSTRATE_LIB_DIR = "substrate_lib";
 
 	private final AtomicBoolean newFrameworkCreated = new AtomicBoolean();
 	private final AtomicReference<BundleContext> context = new AtomicReference<>();
@@ -85,9 +87,8 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 			Class.forName("java.lang.Module");
 			return (AtomosRuntimeBase) Class.forName("org.atomos.framework.modules.AtomosRuntimeModules").getConstructor().newInstance();
 		} catch (ClassNotFoundException e) {
-			File substrateLib = new File("substrate_lib");
 			// TODO this is temporary; will need a way to map bundle resources into native substrate image
-			if (substrateLib.isDirectory()) {
+			if (getSubstrateLibDir().isDirectory()) {
 				return new AtomosRuntimeSubstrate();
 			}
 			return new AtomosRuntimeClassPath();
@@ -95,6 +96,13 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 			throw new RuntimeException(e);
 		}
 	}
+
+	public static File getSubstrateLibDir() {
+		String substrateProp = System.getProperty(OSGI_CONNECT_SUBSTRATE);
+		File result = new File (substrateProp, SUBSTRATE_LIB_DIR);
+		return result;
+	}
+
 	protected AtomosRuntimeBase() {
 	}
 
