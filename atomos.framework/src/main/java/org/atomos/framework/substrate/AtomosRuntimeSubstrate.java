@@ -168,4 +168,10 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 	protected void removedLayer(AtomosLayerBase atomosLayer) {
 		// nothing to do
 	}
+
+	@Override
+	protected String getBundleLocation(Class<?> classFromBundle) {
+		// TODO need to map class to bundle somehow; needed for FrameworkUtil.getBundle to work
+		return null;
+	}
 }
