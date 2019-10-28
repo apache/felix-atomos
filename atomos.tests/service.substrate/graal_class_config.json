@@ -82,6 +82,13 @@
     "allDeclaredFields" : true
   },
   {
+    "name" : "org.atomos.framework.base.AtomosCommands",
+    "allPublicMethods" : true,
+    "allDeclaredMethods" : true,
+    "allPublicFields" : true,
+    "allDeclaredFields" : true
+  },
+  {
     "name" : "java.lang.Boolean",
     "allPublicConstructors" : true
   },
