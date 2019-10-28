@@ -82,7 +82,8 @@ import org.osgi.framework.launch.FrameworkFactory;
  * <pre>
  * {@code Map<String, String>} config = getConfiguration();
  * config.put(Constants.FRAMEWORK_SYSTEMPACKAGES, "");
- * Framework framework = ServiceLoader.load(FrameworkFactory.class).iterator().next().newFramework(config);
+ * ConnectFactory atomosConnect = AtomosRuntime.newAtomosRuntime().newConnectFactory();
+ * Framework framework = ServiceLoader.load(FrameworkFactory.class).iterator().next().newFramework(config, atomosConnect);
  * framework.start();
  * </pre>
  * 
@@ -218,6 +219,14 @@ public interface AtomosRuntime {
 	 */
 	AtomosLayer getBootLayer();
 
+	/**
+	 * Creates a new connect factory for this {@code AtomosRuntime}.
+	 * The connect factory can be used to create a new framework
+	 * by using a {@link FrameworkFactory} directly by calling
+	 * the {@link FrameworkFactory#newFramework(Map, ConnectFactory)}
+	 * method.
+	 * @return a new connect factory
+	 */
 	ConnectFactory newConnectFactory();
 
 	/**
@@ -225,7 +234,7 @@ public interface AtomosRuntime {
 	 * using this AtomosRuntime to provide the AtomosBundleInfo for installation
 	 * into the new Framework.
 	 * 
-	 * @see FrameworkFactory#newFramework(Map)
+	 * @see FrameworkFactory#newFramework(Map, ConnectFactory)
 	 * @param frameworkConfig the framework configuration
 	 * @return A new, configured {@link Framework} instance. The framework instance
 	 *         must be in the {@link Bundle#INSTALLED} state.
