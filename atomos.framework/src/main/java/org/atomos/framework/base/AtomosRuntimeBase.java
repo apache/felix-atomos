@@ -70,7 +70,6 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	public static final String OSGI_CONNECT_SUBSTRATE = "osgi.connect.substrate";
 	public static final String SUBSTRATE_LIB_DIR = "substrate_lib";
 
-	private final AtomicBoolean newFrameworkCreated = new AtomicBoolean();
 	private final AtomicReference<BundleContext> context = new AtomicReference<>();
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 	private final Map<String, AtomosBundleInfoBase> byOSGiLocation = new HashMap<>();
@@ -218,9 +217,6 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 
 	@Override
 	public Framework newFramework(Map<String, String> frameworkConfig) {
-		if (!newFrameworkCreated.compareAndSet(false, true)) {
-			throw new IllegalStateException("AtomosRuntime already used to create a new framework instance");
-		}
 		frameworkConfig = frameworkConfig == null ? new HashMap<>() : new HashMap<>(frameworkConfig);
 		if (modulesSupported() && frameworkConfig.get(Constants.FRAMEWORK_SYSTEMPACKAGES) == null) {
 			// this is to prevent the framework from exporting all the packages provided
@@ -231,8 +227,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 			// Always allow the console to work
 			frameworkConfig.put("osgi.console", "");
 		}
-		AtomosConnectFactory connectFactory = new AtomosConnectFactory(this);
-		return findFrameworkFactory().newFramework(frameworkConfig, connectFactory);
+		return findFrameworkFactory().newFramework(frameworkConfig, newConnectFactory());
 	}
 
 	@Override
