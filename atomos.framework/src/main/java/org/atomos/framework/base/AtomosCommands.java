@@ -43,7 +43,8 @@ public class AtomosCommands {
 	}
 
 	public void list() {
-		layers(runtime.getBootLayer().getParents().get(0), new HashSet<>());
+		AtomosLayer bl = runtime.getBootLayer();
+		layers(bl.getParents().stream().findFirst().orElseGet(() -> bl), new HashSet<>());
 	}
 
 	private void layers(AtomosLayer layer, Set<AtomosLayer> visited) {
