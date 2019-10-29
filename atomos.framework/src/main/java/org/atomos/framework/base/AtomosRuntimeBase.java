@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -71,15 +70,26 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	public static final String SUBSTRATE_LIB_DIR = "substrate_lib";
 
 	private final AtomicReference<BundleContext> context = new AtomicReference<>();
-	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-	private final Map<String, AtomosBundleInfoBase> byOSGiLocation = new HashMap<>();
-	private final Map<String, AtomosBundleInfoBase> byAtomosLocation = new HashMap<>();
-	final Map<AtomosLayer, Collection<String>> byAtomosLayer = new HashMap<>();
-	protected final Map<Object, String> byAtomosKey = new HashMap<>();
-	final Map<Long, AtomosLayerBase> byId = new HashMap<>();
-	private final Map<AtomosBundleInfo, String> byAtomosBundle = new HashMap<>();
-	protected final AtomicLong nextLayerId = new AtomicLong(0);
 	private final AtomicReference<File> storeRoot = new AtomicReference<>();
+
+	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+
+	// The following area all protected by the read/write lock
+	
+	// A map of Atomos bundles that are installed as OSGi bundles; the key is the OSGi bundle location
+	private final Map<String, AtomosBundleInfoBase> osgiLocationToAtomosBundle = new HashMap<>();
+	// A map of all Atomos bundles discovered (may not be installed as OSGi bundles); the key is the Atomos location
+	private final Map<String, AtomosBundleInfoBase> atomosLocationToAtomosBundle = new HashMap<>();
+	// A map of Atomos bundle OSGi bundle locations that are installed as OSGi bundles for an AtomosLayer; value is the OSGi bundle locations
+	final Map<AtomosLayer, Collection<String>> atomosLayerToOSGiLocations = new HashMap<>();
+	// A map of OSGi bundle locations for installed Atomos bundles; key is the AtomosBundleInfoBase.getKey()
+	// Used to lookup an OSGi bundle location for a Class<?> in getBundleLocation(Class<?>)
+	protected final Map<Object, String> atomosKeyToOSGiLocation = new HashMap<>();
+	// A map of Layers keyed by layer ID
+	final Map<Long, AtomosLayerBase> idToLayer = new HashMap<>();
+	// A map of OSGi bundle locations for installed Atomos bundles; key is Atomos bundle
+	private final Map<AtomosBundleInfo, String> atomosBundleToOSGiLocation = new HashMap<>();
+	protected final AtomicLong nextLayerId = new AtomicLong(0);
 
 	public static AtomosRuntimeBase newAtomosRuntime() {
 		try {
@@ -124,7 +134,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	protected final AtomosBundleInfoBase getByOSGiLocation(String location) {
 		lockRead();
 		try {
-			return byOSGiLocation.get(location);
+			return osgiLocationToAtomosBundle.get(location);
 		} finally {
 			unlockRead();
 		}
@@ -133,11 +143,11 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	final void addToInstalledBundles(String osgiLocation, AtomosBundleInfoBase atomosBundle) {
 		lockWrite();
 		try {
-			byOSGiLocation.put(osgiLocation, atomosBundle);
-			byAtomosBundle.put(atomosBundle, osgiLocation);
+			osgiLocationToAtomosBundle.put(osgiLocation, atomosBundle);
+			atomosBundleToOSGiLocation.put(atomosBundle, osgiLocation);
 			AtomosLayer layer = atomosBundle.getAtomosLayer();
-			byAtomosLayer.computeIfAbsent(layer, (l) -> new ArrayList<>()).add(osgiLocation);
-			byAtomosKey.put(atomosBundle.getKey(), osgiLocation);
+			atomosLayerToOSGiLocations.computeIfAbsent(layer, (l) -> new ArrayList<>()).add(osgiLocation);
+			atomosKeyToOSGiLocation.put(atomosBundle.getKey(), osgiLocation);
 		} finally {
 			unlockWrite();
 		}
@@ -146,10 +156,10 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	private void removeFromInstalledBundles(String osgiLocation) {
 		lockWrite();
 		try {
-			AtomosBundleInfoBase removed = byOSGiLocation.remove(osgiLocation);
-			byAtomosBundle.remove(removed);
-			byAtomosLayer.computeIfAbsent(removed.getAtomosLayer(), (l) -> new ArrayList<>()).remove(osgiLocation);
-			byAtomosKey.remove(removed.getKey());
+			AtomosBundleInfoBase removed = osgiLocationToAtomosBundle.remove(osgiLocation);
+			atomosBundleToOSGiLocation.remove(removed);
+			atomosLayerToOSGiLocations.computeIfAbsent(removed.getAtomosLayer(), (l) -> new ArrayList<>()).remove(osgiLocation);
+			atomosKeyToOSGiLocation.remove(removed.getKey());
 		} finally {
 			unlockWrite();
 		}
@@ -158,7 +168,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	final AtomosBundleInfoBase getByAtomosLocation(String location) {
 		lockRead();
 		try {
-			return byAtomosLocation.get(location);
+			return atomosLocationToAtomosBundle.get(location);
 		} finally {
 			unlockRead();
 		}
@@ -167,7 +177,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	protected final AtomosLayerBase getById(long id) {
 		lockRead();
 		try {
-			return byId.get(id);
+			return idToLayer.get(id);
 		} finally {
 			unlockRead();
 		}
@@ -176,7 +186,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	final String getByAtomosBundleInfo(AtomosBundleInfo atomosBundle) {
 		lockRead();
 		try {
-			return byAtomosBundle.get(atomosBundle);
+			return atomosBundleToOSGiLocation.get(atomosBundle);
 		} finally {
 			unlockRead();
 		}
@@ -185,7 +195,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	final Collection<String> getInstalledLocations(AtomosLayer layer) {
 		lockRead();
 		try {
-			return new ArrayList<>(byAtomosLayer.computeIfAbsent(layer, (l) -> new ArrayList<>()));
+			return new ArrayList<>(atomosLayerToOSGiLocations.computeIfAbsent(layer, (l) -> new ArrayList<>()));
 		} finally {
 			unlockRead();
 		}
@@ -301,12 +311,12 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 
 	protected final void addAtomosLayer(AtomosLayerBase atomosLayer) {
 		addingLayer(atomosLayer);
-		if (byId.putIfAbsent(atomosLayer.getId(), atomosLayer) != null) {
+		if (idToLayer.putIfAbsent(atomosLayer.getId(), atomosLayer) != null) {
 			throw new IllegalStateException("AtomosLayer already exists for id: " + atomosLayer.getId());
 		}
 
 		for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomosBundles()) {
-			if (byAtomosLocation.putIfAbsent(atomosBundle.getLocation(), (AtomosBundleInfoBase) atomosBundle) != null) {
+			if (atomosLocationToAtomosBundle.putIfAbsent(atomosBundle.getLocation(), (AtomosBundleInfoBase) atomosBundle) != null) {
 				throw new IllegalStateException("Atomos bundle location already exists: " + atomosBundle.getLocation());
 			}
 			if (Constants.SYSTEM_BUNDLE_LOCATION.equals(atomosBundle.getLocation())) {
@@ -512,8 +522,8 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 			for (AtomosLayer child : getChildren()) {
 				((AtomosLayerBase) child).removeLayerFromRuntime();
 			}
-			byAtomosLayer.remove(this);
-			byId.remove(getId());
+			atomosLayerToOSGiLocations.remove(this);
+			idToLayer.remove(getId());
 			removedLayer(this);
 		}
 
@@ -709,16 +719,16 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 		return null;
 	}
 
-	protected String getBundleLocation(Class<?> classFromBundle) {
+	protected final String getBundleLocation(Class<?> classFromBundle) {
 		lockRead();
 		try {
-			return byAtomosKey.get(getCodePath(classFromBundle));
+			return atomosKeyToOSGiLocation.get(getAtomosKey(classFromBundle));
 		} finally {
 			unlockRead();
 		}
 	}
 
-	private URL getCodePath(Class<?> classFromBundle) {
+	protected Object getAtomosKey(Class<?> classFromBundle) {
 		return classFromBundle.getProtectionDomain().getCodeSource().getLocation();
 	}
 

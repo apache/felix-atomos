@@ -33,8 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.jar.Attributes.Name;
 import java.util.jar.Manifest;
@@ -241,17 +239,12 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase {
 	}
 
 	@Override
-	protected String getBundleLocation(Class<?> classFromBundle) {
+	protected Object getAtomosKey(Class<?> classFromBundle) {
 		Module m = classFromBundle.getModule();
 		if (m != null && m.isNamed()) {
-			lockRead();
-			try {
-				return byAtomosKey.get(m);
-			} finally {
-				unlockRead();
-			}
+			return m;
 		}
-		return super.getBundleLocation(classFromBundle);
+		return super.getAtomosKey(classFromBundle);
 	}
 
 	protected Optional<Map<String, String>> createManifest(ConnectContent connectContent, Module module) {
@@ -516,9 +509,15 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase {
 		if (module == null) {
 			return null;
 		}
-		String location = byAtomosKey.get(module);
-		if (location == null) {
-			return null;
+		String location;
+		lockRead();
+		try {
+			location = atomosKeyToOSGiLocation.get(module);
+			if (location == null) {
+				return null;
+			}
+		} finally {
+			unlockRead();
 		}
 		BundleContext bc = getBundleContext();
 		if (bc == null) {

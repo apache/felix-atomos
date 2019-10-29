@@ -170,8 +170,8 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 	}
 
 	@Override
-	protected String getBundleLocation(Class<?> classFromBundle) {
-		// TODO need to map class to bundle somehow; needed for FrameworkUtil.getBundle to work
+	protected Object getAtomosKey(Class<?> classFromBundle) {
+		// TODO need to map class -> AtomosBundleInfoSubstrate.getKey()
 		return null;
 	}
 }
