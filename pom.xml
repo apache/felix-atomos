@@ -139,7 +139,7 @@
 			<dependency>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>org.apache.felix.http.jetty</artifactId>
-				<version>3.1.0.substrate</version>
+				<version>3.1.0</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.felix</groupId>

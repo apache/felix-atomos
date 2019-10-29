@@ -58,7 +58,7 @@ advantages because it allows the module class loader for the bundle to implement
 # Substrate
 
 An example project of using Graal Substrate is located at `atomos/atomos.tests/service.substrate`.  This project is not built as part of the main
-Atomos build because it requires an installation of Graal and the native-image tools for Substrate.  To build the Substrate example the main
+Atomos build because it requires an installation of GraalVM CE 19.2.1 and the native-image tools for Substrate.  To build the Substrate example the main
 Atomos build must first be built using the Java 8 profile:
 
 `mvn clean install -Pjava8`
