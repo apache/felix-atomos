@@ -17,8 +17,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -144,7 +146,7 @@ public class ModulepathLaunchTest {
 		assertEquals("Wrong number of children.", 1, children.size());
 
 		AtomosLayer child = children.iterator().next();
-		assertEquals("Wrong number of bundles.", 4, child.getAtomosBundles().size());
+		assertEquals("Wrong number of bundles.", 5, child.getAtomosBundles().size());
 		Module serviceLibModule = null;
 		for(AtomosBundleInfo atomosBundle : child.getAtomosBundles()) {
 			if (atomosBundle.getSymbolicName().equals("service.lib")) {
@@ -157,6 +159,80 @@ public class ModulepathLaunchTest {
 		} catch (Exception e) {
 			fail("Failed to find class: " + e.getMessage());
 		}
+	}
+
+	private ClassLoader getCLForResourceTests() throws BundleException  {
+	    ModulepathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + 
+	            storage.toFile().getAbsolutePath(), AtomosRuntime.ATOMOS_MODULES_DIR + "=target/modules/resource.a-0.0.1-SNAPSHOT.jar"});
+	    testFramework = ModulepathLaunch.getFramework();
+	    BundleContext bc = testFramework.getBundleContext();
+	    checkBundleStates(bc.getBundles());
+
+	    ServiceReference<AtomosRuntime> atomosRef = bc.getServiceReference(AtomosRuntime.class);
+	    AtomosRuntime atomos = bc.getService(atomosRef);
+	    AtomosLayer bootLayer = atomos.getBootLayer();
+	    Set<AtomosLayer> children = bootLayer.getChildren();
+	    assertNotNull("Null children.", children);
+	    assertEquals("Wrong number of children.", 1, children.size());
+
+	    AtomosLayer child = children.iterator().next();
+	    assertEquals("Wrong number of bundles.", 1, child.getAtomosBundles().size());
+	    Module serviceLibModule = null;
+	    for(AtomosBundleInfo atomosBundle : child.getAtomosBundles()) {
+	        if (atomosBundle.getSymbolicName().equals("resource.a")) {
+	            serviceLibModule = atomosBundle.adapt(Module.class).get();
+	        }
+	    }
+	    return serviceLibModule.getClassLoader();
+	}
+	
+	@Test
+	public void testResourceGetMissingResource() throws ClassNotFoundException, BundleException {
+	    try {
+	        Class<?> clazz = getCLForResourceTests().loadClass("org.atomos.resource.Clazz");
+	        URL u = clazz.getResource("/META-TEXT/noFile.txt");
+	        assertNull("get of non-existent resource should return null.", u);
+	    } catch (ClassNotFoundException e) {
+	        fail("Failed to find class: " + e.getMessage());
+	    }
+	}
+
+	@Test
+	public void testResourceLoadResource() throws ClassNotFoundException, BundleException {
+	    try {
+	        Class<?> clazz = getCLForResourceTests().loadClass("org.atomos.resource.Clazz");
+	        URL resc = clazz.getResource("/META-TEXT/file.txt");
+	        assertTrue("Expected URL, got null ", resc!=null); 
+	        assertTrue("Could not get resource from URL", resc.getFile() != null);
+	    } catch (ClassNotFoundException e) {
+	        fail("Failed to find class: " + e.getMessage());
+	    }
+	}
+
+	@Test
+	public void testResourcePackagedResource() throws ClassNotFoundException, BundleException, IOException {
+	    try {
+	        Class<?> clazz = getCLForResourceTests().loadClass("org.atomos.resource.Clazz");
+	        URL resc = clazz.getResource("file.txt");
+	        assertTrue("Expected URL, got null ", resc!=null); 	        
+	        assertTrue("Incorrect contents from URL", new BufferedReader(
+	        		new InputStreamReader(resc.openStream())).readLine().equals("/org/atomos/resource/file.txt"));
+	    } catch (ClassNotFoundException e) {
+	        fail("Failed to find class: " + e.getMessage());
+	    }
+	}
+
+	@Test
+	public void testResourceRootResource() throws ClassNotFoundException, BundleException, IOException {
+	    try {
+	        Class<?> clazz = getCLForResourceTests().loadClass("org.atomos.resource.Clazz");
+	        URL resc = clazz.getResource("/file.txt");
+	        assertTrue("Expected URL, got null ", resc!=null); 	        
+	        assertTrue("Incorrect contents from URL", new BufferedReader(
+	        		new InputStreamReader(resc.openStream())).readLine().equals("/file.txt"));
+	    } catch (ClassNotFoundException e) {
+	        fail("Failed to find class: " + e.getMessage());
+	    }
 	}
 
 	@Test
@@ -189,7 +265,7 @@ public class ModulepathLaunchTest {
 
 		List<Bundle> firstChildBundles = firstChildInfos.stream().map((a) -> atomosRuntime.getBundle(a)).filter(Objects::nonNull).collect(Collectors.toList());
 
-		assertEquals("Wrong number of bundles in first child.", 4, firstChildBundles.size());
+		assertEquals("Wrong number of bundles in first child.", 5, firstChildBundles.size());
 		firstChildBundles.forEach((b) -> {
 			try {
 				b.uninstall();
@@ -440,16 +516,15 @@ public class ModulepathLaunchTest {
 		switch (loaderType) {
 		case OSGI:
 			for (ClassLoader classLoader : classLoaders) {
-				// TODO do the following when we have an implementation of ModuleConnectLoader
-				// assertTrue("Class loader is not a BundleReference", classLoader instanceof BundleReference);
+				 assertTrue("Class loader is not a BundleReference", classLoader instanceof BundleReference);
 			}
-			assertEquals("Wrong number of class loaders.", 4, classLoaders.size());
+			assertEquals("Wrong number of class loaders.", 5, classLoaders.size());
 			break;
 		case MANY :
 			for (ClassLoader classLoader : classLoaders) {
 				assertFalse("Class loader is a BundleReference", classLoader instanceof BundleReference);
 			}
-			assertEquals("Wrong number of class loaders.", 4, classLoaders.size());
+			assertEquals("Wrong number of class loaders.", 5, classLoaders.size());
 			break;
 		case SINGLE:
 			assertEquals("Wrong number of class loaders.", 1, classLoaders.size());
@@ -470,6 +545,8 @@ public class ModulepathLaunchTest {
 			return "org.atomos.service.lib.SomeUtil";
 		case "service.user":
 			return "org.atomos.service.user.EchoUser";
+		case "resource.a":
+			return "org.atomos.resource.Clazz";
 		default:
 			fail("Unknown");
 		}
