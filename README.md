@@ -58,14 +58,20 @@ advantages because it allows the module class loader for the bundle to implement
 # Substrate
 
 An example project of using Graal Substrate is located at `atomos/atomos.tests/service.substrate`.  This project is not built as part of the main
-Atomos build because it requires in installation of Graal and the native-image tools for Substrate.  To build the Substrate example the main
+Atomos build because it requires an installation of Graal and the native-image tools for Substrate.  To build the Substrate example the main
 Atomos build must first be built using the Java 8 profile:
 
 `mvn clean install -Pjava8`
 
 Note that `install` target must be used so that Atomos is installed into your local m2 repository.  This still requires Java 11 to be used to 
-build but the result allows the `atomos.framework` JAR to be used on Java 8.  Next you must switch to
-a Java installation of Graal with the Substrate native-image tools installed and then change into the `atomos/atomos.tests/service.substrate` and
+build but the result allows the `atomos.framework` JAR to be used on Java 8.
+
+To build the native image you must to install the native image support for Graal (see https://www.graalvm.org/docs/reference-manual/native-image/).  You need to 
+run the `gu` command that comes with Graal VM: 
+
+`gu install native-image`
+
+Next you must switch to a Java installation of Graal with the Substrate native-image tools installed and then change into the `atomos/atomos.tests/service.substrate` and
 run `mvn clean package`
 
 This should create a `target/atomos` executable.  It also creates a `target/substrate_lib/`.  This contains all the original bundle JARs that
