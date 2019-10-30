@@ -1,7 +1,7 @@
 # Atomos
 Atomos - A Java Module Framework using OSGi Connect
 
-Atomos requires an Equinox OSGi Framework implementation which supports OSGi Connect (https://blog.osgi.org/2019/09/osgi-connect-revisited.html).  Currently a snapshot of the Equinox OSGi Framework is being used that implements the proposed OSGi Connect specification for an upcoming OSGi R8 Core specification.  Source for the snapshot is found in https://github.com/tjwatson/rt.equinox.framework/tree/osgiConnect and tempary binaries are pushed to https://github.com/tjwatson/atomos-temp-m2repo for Atomos.
+Atomos requires an Equinox OSGi Framework implementation which supports OSGi Connect (https://blog.osgi.org/2019/09/osgi-connect-revisited.html).  Currently a snapshot of the Equinox OSGi Framework is being used that implements the proposed OSGi Connect specification for an upcoming OSGi R8 Core specification.  Source for the snapshot is found in https://git.eclipse.org/c/equinox/rt.equinox.framework.git in the `osgiR8` branch and tempary binaries are pushed to https://github.com/tjwatson/atomos-temp-m2repo for Atomos.
 Atomos is an implementation of an OSGi Connect factory that can be used to create an OSGi Framework instance. Framework instances created
 with Atomos add support to the OSGi Framework that enables bundles to be installed
 which are managed outside of the OSGi Framework module layer.  Currently Atomos supports three different modes for
