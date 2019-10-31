@@ -10,12 +10,18 @@
  *******************************************************************************/
 package org.atomos.service.impl;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.atomos.service.contract.Echo;
 
-@Component(property = {"type=impl.component"})
+@Component(property = {"type=impl.component"}, immediate = true)
 @org.osgi.annotation.bundle.Requirement(namespace = "osgi.ee", filter = "(&(osgi.ee=JavaSE)(version=1.8))")
 public class EchoImpl implements Echo {
+
+	@Activate
+	public void activate() {
+		System.out.println("Activated: " + getClass().getName());
+	}
 
 	@Override
 	public String echo(String msg) {
