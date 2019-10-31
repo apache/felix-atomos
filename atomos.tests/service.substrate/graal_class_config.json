@@ -114,10 +114,15 @@
   },
   {
     "name" : "org.apache.felix.scr.impl.ComponentCommands",
-    "allPublicMethods" : true,
-    "allDeclaredMethods" : true,
-    "allPublicFields" : true,
-    "allDeclaredFields" : true
+    "methods" : [
+      { "name" : "list", "parameterTypes" : [] },
+      { "name" : "list", "parameterTypes" : ["long"] },
+      { "name" : "info", "parameterTypes" : ["java.lang.String"] },
+      { "name" : "info", "parameterTypes" : ["long"] },
+      { "name" : "enable", "parameterTypes" : ["java.lang.String"] },
+      { "name" : "disable", "parameterTypes" : ["java.lang.String"] },
+      { "name" : "config", "parameterTypes" : [] }
+    ]
   },
   {
     "name" : "java.lang.Boolean",
