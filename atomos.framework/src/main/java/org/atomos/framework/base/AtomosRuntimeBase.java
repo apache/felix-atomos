@@ -19,10 +19,12 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Path;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -587,6 +589,36 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 		public <T> Optional<T> adapt(Class<T> type) {
 			// do nothing by default
 			return Optional.empty();
+		}
+
+		@Override
+		public Optional<AtomosBundleInfo> findAtomosBundle(String symbolicName) {
+			Optional<AtomosBundleInfo> result = getAtomosBundles().stream().filter((b) -> symbolicName.equals(b.getSymbolicName())).findAny();
+			if (result.isPresent()) {
+				return result;
+			}
+
+	        Set<AtomosLayer> visited = new HashSet<>();
+	        Deque<AtomosLayer> stack = new ArrayDeque<>();
+	        visited.add(this);
+	        stack.push(this);
+
+	        while (!stack.isEmpty()) {
+	            AtomosLayer layer = stack.pop();
+	            result = layer.getAtomosBundles().stream().filter((b) -> symbolicName.equals(b.getSymbolicName())).findAny();
+	            if (result.isPresent()) {
+	            	return result;
+	            }
+	            List<AtomosLayer> parents = layer.getParents();
+	            for (int i = parents.size() - 1; i >= 0; i--) {
+	                AtomosLayer parent = parents.get(i);
+	                if (!visited.contains(parent)) {
+	                    visited.add(parent);
+	                    stack.push(parent);
+	                }
+	            }
+	        }
+	        return result;
 		}
 
 		/**

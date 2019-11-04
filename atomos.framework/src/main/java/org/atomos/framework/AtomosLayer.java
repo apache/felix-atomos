@@ -58,6 +58,20 @@ public interface AtomosLayer {
 	Set<AtomosBundleInfo> getAtomosBundles();
 
 	/**
+     * Returns the Atomos bundle with the given name in this layer, or if not in this
+     * layer, the {@linkplain #getParents() parent} layers. Finding a bundle in
+     * parent layers is equivalent to invoking {@code findAtomosBundle} on each
+     * parent, in search order, until the bundle is found or all parents have
+     * been searched. In a <em>tree of layers</em>  then this is equivalent to
+     * a depth-first search.
+	 * @param symbolicName the name of the bundle to find
+	 * @return The bundle with the given name or an empty {@code Optional}
+     *         if there isn't a bundle with this name in this layer or any
+     *         parent layer
+	 */
+	Optional<AtomosBundleInfo> findAtomosBundle(String symbolicName);
+
+	/**
 	 * The name of the Atomos Layer.  By default the Atomos Layer
 	 * name is the empty string.  Atomos Layer names are not
 	 * required to be unique.  All Atomos bundles contained in a

@@ -11,6 +11,7 @@
 package org.atomos.classpath.service.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -23,7 +24,10 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
+import org.atomos.framework.AtomosBundleInfo;
+import org.atomos.framework.AtomosLayer;
 import org.atomos.framework.AtomosRuntime;
 import org.atomos.framework.AtomosRuntime.LoaderType;
 import org.atomos.service.contract.Echo;
@@ -95,6 +99,32 @@ public class ClasspathLaunchTest {
 		} catch (UnsupportedOperationException e) {
 			// expected
 		}
+	}
+
+	@Test
+	public void testFindBundle() throws BundleException {
+		ClasspathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
+		testFramework = ClasspathLaunch.getFramework();
+		BundleContext bc = testFramework.getBundleContext();
+		assertNotNull("No context found.", bc);
+
+		AtomosRuntime runtime = getRuntime(bc);
+		assertFindBundle("java.base", runtime.getBootLayer(), runtime.getBootLayer(), true);
+		assertFindBundle("service.impl", runtime.getBootLayer(), runtime.getBootLayer(), true);
+		assertFindBundle("service.impl.a", runtime.getBootLayer(), runtime.getBootLayer(), true);
+		assertFindBundle("not.found", runtime.getBootLayer(), null, false);
+	}
+
+	private AtomosBundleInfo assertFindBundle(String name, AtomosLayer layer, AtomosLayer expectedLayer, boolean expectedToFind) {
+		Optional<AtomosBundleInfo> result = layer.findAtomosBundle(name);
+		if (expectedToFind) {
+			assertTrue("Could not find bundle: " + name, result.isPresent());
+			assertEquals("Wrong name", name, result.get().getSymbolicName());
+			assertEquals("Wrong layer for bundle: " + name, expectedLayer, result.get().getAtomosLayer());
+		} else {
+			assertFalse("Found unexpected bundle: " + name, result.isPresent());
+		}
+		return result.orElse(null);
 	}
 
 	private void checkServices(BundleContext bc, int expectedNumber) throws InvalidSyntaxException {

@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,6 +52,8 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.launch.Framework;
+
+import junit.framework.Assert;
 
 public class ModulepathLaunchTest {
 	private Path storage;
@@ -306,6 +309,33 @@ public class ModulepathLaunchTest {
 		checkLoader(atomosRuntime, installChild(atomosRuntime.getBootLayer(), "OSGI", atomosRuntime, LoaderType.OSGI), LoaderType.OSGI);
 		checkLoader(atomosRuntime, installChild(atomosRuntime.getBootLayer(), "SINGLE", atomosRuntime, LoaderType.SINGLE), LoaderType.SINGLE);
 		checkLoader(atomosRuntime, installChild(atomosRuntime.getBootLayer(), "MANY", atomosRuntime, LoaderType.MANY), LoaderType.MANY);
+	}
+
+	@Test
+	public void testFindBundle( ) throws BundleException {
+		ModulepathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
+		testFramework = ModulepathLaunch.getFramework();
+		BundleContext bc = testFramework.getBundleContext();
+		assertNotNull("No context found.", bc);
+
+		AtomosRuntime atomosRuntime = bc.getService(bc.getServiceReference(AtomosRuntime.class));
+		AtomosLayer child = installChild(atomosRuntime.getBootLayer(), "SINGLE", atomosRuntime, LoaderType.SINGLE);
+		assertFindBundle("java.base", child, atomosRuntime.getBootLayer(), true);
+		assertFindBundle("service.impl.a", child, child, true);
+		assertFindBundle("service.impl", child, atomosRuntime.getBootLayer(), true);
+		assertFindBundle("service.impl.a", atomosRuntime.getBootLayer(), null, false);
+	}
+
+	private AtomosBundleInfo assertFindBundle(String name, AtomosLayer layer, AtomosLayer expectedLayer, boolean expectedToFind) {
+		Optional<AtomosBundleInfo> result = layer.findAtomosBundle(name);
+		if (expectedToFind) {
+			assertTrue("Could not find bundle: " + name, result.isPresent());
+			assertEquals("Wrong name", name, result.get().getSymbolicName());
+			assertEquals("Wrong layer for bundle: " + name, expectedLayer, result.get().getAtomosLayer());
+		} else {
+			assertFalse("Found unexpected bundle: " + name, result.isPresent());
+		}
+		return result.orElse(null);
 	}
 
 	@Test

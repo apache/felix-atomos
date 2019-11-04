@@ -212,6 +212,7 @@ public interface AtomosRuntime {
 	 * @return if modules and additional layers are supported.
 	 */
 	boolean modulesSupported();
+
 	/**
 	 * The initial boot Atomos layer
 	 * 
