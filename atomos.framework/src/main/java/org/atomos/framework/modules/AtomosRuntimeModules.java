@@ -223,9 +223,12 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase {
 			}
 			if (path != null) {
 				return addLayer(Collections.singletonList(getBootLayer()), "modules", LoaderType.OSGI, path);
+			} else {
+				return null;
 			}
+		} else {
+			return super.addModules(name, path);
 		}
-		return null;
 	}
 
 	@Override
@@ -434,10 +437,10 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase {
 						StringBuilder sb = new StringBuilder();
 						if (!getName().isEmpty()) {
 							sb.append(getName()).append(':');
-							}
-							sb.append(u.toString());
-							return sb.toString();
-						}).orElse(null);
+						}
+						sb.append(u.toString());
+						return sb.toString();
+					}).orElse(null);
 				}
 				if (location == null) {
 					continue;
