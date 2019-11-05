@@ -343,6 +343,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 		private final Set<AtomosLayer> children = new HashSet<>();
 		private final List<Path> paths;
 		private volatile boolean valid = true;
+		private volatile Map<String, AtomosBundleInfo> nameToBundle;
 
 		public AtomosLayerBase(List<AtomosLayer> parents, long id, String name, LoaderType loaderType, Path... paths) {
 			this.id = id;
@@ -593,32 +594,33 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 
 		@Override
 		public Optional<AtomosBundleInfo> findAtomosBundle(String symbolicName) {
-			Optional<AtomosBundleInfo> result = getAtomosBundles().stream().filter((b) -> symbolicName.equals(b.getSymbolicName())).findAny();
-			if (result.isPresent()) {
-				return result;
+			Map<String, AtomosBundleInfo> nameToBundle = this.nameToBundle;
+			if (nameToBundle == null) {
+				nameToBundle = new HashMap<>();
+				final Map<String, AtomosBundleInfo> populate = nameToBundle;
+				getAtomosBundles().forEach((a) -> populate.putIfAbsent(a.getSymbolicName(), a));
+
+				Set<AtomosLayer> visited = new HashSet<>();
+				Deque<AtomosLayer> stack = new ArrayDeque<>();
+				visited.add(this);
+				stack.push(this);
+
+				while (!stack.isEmpty()) {
+					AtomosLayer layer = stack.pop();
+					layer.getAtomosBundles().forEach((a) -> populate.putIfAbsent(a.getSymbolicName(), a));
+					List<AtomosLayer> parents = layer.getParents();
+					for (int i = parents.size() - 1; i >= 0; i--) {
+						AtomosLayer parent = parents.get(i);
+						if (!visited.contains(parent)) {
+							visited.add(parent);
+							stack.push(parent);
+						}
+					}
+				}
+
+				this.nameToBundle = populate;
 			}
-
-	        Set<AtomosLayer> visited = new HashSet<>();
-	        Deque<AtomosLayer> stack = new ArrayDeque<>();
-	        visited.add(this);
-	        stack.push(this);
-
-	        while (!stack.isEmpty()) {
-	            AtomosLayer layer = stack.pop();
-	            result = layer.getAtomosBundles().stream().filter((b) -> symbolicName.equals(b.getSymbolicName())).findAny();
-	            if (result.isPresent()) {
-	            	return result;
-	            }
-	            List<AtomosLayer> parents = layer.getParents();
-	            for (int i = parents.size() - 1; i >= 0; i--) {
-	                AtomosLayer parent = parents.get(i);
-	                if (!visited.contains(parent)) {
-	                    visited.add(parent);
-	                    stack.push(parent);
-	                }
-	            }
-	        }
-	        return result;
+			return Optional.ofNullable(nameToBundle.get(symbolicName));
 		}
 
 		/**
