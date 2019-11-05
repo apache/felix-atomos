@@ -70,6 +70,7 @@ public class SubstrateConnectContent implements ConnectContent {
 
 	@Override
 	public Optional<ConnectEntry> getEntry(String name) {
+		name = AtomosRuntimeBase.removeLeadingSlash(name);
 		ZipEntry entry = zipFile.getEntry(name);
 		if (entry != null) {
 			return Optional.of(new JarConnectEntry(entry));

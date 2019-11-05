@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.atomos.framework.base.AtomosRuntimeBase;
 import org.osgi.framework.connect.ConnectContent;
 
 public class ModuleConnectContent implements ConnectContent {
@@ -74,7 +75,8 @@ public class ModuleConnectContent implements ConnectContent {
 	}
 
 	@Override
-	public Optional<ConnectEntry> getEntry(String name) {
+	public Optional<ConnectEntry> getEntry(String entry) {
+		final String name = AtomosRuntimeBase.removeLeadingSlash(entry);
 		try {
 			return currentReader().find(name).map((u) -> new ModuleConnectEntry(name, u));
 		} catch (IOException e) {

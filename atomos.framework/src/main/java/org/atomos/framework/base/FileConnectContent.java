@@ -98,7 +98,8 @@ public class FileConnectContent implements ConnectContent {
 	}
 
 	@Override
-	public Optional<ConnectEntry> getEntry(final String name) {
+	public Optional<ConnectEntry> getEntry(String entry) {
+		final String name = AtomosRuntimeBase.removeLeadingSlash(entry);
 		return getFile(name).map((f)->new FileConnectEntry(f, name));
 	}
 

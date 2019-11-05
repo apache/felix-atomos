@@ -813,6 +813,13 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 		return (Set<T>) l;
 	}
 
+	public static String removeLeadingSlash(String path) {
+		if (path.length() > 0 && path.charAt(0) == '/') {
+			return path.substring(1);
+		}
+		return path;
+	}
+
 	Thread saveOnVMExit = new Thread(() -> {
 		BundleContext bc = context.get();
 		if (bc != null) {

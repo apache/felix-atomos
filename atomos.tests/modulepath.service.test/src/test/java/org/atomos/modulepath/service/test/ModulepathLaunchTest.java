@@ -19,6 +19,7 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -312,7 +313,7 @@ public class ModulepathLaunchTest {
 	}
 
 	@Test
-	public void testFindBundle( ) throws BundleException {
+	public void testFindBundle() throws BundleException {
 		ModulepathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
 		testFramework = ModulepathLaunch.getFramework();
 		BundleContext bc = testFramework.getBundleContext();
@@ -324,6 +325,23 @@ public class ModulepathLaunchTest {
 		assertFindBundle("service.impl.a", child, child, true);
 		assertFindBundle("service.impl", child, atomosRuntime.getBootLayer(), true);
 		assertFindBundle("service.impl.a", atomosRuntime.getBootLayer(), null, false);
+	}
+
+	@Test
+	public void testGetEntry() throws BundleException {
+		ModulepathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
+		testFramework = ModulepathLaunch.getFramework();
+		BundleContext bc = testFramework.getBundleContext();
+		assertNotNull("No context found.", bc);
+
+		AtomosRuntime atomosRuntime = bc.getService(bc.getServiceReference(AtomosRuntime.class));
+		AtomosLayer child = installChild(atomosRuntime.getBootLayer(), "SINGLE", atomosRuntime, LoaderType.SINGLE);
+		Bundle b = atomosRuntime.getBundle(child.findAtomosBundle("service.impl.a").get());
+		assertNotNull("No bundle found.", b);
+		URL mf = b.getEntry("/META-INF/MANIFEST.MF");
+		assertNotNull("No manifest found.", mf);
+		mf = b.getEntry("META-INF/MANIFEST.MF");
+		assertNotNull("No manifest found.", mf);
 	}
 
 	private AtomosBundleInfo assertFindBundle(String name, AtomosLayer layer, AtomosLayer expectedLayer, boolean expectedToFind) {

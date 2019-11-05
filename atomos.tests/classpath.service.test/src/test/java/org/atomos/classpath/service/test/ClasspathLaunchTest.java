@@ -19,6 +19,7 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -113,6 +114,22 @@ public class ClasspathLaunchTest {
 		assertFindBundle("service.impl", runtime.getBootLayer(), runtime.getBootLayer(), true);
 		assertFindBundle("service.impl.a", runtime.getBootLayer(), runtime.getBootLayer(), true);
 		assertFindBundle("not.found", runtime.getBootLayer(), null, false);
+	}
+
+	@Test
+	public void testGetEntry() throws BundleException {
+		ClasspathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
+		testFramework = ClasspathLaunch.getFramework();
+		BundleContext bc = testFramework.getBundleContext();
+		assertNotNull("No context found.", bc);
+
+		AtomosRuntime runtime = getRuntime(bc);
+		Bundle b = runtime.getBundle(assertFindBundle("service.impl.a", runtime.getBootLayer(), runtime.getBootLayer(), true));
+		assertNotNull("No bundle found.", b);
+		URL mf = b.getEntry("/META-INF/MANIFEST.MF");
+		assertNotNull("No manifest found.", mf);
+		mf = b.getEntry("META-INF/MANIFEST.MF");
+		assertNotNull("No manifest found.", mf);
 	}
 
 	private AtomosBundleInfo assertFindBundle(String name, AtomosLayer layer, AtomosLayer expectedLayer, boolean expectedToFind) {
