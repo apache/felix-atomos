@@ -850,9 +850,12 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 
 	void stop(BundleContext bc) throws BundleException {
 		this.context.compareAndSet(bc, null);
-		Runtime.getRuntime().removeShutdownHook(saveOnVMExit);
 		try {
+			Runtime.getRuntime().removeShutdownHook(saveOnVMExit);
 			new AtomosStorage(this).saveLayers(storeRoot.get(), bc.getBundles());
+		} catch (IllegalStateException e) {
+			// ignore this; happens if the JVM already is in the process of running shutdown hooks
+			// in that case we can skip saveLayers call
 		} catch (IOException e) {
 			throw new BundleException("Failed to save atomos runtime.", e);
 		}
