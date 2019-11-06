@@ -75,8 +75,7 @@ public class ModuleConnectContent implements ConnectContent {
 	}
 
 	@Override
-	public Optional<ConnectEntry> getEntry(String entry) {
-		final String name = AtomosRuntimeBase.removeLeadingSlash(entry);
+	public Optional<ConnectEntry> getEntry(String name) {
 		try {
 			return currentReader().find(name).map((u) -> new ModuleConnectEntry(name, u));
 		} catch (IOException e) {
