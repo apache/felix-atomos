@@ -344,6 +344,36 @@ public class ModulepathLaunchTest {
 		assertNotNull("No manifest found.", mf);
 	}
 
+	@Test
+	public void testInstallDifferentPrefix() throws BundleException {
+		ModulepathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
+		testFramework = ModulepathLaunch.getFramework();
+		BundleContext bc = testFramework.getBundleContext();
+		assertNotNull("No context found.", bc);
+
+		AtomosRuntime atomosRuntime = bc.getService(bc.getServiceReference(AtomosRuntime.class));
+		AtomosLayer child = installChild(atomosRuntime.getBootLayer(), "SINGLE", atomosRuntime, LoaderType.SINGLE);
+		AtomosBundleInfo ab = child.findAtomosBundle("service.impl.a").get();
+		Bundle b = atomosRuntime.getBundle(ab);
+		assertNotNull("No bundle found.", b);
+
+		try {
+			ab.install("shouldFail");
+			fail("Should not be able to install with different prefix");
+		} catch (BundleException e) {
+			// expected
+		}
+
+		Bundle existing = ab.install("child");
+		assertNotNull("No bundle.", existing);
+		assertEquals("Existing bundle doesn't equal original.", b, existing);
+
+		// now try to uninstall and use a different prefix
+		existing.uninstall();
+		b = ab.install("testPrefix");
+		b.start();
+	}
+
 	private AtomosBundleInfo assertFindBundle(String name, AtomosLayer layer, AtomosLayer expectedLayer, boolean expectedToFind) {
 		Optional<AtomosBundleInfo> result = layer.findAtomosBundle(name);
 		if (expectedToFind) {

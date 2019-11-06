@@ -258,21 +258,33 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 		if (prefix == null) {
 			prefix = "atomos";
 		}
-		if (AtomosRuntimeBase.DEBUG) {
-			System.out.println("Installing atomos bundle: " + prefix + atomosBundle.getLocation()); //$NON-NLS-1$
-		}
-
 		if (prefix.indexOf(':') != -1) {
 			throw new IllegalArgumentException("The prefix cannot contain ':'");
+		}
+		prefix = prefix + ':';
+		if (AtomosRuntimeBase.DEBUG) {
+			System.out.println("Installing atomos bundle: " + prefix + atomosBundle.getLocation()); //$NON-NLS-1$
 		}
 
 		BundleContext bc = context.get();
 		if (bc == null) {
 			throw new IllegalStateException("Framework has not been initialized.");
 		}
+
+		String existingLoc = getByAtomosBundleInfo(atomosBundle);
+		if (existingLoc != null) {
+			Bundle existing = bc.getBundle(existingLoc);
+			if (existing != null) {
+				if(Constants.SYSTEM_BUNDLE_LOCATION.equals(existingLoc) || existingLoc.startsWith(prefix)) {
+					return existing;
+				}
+				throw new BundleException("Atomos bundle is already installed with bundle: " + existing, BundleException.DUPLICATE_BUNDLE_ERROR);
+			}
+		}
+
 		String location = atomosBundle.getLocation();
 		if (!Constants.SYSTEM_BUNDLE_LOCATION.equals(location)) {
-			location = prefix + ':' + atomosBundle.getLocation();
+			location = prefix + atomosBundle.getLocation();
 		}
 		AtomosLayerBase atomosLayer = (AtomosLayerBase) atomosBundle.getAtomosLayer();
 		if (!atomosLayer.isValid()) {
