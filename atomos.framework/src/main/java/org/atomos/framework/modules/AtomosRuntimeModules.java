@@ -62,8 +62,7 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase {
 	final Map<Configuration, AtomosLayerBase> byConfig = new HashMap<>();
 	private final AtomosLayer bootLayer = createBootLayer();
 
-	@Override
-	protected AtomosLayer createBootLayer() {
+	private AtomosLayer createBootLayer() {
 		return createAtomosLayer(thisConfig, "boot", -1, LoaderType.SINGLE);
 	}
 	

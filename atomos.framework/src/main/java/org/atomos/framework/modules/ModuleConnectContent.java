@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.atomos.framework.base.AtomosRuntimeBase;
 import org.osgi.framework.connect.ConnectContent;
 
 public class ModuleConnectContent implements ConnectContent {

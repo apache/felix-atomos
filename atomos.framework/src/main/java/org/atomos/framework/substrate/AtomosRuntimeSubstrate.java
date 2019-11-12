@@ -16,22 +16,33 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 
 import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
 import org.atomos.framework.base.AtomosRuntimeBase;
+import org.atomos.framework.base.AtomosRuntimeBase.AtomosLayerBase.AtomosBundleInfoBase;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.framework.Version;
 import org.osgi.framework.connect.ConnectContent;
 import org.osgi.framework.launch.FrameworkFactory;
+import org.osgi.framework.namespace.PackageNamespace;
 import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleRevision;
 
 /**
  * This is a quick and dirty way to get bundle entry resources to work
@@ -44,12 +55,12 @@ import org.osgi.framework.wiring.BundleCapability;
  */
 public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 
-	private final AtomosLayer bootLayer = createBootLayer();
+	private final AtomosLayerSubstrate bootLayer = createBootLayer();
 
-	protected AtomosLayer createBootLayer() {
+	private AtomosLayerSubstrate createBootLayer() {
 		lockWrite();
 		try {
-			AtomosLayerBase result = new AtomosLayerSubstrate(Collections.emptyList(), nextLayerId.getAndIncrement(), "boot", LoaderType.SINGLE);
+			AtomosLayerSubstrate result = new AtomosLayerSubstrate(Collections.emptyList(), nextLayerId.getAndIncrement(), "boot", LoaderType.SINGLE);
 			addAtomosLayer(result);
 			return result;
 		} finally {
@@ -82,14 +93,24 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 		filterNotVisible(atomosBundle, candidates);
 	}
 
-	public class AtomosLayerSubstrate extends AtomosLayerBase {
+	public class AtomosLayerSubstrate extends AtomosLayerBase implements SynchronousBundleListener {
 		private final Set<AtomosBundleInfoBase> atomosBundles;
+		private final Map<String, AtomosBundleInfoBase> packageToAtomos = new ConcurrentHashMap<>();
 		protected AtomosLayerSubstrate(List<AtomosLayer> parents, long id, String name, LoaderType loaderType,
 				Path... paths) {
 			super(parents, id, name, loaderType, paths);
-			atomosBundles = findSubstrateAtomosBundles();
+			Set<AtomosBundleInfoBase> foundBundles = new HashSet<>();
+			findSubstrateAtomosBundles(foundBundles);
+			atomosBundles = Collections.unmodifiableSet(foundBundles);
 		}
 
+		AtomosBundleInfoBase getBundleByPackage(Class<?> clazz) {
+			Package pkg = clazz.getPackage();
+			if (pkg != null) {
+				return packageToAtomos.get(pkg.getName());
+			}
+			return null;
+		}
 
 		@Override
 		public final Set<AtomosBundleInfo> getAtomosBundles() {
@@ -101,8 +122,7 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 			// do nothing for class path runtime case
 		}
 
-		Set<AtomosBundleInfoBase> findSubstrateAtomosBundles() {
-			Set<AtomosBundleInfoBase> result = new HashSet<>();
+		void findSubstrateAtomosBundles(Set<AtomosBundleInfoBase> bundles) {
 			File substrateLib = getSubstrateLibDir();
 
 			if (substrateLib.isDirectory()) {
@@ -130,7 +150,8 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 									}
 								}
 								Version version = Version.parseVersion(headers.getValue(Constants.BUNDLE_VERSION));
-								result.add(new AtomosBundleInfoSubstrate(location, symbolicName, version, connectContent));
+								AtomosBundleInfoBase bundle = new AtomosBundleInfoSubstrate(location, symbolicName, version, connectContent);
+								bundles.add(bundle);
 							}
 						} catch (IOException e) {
 							// ignore and continue
@@ -138,7 +159,6 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 					}
 				}
 			}
-			return result;
 		}
 
 		public class AtomosBundleInfoSubstrate extends AtomosBundleInfoBase {
@@ -149,8 +169,31 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 
 			@Override
 			protected final Object getKey() {
-				// TODO this will not work
-				return getConnectContent();
+				// TODO a bit hokey to use ourselves as a key
+				return this;
+			}
+		}
+
+		@Override
+		public void bundleChanged(BundleEvent event) {
+			if (event.getType() == BundleEvent.INSTALLED) {
+				addPackages(event.getBundle());
+			}
+		}
+
+		void addPackages(Bundle b) {
+			AtomosBundleInfoBase atomosBundle = (AtomosBundleInfoBase) getAtomosBundle(b.getLocation());
+			if (atomosBundle != null) {
+				BundleRevision r = b.adapt(BundleRevision.class);
+				r.getDeclaredCapabilities(PackageNamespace.PACKAGE_NAMESPACE).forEach(
+						(p) -> packageToAtomos.putIfAbsent((String) p.getAttributes().get(PackageNamespace.PACKAGE_NAMESPACE), atomosBundle));
+				String privatePackages = b.getHeaders("").get("Private-Package");
+				if (privatePackages != null) {
+					for (String pkgName : privatePackages.split(",")) {
+						pkgName = pkgName.trim();
+						packageToAtomos.put(pkgName, atomosBundle);
+					}
+				}
 			}
 		}
 	}
@@ -171,7 +214,21 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 
 	@Override
 	protected Object getAtomosKey(Class<?> classFromBundle) {
-		// TODO need to map class -> AtomosBundleInfoSubstrate.getKey()
-		return null;
+		return bootLayer.getBundleByPackage(classFromBundle);
+	}
+
+	@Override
+	protected void start(BundleContext bc) throws BundleException {
+		bc.addBundleListener(bootLayer);
+		for (Bundle b : bc.getBundles()) {
+			bootLayer.addPackages(b);
+		}
+		super.start(bc);
+	}
+
+	@Override
+	protected void stop(BundleContext bc) throws BundleException {
+		super.stop(bc);
+		bc.removeBundleListener(bootLayer);
 	}
 }

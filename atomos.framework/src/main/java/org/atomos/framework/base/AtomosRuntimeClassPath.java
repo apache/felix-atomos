@@ -28,7 +28,7 @@ public class AtomosRuntimeClassPath extends AtomosRuntimeBase {
 
 	private final AtomosLayer bootLayer = createBootLayer();
 
-	protected AtomosLayer createBootLayer() {
+	private AtomosLayer createBootLayer() {
 		lockWrite();
 		try {
 			AtomosLayerBase result = new AtomosLayerClassPath(Collections.emptyList(), nextLayerId.getAndIncrement(), "boot", LoaderType.SINGLE);

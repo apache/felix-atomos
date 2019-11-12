@@ -130,9 +130,6 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 		lock.readLock().unlock();
 	}
 
-
-	abstract protected AtomosLayer createBootLayer();
-
 	protected final AtomosBundleInfoBase getByOSGiLocation(String location) {
 		lockRead();
 		try {
@@ -838,7 +835,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 		}
 	});
 
-	void start(BundleContext bc) throws BundleException {
+	protected void start(BundleContext bc) throws BundleException {
 		this.context.set(bc);
 		Runtime.getRuntime().addShutdownHook(saveOnVMExit);
 		AtomosFrameworkUtilHelper.addHelper(this);
@@ -862,7 +859,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 		new AtomosCommands(this).register(bc);
 	}
 
-	void stop(BundleContext bc) throws BundleException {
+	protected void stop(BundleContext bc) throws BundleException {
 		this.context.compareAndSet(bc, null);
 		try {
 			Runtime.getRuntime().removeShutdownHook(saveOnVMExit);
