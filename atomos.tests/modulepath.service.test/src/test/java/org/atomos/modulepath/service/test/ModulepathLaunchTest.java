@@ -54,7 +54,6 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.launch.Framework;
 
-import junit.framework.Assert;
 
 public class ModulepathLaunchTest {
 	private Path storage;
@@ -145,7 +144,7 @@ public class ModulepathLaunchTest {
 		assertEquals("Wrong number of children.", 1, children.size());
 
 		AtomosLayer child = children.iterator().next();
-		assertEquals("Wrong number of bundles.", 3, child.getAtomosBundles().size());
+		assertEquals("Wrong number of bundles.", 4, child.getAtomosBundles().size());
 		Module serviceLibModule = null;
 		for(AtomosBundleInfo atomosBundle : child.getAtomosBundles()) {
 			if (atomosBundle.getSymbolicName().equals("service.lib")) {
@@ -190,7 +189,7 @@ public class ModulepathLaunchTest {
 
 		List<Bundle> firstChildBundles = firstChildInfos.stream().map((a) -> atomosRuntime.getBundle(a)).filter(Objects::nonNull).collect(Collectors.toList());
 
-		assertEquals("Wrong number of bundles in first child.", 3, firstChildBundles.size());
+		assertEquals("Wrong number of bundles in first child.", 4, firstChildBundles.size());
 		firstChildBundles.forEach((b) -> {
 			try {
 				b.uninstall();
@@ -371,7 +370,28 @@ public class ModulepathLaunchTest {
 		// now try to uninstall and use a different prefix
 		existing.uninstall();
 		b = ab.install("testPrefix");
+		assertTrue("Wrong location prefix: " + b.getLocation(), b.getLocation().startsWith("testPrefix:"));
 		b.start();
+	}
+
+	@Test
+	public void testReferenceUser() throws BundleException, InvalidSyntaxException {
+		ModulepathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
+		testFramework = ModulepathLaunch.getFramework();
+		BundleContext bc = testFramework.getBundleContext();
+		assertNotNull("No context found.", bc);
+
+		AtomosRuntime atomosRuntime = bc.getService(bc.getServiceReference(AtomosRuntime.class));
+		AtomosLayer child = installChild(atomosRuntime.getBootLayer(), "testRef", atomosRuntime, LoaderType.MANY);
+		checkServices(bc, 4);
+		AtomosBundleInfo ab = child.findAtomosBundle("service.user").get();
+		Bundle b = atomosRuntime.getBundle(ab);
+		assertNotNull("No bundle found.", b);
+
+		ServiceReference<?>[] refs = b.getRegisteredServices();
+		assertNotNull("No services.", refs);
+		assertEquals("Wrong number of services.", 1, refs.length);
+		assertEquals("Wrong service.", Boolean.TRUE, refs[0].getProperty("echo.reference"));
 	}
 
 	private AtomosBundleInfo assertFindBundle(String name, AtomosLayer layer, AtomosLayer expectedLayer, boolean expectedToFind) {
@@ -423,13 +443,13 @@ public class ModulepathLaunchTest {
 				// TODO do the following when we have an implementation of ModuleConnectLoader
 				// assertTrue("Class loader is not a BundleReference", classLoader instanceof BundleReference);
 			}
-			assertEquals("Wrong number of class loaders.", 3, classLoaders.size());
+			assertEquals("Wrong number of class loaders.", 4, classLoaders.size());
 			break;
 		case MANY :
 			for (ClassLoader classLoader : classLoaders) {
 				assertFalse("Class loader is a BundleReference", classLoader instanceof BundleReference);
 			}
-			assertEquals("Wrong number of class loaders.", 3, classLoaders.size());
+			assertEquals("Wrong number of class loaders.", 4, classLoaders.size());
 			break;
 		case SINGLE:
 			assertEquals("Wrong number of class loaders.", 1, classLoaders.size());
@@ -448,6 +468,8 @@ public class ModulepathLaunchTest {
 			return "org.atomos.service.impl.b.EchoImpl";
 		case "service.lib":
 			return "org.atomos.service.lib.SomeUtil";
+		case "service.user":
+			return "org.atomos.service.user.EchoUser";
 		default:
 			fail("Unknown");
 		}

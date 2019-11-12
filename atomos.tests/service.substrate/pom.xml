@@ -54,6 +54,11 @@
 			<version>${atomos.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.atomos</groupId>
+			<artifactId>service.user</artifactId>
+			<version>${atomos.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.scr</artifactId>
 		</dependency>

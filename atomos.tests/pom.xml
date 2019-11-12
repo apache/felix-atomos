@@ -14,6 +14,7 @@
     <module>service.impl.activator</module>
     <module>service.impl.a</module>
     <module>service.impl.b</module>
+    <module>service.user</module>
     <module>service.lib</module>
     <module>modulepath.service.test</module>
     <module>classpath.service.test</module>

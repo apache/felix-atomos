@@ -46,6 +46,11 @@
 			<version>${atomos.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.atomos</groupId>
+			<artifactId>service.user</artifactId>
+			<version>${atomos.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.scr</artifactId>
 		</dependency>
@@ -78,7 +83,7 @@
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>
 							<excludeTransitive>true</excludeTransitive>
-							<includeArtifactIds>service.impl.a,service.impl.b,service.lib</includeArtifactIds>
+							<includeArtifactIds>service.impl.a,service.impl.b,service.lib,service.user</includeArtifactIds>
 						</configuration>
 					</execution>
 				</executions>
