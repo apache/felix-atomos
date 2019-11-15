@@ -385,6 +385,10 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase {
 
 	@Override
 	protected void filterBasedOnReadEdges(AtomosBundleInfo atomosBundle, Collection<BundleCapability> candidates) {
+		if (atomosBundle == null) {
+			// only do this for atomos bundles
+			return;
+		}
 		Module m = atomosBundle.adapt(Module.class).orElse(null);
 		if (m == null) {
 			filterNotVisible(atomosBundle, candidates);
