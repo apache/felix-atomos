@@ -24,6 +24,7 @@
 	<modules>
 		<module>atomos.framework</module>
 		<module>atomos.tests</module>
+		<module>atomos.substrate.config</module>
 	</modules>
 
 	<build>
@@ -123,6 +124,17 @@
 			</dependency>
 			<dependency>
 				<groupId>org.osgi</groupId>
+				<artifactId>org.osgi.service.component</artifactId>
+				<version>1.4.0</version>
+				<exclusions>
+					<exclusion>
+						<groupId>*</groupId>
+						<artifactId>*</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.osgi</groupId>
 				<artifactId>org.osgi.service.component.annotations</artifactId>
 				<version>1.4.0</version>
 				<exclusions>
@@ -135,7 +147,7 @@
 			<dependency>
 				<groupId>org.eclipse.platform</groupId>
 				<artifactId>org.eclipse.osgi</artifactId>
-				<version>3.16.0.tjwatson_osgiConnect02</version>
+				<version>3.16.0.tjwatson_osgiConnect03</version>
 				<exclusions>
 					<exclusion>
 						<groupId>*</groupId>
