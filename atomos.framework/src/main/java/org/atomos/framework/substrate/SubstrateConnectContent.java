@@ -20,22 +20,23 @@ import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.atomos.framework.base.AtomosRuntimeBase;
 import org.osgi.framework.connect.ConnectContent;
 
 public class SubstrateConnectContent implements ConnectContent {
+	private final AtomosRuntimeSubstrate runtime;
 	private final String fileName;
 	private volatile ZipFile zipFile;
 
-	public SubstrateConnectContent(String fileName) {
+	public SubstrateConnectContent(String fileName, AtomosRuntimeSubstrate runtime) {
 		this.fileName = fileName;
+		this.runtime = runtime;
 	}
 
 	@Override
 	public void open() throws IOException {
 		ZipFile current = zipFile;
 		if (current == null) {
-			zipFile = new ZipFile(new File(AtomosRuntimeBase.getSubstrateLibDir(), fileName));
+			zipFile = new ZipFile(new File(runtime.getSubstrateLibDir(), fileName));
 		}
 	}
 	@Override

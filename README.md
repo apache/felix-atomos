@@ -58,11 +58,11 @@ advantages because it allows the module class loader for the bundle to implement
 # Substrate
 
 An example project of using Graal Substrate is located at `atomos/atomos.tests/service.substrate`.  This project is not built as part of the main
-Atomos build because it requires an installation of GraalVM CE 19.3.0 (must use Java 8 version) and the native-image tools for Substrate.
-The Java 11 version of Graal Substrate currently does not work because the native image builder does not currently support the
-Java Platform Module System and has no module introspection at image runtime.  Atomos expects to have a functional
-Java Platform Module System when running on Java versions greater than Java 8.  To build the Substrate example the main
-Atomos build must first be built using the Java 8 profile:
+Atomos build because it requires an installation of GraalVM CE 19.3.0 (Java 8 or Java 11 can be used) and the native-image tools for Substrate.
+The Java 11 version of Graal Substrate does not currently support full introspection at image runtime of the Java Platform Module System.
+Atomos Module support expects to have full introspection of the Java Platform Module System when running on Java versions greater than Java 8.
+Therefore the example will run in basic class path mode for both Java 8 and Java 11 when running with a native substrate image.
+To build the Substrate example the main Atomos build must first be built using the Java 8 profile:
 
 `mvn clean install -Pjava8`
 
@@ -77,13 +77,14 @@ run the `gu` command that comes with Graal VM:
 Next you must switch to a Java installation of Graal with the Substrate native-image tools installed and then change into the `atomos/atomos.tests/service.substrate` and
 run `mvn clean package`
 
-This should create a `target/atomos` executable.  It also creates a `target/substrate_lib/`.  This contains all the original bundle JARs that
+This will create a `target/atomos` executable.  It also creates a `target/substrate_lib/`.  This contains all the original bundle JARs that
 got compiled into the native image `atomos`.  In order to launch the native `atomos` you must be in the directory containing both `atomos`
 and the `substrate_lib/` folder.  This is currently used as a simple way for Atomos to discover the available bundles and load additional
-resources from them at runtime.  More work is needed to map all of the bundle resources into the native image at build time and provide more meta-data
-in the image for Atomos to use to discover the bundles included.
+resources from them at runtime. Hopefully substrate will add full introspection to the Java Platform Module System in the future which would
+allow Atomos to discover the modules within the image and load them as bundles.  Otherwise, more work is needed to map all of the bundle resources
+into the native image at build time and provide more meta-data in the image for Atomos to use to discover the bundles included.
 
-If you launch `atomos` it should give you a gogo `g!` prompt to run gogo commands.  Also included in this example is a version of the Felix
+If you launch `atomos` it will give you a gogo `g!` prompt to run gogo commands.  Also included in this example is a version of the Felix
 web console.  The web console can be access with http://localhost:8080/system/console/bundles and the id/password is admin/admin.
 
 

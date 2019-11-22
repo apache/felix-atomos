@@ -108,6 +108,11 @@
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.service.event</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>javax.annotation</groupId>
+			<artifactId>javax.annotation-api</artifactId>
+			<version>1.3.2</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -158,15 +163,16 @@
 					<imageName>atomos</imageName>
 					<mainClass>org.atomos.service.substrate.GogoConsole</mainClass>
 					<buildArgs>
-						-Dosgi.connect.substrate=${project.build.directory}
-						-H:+ReportUnsupportedElementsAtRuntime
+						-Datomos.substrate=${project.build.directory}
 						--allow-incomplete-classpath
 						--no-fallback
+						--initialize-at-build-time=org.atomos.framework,org.eclipse.osgi,org.eclipse.equinox.log,org.osgi.framework,org.osgi.dto,org.osgi.service.condpermadmin,org.osgi.service.log,org.osgi.service.packageadmin,org.osgi.service.permissionadmin,org.osgi.service.resolver,org.osgi.service.startlevel,org.osgi.service.url,org.osgi.util.tracker,org.osgi.resource,org.apache.felix.resolver,javax.servlet
 						-H:ReflectionConfigurationFiles=${project.basedir}/graal_class_config.json
 						-H:ResourceConfigurationFiles=${project.basedir}/graal_resource_config.json
-						--initialize-at-build-time=org.eclipse.osgi,org.eclipse.equinox.log,org.atomos.framework,org.osgi.framework,org.osgi.dto,org.osgi.service.condpermadmin,org.osgi.service.log,org.osgi.service.packageadmin,org.osgi.service.permissionadmin,org.osgi.service.resolver,org.osgi.service.startlevel,org.osgi.service.url,org.osgi.util.tracker,org.osgi.resource,org.apache.felix.resolver,javax.servlet
+						-H:+ReportUnsupportedElementsAtRuntime
 						-H:+ReportExceptionStackTraces
 						-H:+TraceClassInitialization
+						-H:+PrintClassInitialization
 					</buildArgs>
 				</configuration>
 			</plugin>

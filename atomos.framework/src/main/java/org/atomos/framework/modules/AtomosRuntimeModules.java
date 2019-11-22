@@ -55,11 +55,11 @@ import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.resource.Namespace;
 
 public class AtomosRuntimeModules extends AtomosRuntimeBase {
-	static final String OSGI_CONTRACT_NAMESPACE = "osgi.contract";
-	static final String OSGI_VERSION_ATTR = "version:Version";
-	static final Module thisModule = AtomosRuntimeModules.class.getModule();
-	static final Configuration thisConfig = thisModule.getLayer() == null ? null : thisModule.getLayer().configuration();
-	final Map<Configuration, AtomosLayerBase> byConfig = new HashMap<>();
+	private static final String OSGI_CONTRACT_NAMESPACE = "osgi.contract";
+	private static final String OSGI_VERSION_ATTR = "version:Version";
+	private final Module thisModule = AtomosRuntimeModules.class.getModule();
+	private final Configuration thisConfig = thisModule.getLayer() == null ? null : thisModule.getLayer().configuration();
+	private final Map<Configuration, AtomosLayerBase> byConfig = new HashMap<>();
 	private final AtomosLayer bootLayer = createBootLayer();
 
 	private AtomosLayer createBootLayer() {

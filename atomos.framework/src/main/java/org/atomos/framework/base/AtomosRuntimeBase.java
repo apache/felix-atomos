@@ -68,8 +68,11 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	static final boolean DEBUG = false;
 	static final String JAR_PROTOCOL = "jar";
 	static final String FILE_PROTOCOL = "file";
-	public static final String OSGI_CONNECT_SUBSTRATE = "osgi.connect.substrate";
+	public static final String ATOMOS_SUBSTRATE = "atomos.substrate";
+	public static final String ATOMOS_RUNTIME_CLASS = "atomos.runtime.class";
+	public static final String ATOMOS_RUNTIME_MODULES_CLASS = "org.atomos.framework.modules.AtomosRuntimeModules";
 	public static final String SUBSTRATE_LIB_DIR = "substrate_lib";
+	public static final String GRAAL_NATIVE_IMAGE_KIND = "org.graalvm.nativeimage.kind";
 
 	private final AtomicReference<BundleContext> context = new AtomicReference<>();
 	private final AtomicReference<File> storeRoot = new AtomicReference<>();
@@ -93,23 +96,40 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	private final Map<AtomosBundleInfo, String> atomosBundleToOSGiLocation = new HashMap<>();
 	protected final AtomicLong nextLayerId = new AtomicLong(0);
 
-	public static AtomosRuntimeBase newAtomosRuntime() {
+	public static AtomosRuntime newAtomosRuntime() {
+		String runtimeClass = System.getProperty(ATOMOS_RUNTIME_CLASS);
+		if (runtimeClass != null) {
+			return loadRuntime(runtimeClass);
+		}
+		if (System.getProperty(ATOMOS_SUBSTRATE) != null || System.getProperty(GRAAL_NATIVE_IMAGE_KIND) != null) {
+			// TODO this is temporary; will need a way to map bundle resources into native substrate image
+			File substrateLibDir = findSubstrateLibDir();
+			if (substrateLibDir.isDirectory()) {
+				return new AtomosRuntimeSubstrate(substrateLibDir);
+			} else {
+				throw new IllegalStateException("No substrate_lib directory found.");
+			}
+		}
 		try {
 			Class.forName("java.lang.Module");
-			return (AtomosRuntimeBase) Class.forName("org.atomos.framework.modules.AtomosRuntimeModules").getConstructor().newInstance();
+			return loadRuntime(ATOMOS_RUNTIME_MODULES_CLASS);
 		} catch (ClassNotFoundException e) {
-			// TODO this is temporary; will need a way to map bundle resources into native substrate image
-			if (getSubstrateLibDir().isDirectory()) {
-				return new AtomosRuntimeSubstrate();
-			}
-			return new AtomosRuntimeClassPath();
+			// ignore
+		}
+		// default to classpath
+		return new AtomosRuntimeClassPath();
+	}
+
+	private static AtomosRuntime loadRuntime(String runtimeClass) {
+		try {
+			return (AtomosRuntimeBase) Class.forName(runtimeClass).getConstructor().newInstance();
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw e instanceof RuntimeException ? (RuntimeException) e : new RuntimeException(e);
 		}
 	}
 
-	public static File getSubstrateLibDir() {
-		String substrateProp = System.getProperty(OSGI_CONNECT_SUBSTRATE);
+	public static File findSubstrateLibDir() {
+		String substrateProp = System.getProperty(ATOMOS_SUBSTRATE);
 		File result = new File (substrateProp, SUBSTRATE_LIB_DIR);
 		return result;
 	}

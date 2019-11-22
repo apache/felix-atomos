@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -30,7 +29,6 @@ import java.util.jar.JarFile;
 import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
 import org.atomos.framework.base.AtomosRuntimeBase;
-import org.atomos.framework.base.AtomosRuntimeBase.AtomosLayerBase.AtomosBundleInfoBase;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -55,7 +53,23 @@ import org.osgi.framework.wiring.BundleRevision;
  */
 public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 
-	private final AtomosLayerSubstrate bootLayer = createBootLayer();
+	private final File substrateLibDir;
+	private final AtomosLayerSubstrate bootLayer;
+
+	public AtomosRuntimeSubstrate() {
+		this(null);
+	}
+
+	public AtomosRuntimeSubstrate(File substrateLibDir) {
+		if (substrateLibDir == null) {
+			substrateLibDir = AtomosRuntimeBase.findSubstrateLibDir();
+			if (!substrateLibDir.isDirectory()) {
+				throw new IllegalStateException("No substrate_lib directory found.");
+			}
+		}
+		this.substrateLibDir = substrateLibDir;
+		this.bootLayer  = createBootLayer();
+	}
 
 	private AtomosLayerSubstrate createBootLayer() {
 		lockWrite();
@@ -123,39 +137,35 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 		}
 
 		void findSubstrateAtomosBundles(Set<AtomosBundleInfoBase> bundles) {
-			File substrateLib = getSubstrateLibDir();
-
-			if (substrateLib.isDirectory()) {
-				for (File f : substrateLib.listFiles()) {
-					if (f.isFile()) {
-						try (JarFile jar = new JarFile(f)) {
-							Attributes headers = jar.getManifest().getMainAttributes();
-							String symbolicName = headers.getValue(Constants.BUNDLE_SYMBOLICNAME);
-							if (symbolicName != null) {
-								int semiColon = symbolicName.indexOf(';');
-								if (semiColon != -1) {
-									symbolicName = symbolicName.substring(0, semiColon);
-								}
-								symbolicName = symbolicName.trim();
-
-								ConnectContent connectContent = new SubstrateConnectContent(f.getName());
-								connectContent.open();
-								String location;
-								if (connectContent.getEntry("META-INF/services/org.osgi.framework.launch.FrameworkFactory").isPresent()) {
-									location = Constants.SYSTEM_BUNDLE_LOCATION;
-								} else {
-									location = f.getName();
-									if (!getName().isEmpty()) {
-										location = getName() + ":" + location;
-									}
-								}
-								Version version = Version.parseVersion(headers.getValue(Constants.BUNDLE_VERSION));
-								AtomosBundleInfoBase bundle = new AtomosBundleInfoSubstrate(location, symbolicName, version, connectContent);
-								bundles.add(bundle);
+			for (File f : substrateLibDir.listFiles()) {
+				if (f.isFile()) {
+					try (JarFile jar = new JarFile(f)) {
+						Attributes headers = jar.getManifest().getMainAttributes();
+						String symbolicName = headers.getValue(Constants.BUNDLE_SYMBOLICNAME);
+						if (symbolicName != null) {
+							int semiColon = symbolicName.indexOf(';');
+							if (semiColon != -1) {
+								symbolicName = symbolicName.substring(0, semiColon);
 							}
-						} catch (IOException e) {
-							// ignore and continue
+							symbolicName = symbolicName.trim();
+
+							ConnectContent connectContent = new SubstrateConnectContent(f.getName(), AtomosRuntimeSubstrate.this);
+							connectContent.open();
+							String location;
+							if (connectContent.getEntry("META-INF/services/org.osgi.framework.launch.FrameworkFactory").isPresent()) {
+								location = Constants.SYSTEM_BUNDLE_LOCATION;
+							} else {
+								location = f.getName();
+								if (!getName().isEmpty()) {
+									location = getName() + ":" + location;
+								}
+							}
+							Version version = Version.parseVersion(headers.getValue(Constants.BUNDLE_VERSION));
+							AtomosBundleInfoBase bundle = new AtomosBundleInfoSubstrate(location, symbolicName, version, connectContent);
+							bundles.add(bundle);
 						}
+					} catch (IOException e) {
+						// ignore and continue
 					}
 				}
 			}
@@ -230,5 +240,9 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 	protected void stop(BundleContext bc) throws BundleException {
 		super.stop(bc);
 		bc.removeBundleListener(bootLayer);
+	}
+
+	File getSubstrateLibDir() {
+		return substrateLibDir;
 	}
 }

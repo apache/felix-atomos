@@ -25,14 +25,12 @@ import org.osgi.service.log.admin.LoggerContext;
 
 import sun.misc.Signal;
 
-public class GogoConsole 
-{
-    public static void main( String[] args ) throws BundleException, ClassNotFoundException
-    {
-    	long start = System.nanoTime();
-    	Signal.handle(new Signal("INT"), sig -> System.exit(0));
+public class GogoConsole {
+	public static void main(String[] args) throws BundleException, ClassNotFoundException {
+		long start = System.nanoTime();
+		Signal.handle(new Signal("INT"), sig -> System.exit(0));
 
-    	AtomosRuntime atomosRuntime = AtomosRuntime.newAtomosRuntime();
+		AtomosRuntime atomosRuntime = AtomosRuntime.newAtomosRuntime();
 		Map<String, String> config = AtomosRuntime.getConfiguration(args);
 		config.putIfAbsent(LoggerContext.LOGGER_CONTEXT_DEFAULT_LOGLEVEL, LogLevel.AUDIT.name());
 		Framework framework = atomosRuntime.newFramework(config);
@@ -45,12 +43,12 @@ public class GogoConsole
 		framework.start();
 
 		long total = System.nanoTime() - start;
-    	System.out.println("Total time: " + TimeUnit.NANOSECONDS.toMillis(total));
+		System.out.println("Total time: " + TimeUnit.NANOSECONDS.toMillis(total));
 
-     	if (Arrays.asList(args).contains("-exit")) {
-     		System.exit(0);
-     	}
-    }
+		if (Arrays.asList(args).contains("-exit")) {
+			System.exit(0);
+		}
+	}
 
 	private static String getLogMessage(LogEntry e) {
 		StringBuilder builder = new StringBuilder(e.getMessage());
