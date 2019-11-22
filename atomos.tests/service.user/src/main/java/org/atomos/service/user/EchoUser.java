@@ -29,6 +29,6 @@ public class EchoUser {
 	}
 
 	protected void unsetEcho(Echo echo) {
-		System.out.println("Echo service unset: " + echo.echo("good by"));
+		System.out.println("Echo service unset: " + echo.echo("goodbye"));
 	}
 }
