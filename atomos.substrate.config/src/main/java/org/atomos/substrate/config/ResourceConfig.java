@@ -103,6 +103,9 @@ public class ResourceConfig {
 
 	private void discoverResources(Set<String> allResourceBundles, Set<String> allResourcePatterns, Set<String> allResourcePackages) {
 		for (Bundle b : context.getBundles()) {
+			if (b.equals(context.getBundle())) {
+				continue;
+			}
 			pattern: for (String p : getPaths(b)) {
 				if (p.endsWith("/")) {
 					continue;

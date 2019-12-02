@@ -120,6 +120,9 @@ public class ReflectConfig {
 
 	private void discoverActivators(Map<String, ClassConfig> classes) {
 		for (Bundle b : context.getBundles()) {
+			if (b.equals(context.getBundle())) {
+				continue;
+			}
 			Dictionary<String, String> headers = b.getHeaders("");
 			String activator = headers.get(Constants.BUNDLE_ACTIVATOR);
 			if (activator == null) {
@@ -137,6 +140,9 @@ public class ReflectConfig {
 
 	private void discoverSeriviceComponents(Map<String, ClassConfig> classes) {
 		for (Bundle b : context.getBundles()) {
+			if (b.equals(context.getBundle())) {
+				continue;
+			}
 			runtime.getComponentDescriptionDTOs(b).forEach((c) -> {
 				Class<?> clazz;
 				try {
