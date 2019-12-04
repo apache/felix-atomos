@@ -70,7 +70,9 @@
 										<exclude>module-info.java</exclude>
 										<exclude>org/atomos/framework/modules/*.java</exclude>
 									</excludes>
-									<release>8</release>
+									<release combine.self="override"></release>
+									<source>1.8</source>
+									<target>1.8</target>
 								</configuration>
 							</execution>
 						</executions>

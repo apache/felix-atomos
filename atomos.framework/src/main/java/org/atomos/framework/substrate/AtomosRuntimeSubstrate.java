@@ -11,9 +11,13 @@
 
 package org.atomos.framework.substrate;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -42,6 +46,8 @@ import org.osgi.framework.namespace.PackageNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 
+import sun.misc.Signal;
+
 /**
  * This is a quick and dirty way to get bundle entry resources to work
  * in a substrate native image.  It basically requires all bundles compiled
@@ -52,23 +58,83 @@ import org.osgi.framework.wiring.BundleRevision;
  *
  */
 public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
-
+	private final String ATOMOS_BUNDLE = "ATOMOS_BUNDLE";
 	private final File substrateLibDir;
 	private final AtomosLayerSubstrate bootLayer;
+	private final List<SubstrateBundleIndexInfo> indexBundles;
 
 	public AtomosRuntimeSubstrate() {
 		this(null);
 	}
+	static class SubstrateBundleIndexInfo {
+		final String index;
+		final String bsn;
+		final Version version;
+		final List<String> entries;
+		SubstrateBundleIndexInfo(String index, String bsn, Version version, List<String> entries) {
+			this.index = index;
+			this.bsn = bsn;
+			this.version = version;
+			this.entries = entries;
+		}
 
+	}
 	public AtomosRuntimeSubstrate(File substrateLibDir) {
+		List<SubstrateBundleIndexInfo> tmpIndexBundles = Collections.emptyList();
 		if (substrateLibDir == null) {
-			substrateLibDir = AtomosRuntimeBase.findSubstrateLibDir();
-			if (!substrateLibDir.isDirectory()) {
-				throw new IllegalStateException("No substrate_lib directory found.");
+			URL index = getClass().getResource(ATOMOS_BUNDLES_INDEX);
+			if (index != null) {
+				tmpIndexBundles = new ArrayList<>();
+				try (BufferedReader reader = new BufferedReader(new InputStreamReader(index.openStream()))) {
+					String line;
+					String currentIndex = null;
+					String currentBSN = null;
+					Version currentVersion = null;
+					List<String> currentPaths = null;
+					while ((line = reader.readLine()) != null) {
+						if (ATOMOS_BUNDLE.equals(line)) {
+							if (currentIndex != null) {
+								tmpIndexBundles.add(new SubstrateBundleIndexInfo(currentIndex, currentBSN, currentVersion, currentPaths));
+							}
+							currentIndex = null;
+							currentBSN = null;
+							currentVersion = null;
+							currentPaths = new ArrayList<>();
+						} else {
+							if (currentIndex == null) {
+								currentIndex = line;
+							} else if (currentBSN == null) {
+								currentBSN = line;
+							} else if (currentVersion == null) {
+								currentVersion = Version.valueOf(line);
+							} else {
+								currentPaths.add(line);
+							}
+						}
+					}
+					if (currentIndex != null) {
+						tmpIndexBundles.add(new SubstrateBundleIndexInfo(currentIndex, currentBSN, currentVersion, currentPaths));
+					}
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			} else {
+				substrateLibDir = AtomosRuntimeBase.findSubstrateLibDir();
+				if (!substrateLibDir.isDirectory()) {
+					throw new IllegalStateException("No substrate_lib directory found.");
+				}
 			}
 		}
+		this.indexBundles = tmpIndexBundles;
 		this.substrateLibDir = substrateLibDir;
 		this.bootLayer  = createBootLayer();
+		try {
+			// substrate native image does not run shutdown hooks on ctrl-c
+			// this works around it by using our own signal handler
+			Signal.handle(new Signal("INT"), sig -> System.exit(0));
+		} catch (Throwable t) {
+			// do nothing if Signal isn't available
+		}
 	}
 
 	private AtomosLayerSubstrate createBootLayer() {
@@ -137,35 +203,51 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 		}
 
 		void findSubstrateAtomosBundles(Set<AtomosBundleInfoBase> bundles) {
-			for (File f : substrateLibDir.listFiles()) {
-				if (f.isFile()) {
-					try (JarFile jar = new JarFile(f)) {
-						Attributes headers = jar.getManifest().getMainAttributes();
-						String symbolicName = headers.getValue(Constants.BUNDLE_SYMBOLICNAME);
-						if (symbolicName != null) {
-							int semiColon = symbolicName.indexOf(';');
-							if (semiColon != -1) {
-								symbolicName = symbolicName.substring(0, semiColon);
-							}
-							symbolicName = symbolicName.trim();
-
-							ConnectContent connectContent = new SubstrateConnectContent(f.getName(), AtomosRuntimeSubstrate.this);
-							connectContent.open();
-							String location;
-							if (connectContent.getEntry("META-INF/services/org.osgi.framework.launch.FrameworkFactory").isPresent()) {
-								location = Constants.SYSTEM_BUNDLE_LOCATION;
-							} else {
-								location = f.getName();
-								if (!getName().isEmpty()) {
-									location = getName() + ":" + location;
-								}
-							}
-							Version version = Version.parseVersion(headers.getValue(Constants.BUNDLE_VERSION));
-							AtomosBundleInfoBase bundle = new AtomosBundleInfoSubstrate(location, symbolicName, version, connectContent);
-							bundles.add(bundle);
+			if (!indexBundles.isEmpty()) {
+				indexBundles.forEach((b) -> {
+					ConnectContent connectContent = new SubstrateIndexConnectContent(b.index, b.entries);
+					String location;
+					if (connectContent.getEntry("META-INF/services/org.osgi.framework.launch.FrameworkFactory").isPresent()) {
+						location = Constants.SYSTEM_BUNDLE_LOCATION;
+					} else {
+						location = b.bsn;
+						if (!getName().isEmpty()) {
+							location = getName() + ":" + location;
 						}
-					} catch (IOException e) {
-						// ignore and continue
+					}
+					bundles.add(new AtomosBundleInfoSubstrate(location, b.bsn, b.version, connectContent));
+				});
+			} else {
+				for (File f : substrateLibDir.listFiles()) {
+					if (f.isFile()) {
+						try (JarFile jar = new JarFile(f)) {
+							Attributes headers = jar.getManifest().getMainAttributes();
+							String symbolicName = headers.getValue(Constants.BUNDLE_SYMBOLICNAME);
+							if (symbolicName != null) {
+								int semiColon = symbolicName.indexOf(';');
+								if (semiColon != -1) {
+									symbolicName = symbolicName.substring(0, semiColon);
+								}
+								symbolicName = symbolicName.trim();
+	
+								ConnectContent connectContent = new SubstrateJarConnectContent(f.getName(), AtomosRuntimeSubstrate.this);
+								connectContent.open();
+								String location;
+								if (connectContent.getEntry("META-INF/services/org.osgi.framework.launch.FrameworkFactory").isPresent()) {
+									location = Constants.SYSTEM_BUNDLE_LOCATION;
+								} else {
+									location = f.getName();
+									if (!getName().isEmpty()) {
+										location = getName() + ":" + location;
+									}
+								}
+								Version version = Version.parseVersion(headers.getValue(Constants.BUNDLE_VERSION));
+								AtomosBundleInfoBase bundle = new AtomosBundleInfoSubstrate(location, symbolicName, version, connectContent);
+								bundles.add(bundle);
+							}
+						} catch (IOException e) {
+							// ignore and continue
+						}
 					}
 				}
 			}

@@ -23,12 +23,9 @@ import org.osgi.service.log.LogLevel;
 import org.osgi.service.log.LogReaderService;
 import org.osgi.service.log.admin.LoggerContext;
 
-import sun.misc.Signal;
-
 public class GogoConsole {
 	public static void main(String[] args) throws BundleException, ClassNotFoundException {
 		long start = System.nanoTime();
-		Signal.handle(new Signal("INT"), sig -> System.exit(0));
 
 		AtomosRuntime atomosRuntime = AtomosRuntime.newAtomosRuntime();
 		Map<String, String> config = AtomosRuntime.getConfiguration(args);

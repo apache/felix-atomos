@@ -16,6 +16,7 @@ open module atomos.framework {
 	exports org.atomos.framework;
 	requires transitive org.eclipse.osgi;
 	requires static osgi.annotation;
+	requires static jdk.unsupported;
 	uses ConnectFrameworkFactory;
 	provides FrameworkUtilHelper with AtomosFrameworkUtilHelper;
 }

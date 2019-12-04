@@ -22,12 +22,12 @@ import java.util.zip.ZipFile;
 
 import org.osgi.framework.connect.ConnectContent;
 
-public class SubstrateConnectContent implements ConnectContent {
+public class SubstrateJarConnectContent implements ConnectContent {
 	private final AtomosRuntimeSubstrate runtime;
 	private final String fileName;
 	private volatile ZipFile zipFile;
 
-	public SubstrateConnectContent(String fileName, AtomosRuntimeSubstrate runtime) {
+	public SubstrateJarConnectContent(String fileName, AtomosRuntimeSubstrate runtime) {
 		this.fileName = fileName;
 		this.runtime = runtime;
 	}

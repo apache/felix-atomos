@@ -68,6 +68,8 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	static final boolean DEBUG = false;
 	static final String JAR_PROTOCOL = "jar";
 	static final String FILE_PROTOCOL = "file";
+	public static final String ATOMOS_BUNDLES = "/atomos/";
+	public static final String ATOMOS_BUNDLES_INDEX = ATOMOS_BUNDLES + "bundles.index";
 	public static final String ATOMOS_SUBSTRATE = "atomos.substrate";
 	public static final String ATOMOS_RUNTIME_CLASS = "atomos.runtime.class";
 	public static final String ATOMOS_RUNTIME_MODULES_CLASS = "org.atomos.framework.modules.AtomosRuntimeModules";
@@ -102,7 +104,10 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 			return loadRuntime(runtimeClass);
 		}
 		if (System.getProperty(ATOMOS_SUBSTRATE) != null || System.getProperty(GRAAL_NATIVE_IMAGE_KIND) != null) {
-			// TODO this is temporary; will need a way to map bundle resources into native substrate image
+			URL index = AtomosRuntimeBase.class.getResource(ATOMOS_BUNDLES_INDEX);
+			if (index != null) {
+				return new AtomosRuntimeSubstrate(null);
+			}
 			File substrateLibDir = findSubstrateLibDir();
 			if (substrateLibDir.isDirectory()) {
 				return new AtomosRuntimeSubstrate(substrateLibDir);
