@@ -32,6 +32,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 
@@ -58,18 +59,18 @@ public class AtomosFrameworkFactoryTest {
 	}
 	@Test
 	public void testFactory() throws BundleException {
-		ServiceLoader<FrameworkFactory> loader = ServiceLoader.load(getClass().getModule().getLayer(), FrameworkFactory.class);
+		ServiceLoader<ConnectFrameworkFactory> loader = ServiceLoader.load(getClass().getModule().getLayer(), ConnectFrameworkFactory.class);
 		assertNotNull("null loader.", loader);
 
-		List<FrameworkFactory> factories = new ArrayList<>();
+		List<ConnectFrameworkFactory> factories = new ArrayList<>();
 		loader.forEach((f) -> factories.add(f));
 		assertFalse("No factory found.", factories.isEmpty());
 
-		FrameworkFactory factory = factories.get(0);
+		ConnectFrameworkFactory factory = factories.get(0);
 		assertNotNull("null factory.", factory);
 
 		Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath());
-		testFramework = factory.newFramework(config, AtomosRuntime.newAtomosRuntime().newConnectFactory());
+		testFramework = factory.newFramework(config, AtomosRuntime.newAtomosRuntime().newConnectFramework());
 		doTestFramework(testFramework);
 	}
 

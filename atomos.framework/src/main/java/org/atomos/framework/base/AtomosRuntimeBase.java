@@ -53,12 +53,12 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.framework.Version;
 import org.osgi.framework.connect.ConnectContent;
-import org.osgi.framework.connect.ConnectFactory;
+import org.osgi.framework.connect.ConnectFramework;
+import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.connect.FrameworkUtilHelper;
 import org.osgi.framework.hooks.bundle.CollisionHook;
 import org.osgi.framework.hooks.resolver.ResolverHookFactory;
 import org.osgi.framework.launch.Framework;
-import org.osgi.framework.launch.FrameworkFactory;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
@@ -256,15 +256,15 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 			// Always allow the console to work
 			frameworkConfig.put("osgi.console", "");
 		}
-		return findFrameworkFactory().newFramework(frameworkConfig, newConnectFactory());
+		return findFrameworkFactory().newFramework(frameworkConfig, newConnectFramework());
 	}
 
 	@Override
-	public ConnectFactory newConnectFactory() {
+	public ConnectFramework newConnectFramework() {
 		return new AtomosConnectFactory(this);
 	}
 
-	abstract protected FrameworkFactory findFrameworkFactory();
+	abstract protected ConnectFrameworkFactory findFrameworkFactory();
 
 	protected final BundleContext getBundleContext() {
 		return context.get();
@@ -771,15 +771,15 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 	}
 
 	@Override
-	public final Bundle getBundle(Class<?> classFromBundle) {
+	public final Optional<Bundle> getBundle(Class<?> classFromBundle) {
 		String location = getBundleLocation(classFromBundle);
 		if (location != null) {
 			BundleContext bc = context.get();
 			if (bc != null) {
-				return bc.getBundle(location);
+				return Optional.ofNullable(bc.getBundle(location));
 			}
 		}
-		return null;
+		return Optional.empty();
 	}
 
 	protected final String getBundleLocation(Class<?> classFromBundle) {

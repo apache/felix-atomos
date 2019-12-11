@@ -68,12 +68,12 @@ public class FileConnectContent implements ConnectContent {
 	}
 
 	@Override
-	public void open() throws IOException {
-		// do nothing
+	public ConnectContent open() throws IOException {
+		return this;
 	}
 	@Override
-	public void close() throws IOException {
-		// do nothing
+	public ConnectContent close() throws IOException {
+		return this;
 	}
 
 	@Override

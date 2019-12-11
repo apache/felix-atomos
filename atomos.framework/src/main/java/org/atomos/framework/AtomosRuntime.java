@@ -20,7 +20,8 @@ import org.atomos.framework.base.AtomosRuntimeBase;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
-import org.osgi.framework.connect.ConnectFactory;
+import org.osgi.framework.connect.ConnectFramework;
+import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 
@@ -221,14 +222,14 @@ public interface AtomosRuntime {
 	AtomosLayer getBootLayer();
 
 	/**
-	 * Creates a new connect factory for this {@code AtomosRuntime}.
+	 * Creates a new connect framework for this {@code AtomosRuntime}.
 	 * The connect factory can be used to create a new framework
-	 * by using a {@link FrameworkFactory} directly by calling
-	 * the {@link FrameworkFactory#newFramework(Map, ConnectFactory)}
+	 * by using a {@link ConnectFrameworkFactory} directly by calling
+	 * the {@link ConnectFrameworkFactory#newFramework(Map, ConnectFramework)}
 	 * method.
-	 * @return a new connect factory
+	 * @return a new connect framework
 	 */
-	ConnectFactory newConnectFactory();
+	ConnectFramework newConnectFramework();
 
 	/**
 	 * Creates a new {@link Framework} with the specified framework configuration

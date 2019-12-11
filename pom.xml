@@ -147,7 +147,7 @@
 			<dependency>
 				<groupId>org.eclipse.platform</groupId>
 				<artifactId>org.eclipse.osgi</artifactId>
-				<version>3.16.0.tjwatson_osgiConnect03</version>
+				<version>3.16.0.tjwatson_osgiConnect04</version>
 				<exclusions>
 					<exclusion>
 						<groupId>*</groupId>

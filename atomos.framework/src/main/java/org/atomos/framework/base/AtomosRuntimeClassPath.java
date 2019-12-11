@@ -21,7 +21,7 @@ import java.util.Set;
 
 import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
-import org.osgi.framework.launch.FrameworkFactory;
+import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.wiring.BundleCapability;
 
 public class AtomosRuntimeClassPath extends AtomosRuntimeBase {
@@ -46,8 +46,8 @@ public class AtomosRuntimeClassPath extends AtomosRuntimeBase {
 	}
 
 	@Override
-	protected FrameworkFactory findFrameworkFactory() {
-		Iterator<FrameworkFactory> itr = ServiceLoader.load(FrameworkFactory.class, getClass().getClassLoader()).iterator();
+	protected ConnectFrameworkFactory findFrameworkFactory() {
+		Iterator<ConnectFrameworkFactory> itr = ServiceLoader.load(ConnectFrameworkFactory.class, getClass().getClassLoader()).iterator();
 		if (itr.hasNext()) {
 			return itr.next();
 		}

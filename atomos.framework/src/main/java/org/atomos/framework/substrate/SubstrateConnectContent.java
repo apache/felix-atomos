@@ -33,19 +33,21 @@ public class SubstrateConnectContent implements ConnectContent {
 	}
 
 	@Override
-	public void open() throws IOException {
+	public ConnectContent open() throws IOException {
 		ZipFile current = zipFile;
 		if (current == null) {
 			zipFile = new ZipFile(new File(runtime.getSubstrateLibDir(), fileName));
 		}
+		return this;
 	}
 	@Override
-	public void close() throws IOException {
+	public ConnectContent close() throws IOException {
 		ZipFile current = zipFile;
 		if (current != null) {
 			zipFile = null;
 			current.close();
 		}
+		return this;
 	}
 
 	@Override

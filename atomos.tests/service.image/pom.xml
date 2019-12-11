@@ -180,6 +180,7 @@
 										exports org.osgi.util.tracker;
 
 										provides org.osgi.framework.launch.FrameworkFactory with org.eclipse.osgi.launch.EquinoxFactory;
+										provides org.osgi.framework.connect.ConnectFrameworkFactory with org.eclipse.osgi.launch.EquinoxFactory;
 
 										}
 									</moduleInfoSource>

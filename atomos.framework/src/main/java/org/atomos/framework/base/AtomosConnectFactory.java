@@ -8,10 +8,10 @@ import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosRuntime;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.connect.ConnectFactory;
+import org.osgi.framework.connect.ConnectFramework;
 import org.osgi.framework.connect.ConnectModule;
 
-public class AtomosConnectFactory implements ConnectFactory{
+public class AtomosConnectFactory implements ConnectFramework {
 	final AtomosRuntimeBase atomosRuntime;
 
 	public AtomosConnectFactory() {
@@ -49,8 +49,9 @@ public class AtomosConnectFactory implements ConnectFactory{
 	}
 
 	@Override
-	public void initialize(File storage, Map<String, String> configuration) {
+	public ConnectFramework initialize(File storage, Map<String, String> configuration) {
 		atomosRuntime.initialize(storage, configuration);
+		return this;
 	}
 
 }

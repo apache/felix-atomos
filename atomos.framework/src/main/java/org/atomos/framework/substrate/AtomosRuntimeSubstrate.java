@@ -37,7 +37,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.framework.Version;
 import org.osgi.framework.connect.ConnectContent;
-import org.osgi.framework.launch.FrameworkFactory;
+import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.namespace.PackageNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
@@ -89,8 +89,8 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase {
 	}
 
 	@Override
-	protected FrameworkFactory findFrameworkFactory() {
-		Iterator<FrameworkFactory> itr = ServiceLoader.load(FrameworkFactory.class, getClass().getClassLoader()).iterator();
+	protected ConnectFrameworkFactory findFrameworkFactory() {
+		Iterator<ConnectFrameworkFactory> itr = ServiceLoader.load(ConnectFrameworkFactory.class, getClass().getClassLoader()).iterator();
 		if (itr.hasNext()) {
 			return itr.next();
 		}

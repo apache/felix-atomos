@@ -49,6 +49,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 import org.osgi.framework.connect.ConnectContent;
 import org.osgi.framework.connect.ConnectContent.ConnectEntry;
+import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.launch.FrameworkFactory;
 import org.osgi.framework.namespace.BundleNamespace;
 import org.osgi.framework.wiring.BundleCapability;
@@ -89,16 +90,16 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase {
 	}
 
 	@Override
-	protected FrameworkFactory findFrameworkFactory() {
-		ServiceLoader<FrameworkFactory> loader;
+	protected ConnectFrameworkFactory findFrameworkFactory() {
+		ServiceLoader<ConnectFrameworkFactory> loader;
 		if (AtomosRuntime.class.getModule().getLayer() == null) {
-			loader = ServiceLoader.load(FrameworkFactory.class, getClass().getClassLoader());
+			loader = ServiceLoader.load(ConnectFrameworkFactory.class, getClass().getClassLoader());
 		} else {
 			loader = ServiceLoader.load( //
 					getClass().getModule().getLayer(), //
-					FrameworkFactory.class);
+					ConnectFrameworkFactory.class);
 		}
-		FrameworkFactory factory = loader.findFirst() //
+		ConnectFrameworkFactory factory = loader.findFirst() //
 				.orElseThrow(() -> new RuntimeException("No Framework implementation found."));
 		return factory;
 	}

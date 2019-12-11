@@ -10,6 +10,7 @@
  *******************************************************************************/
 
 package org.atomos.framework.base;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -27,13 +28,11 @@ public class AtomosFrameworkUtilHelper implements FrameworkUtilHelper {
 	}
 
 	@Override
-	public Bundle getBundle(Class<?> classFromBundle) {
-		for (FrameworkUtilHelper helper : helpers) {
-			Bundle b = helper.getBundle(classFromBundle);
-			if (b != null) {
-				return b;
-			}
-		}
-		return null;
+	public Optional<Bundle> getBundle(Class<?> classFromBundle) {
+		return helpers.stream()
+			.map(h -> h.getBundle(classFromBundle)) //
+			.filter(Optional::isPresent) //
+			.map(Optional::get) //
+			.findFirst();
 	}
 }
