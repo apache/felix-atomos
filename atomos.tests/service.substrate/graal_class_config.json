@@ -61,6 +61,22 @@
     "allDeclaredFields" : true
   },
   {
+    "name" : "org.atomos.substrate.config.ReflectConfig",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.atomos.substrate.config.ResourceConfig",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.atomos.substrate.config.SubstrateService",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true,
+    "allDeclaredFields" : true
+  },
+  {
     "name" : "org.apache.felix.gogo.shell.Builtin",
     "allPublicMethods" : true,
     "allDeclaredMethods" : true,
@@ -138,6 +154,11 @@
   {
     "name" : "java.lang.Boolean",
     "allPublicConstructors" : true
+  },
+  {
+    "name" : "java.io.File",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
   },
   {
     "name" : "org.apache.felix.http.whiteboard.internal.WhiteboardActivator",

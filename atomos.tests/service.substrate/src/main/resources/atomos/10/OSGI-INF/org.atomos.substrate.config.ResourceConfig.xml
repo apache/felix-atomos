@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.4.0" name="org.atomos.substrate.config.ResourceConfig" activation-fields="context">
+  <property name="osgi.command.function" type="String" value="resourceConfig"/>
+  <property name="osgi.command.scope" type="String" value="atomos"/>
+  <service>
+    <provide interface="org.atomos.substrate.config.ResourceConfig"/>
+  </service>
+  <reference name="runtime" interface="org.osgi.service.component.runtime.ServiceComponentRuntime" field="runtime"/>
+  <implementation class="org.atomos.substrate.config.ResourceConfig"/>
+</scr:component>

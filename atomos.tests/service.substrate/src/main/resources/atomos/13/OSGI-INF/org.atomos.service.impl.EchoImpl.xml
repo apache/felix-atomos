@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="org.atomos.service.impl.EchoImpl" immediate="true" activate="activate">
+  <property name="type" type="String" value="impl.component"/>
+  <service>
+    <provide interface="org.atomos.service.contract.Echo"/>
+  </service>
+  <implementation class="org.atomos.service.impl.EchoImpl"/>
+</scr:component>

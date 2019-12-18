@@ -1,0 +1,45 @@
+// ------------------------------------------------------------------
+// Transitive dependencies of this project determined from the
+// maven pom organized by organization.
+// ------------------------------------------------------------------
+
+Apache Felix Declarative Services
+
+
+From: 'Codehaus' (http://codehaus.org)
+  - Animal Sniffer Annotations (http://mojo.codehaus.org/animal-sniffer/animal-sniffer-annotations) org.codehaus.mojo:animal-sniffer-annotations:jar:1.9
+    License: MIT license  (http://www.opensource.org/licenses/mit-license.php)
+
+
+
+
+I. Included Software
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+Licensed under the Apache License 2.0.
+
+This product includes software developed at
+The OSGi Alliance (http://www.osgi.org/).
+Copyright (c) OSGi Alliance (2000, 2009).
+Licensed under the Apache License 2.0. 
+
+This product includes software from http://kxml.sourceforge.net.
+Copyright (c) 2002,2003, Stefan Haustein, Oberhausen, Rhld., Germany.
+Licensed under BSD License.
+
+II. Used Software
+
+This product uses software developed at
+The Apache Software Foundation (http://www.apache.org/).
+Licensed under the Apache License 2.0.
+
+This product uses software developed at
+The OSGi Alliance (http://www.osgi.org/).
+Copyright (c) OSGi Alliance (2000, 2009).
+Licensed under the Apache License 2.0. 
+
+
+III. License Summary
+- Apache License 2.0
+- BSD License
