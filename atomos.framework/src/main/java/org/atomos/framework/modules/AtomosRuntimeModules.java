@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.jar.Attributes.Name;
 import java.util.jar.Manifest;
@@ -66,7 +68,7 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase {
 	private AtomosLayer createBootLayer() {
 		return createAtomosLayer(thisConfig, "boot", -1, LoaderType.SINGLE);
 	}
-	
+
 
 	AtomosLayerBase getByConfig(Configuration config) {
 		lockRead();
@@ -178,28 +180,27 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase {
 		case SINGLE:
 			return ModuleLayer.defineModulesWithOneLoader(config, parentLayers, null).layer();
 		case OSGI:
-			// TODO do this when we have an implementation of ModuleConnectLoader
-//			ConcurrentHashMap<String, ModuleConnectLoader> classLoaders = new ConcurrentHashMap<>();
-//			Function<String, ClassLoader> clf = (moduleName) -> {
-//				ResolvedModule m = config.findModule(moduleName).orElse(null);
-//				if (m == null || m.configuration() != config) {
-//					return null;
-//				}
-//				
-//				return classLoaders.computeIfAbsent(moduleName, (mn) -> {
-//					try {
-//						return new ModuleConnectLoader(m, this);
-//					} catch (IOException e) {
-//						throw new UncheckedIOException(e);
-//					}
-//				});
-//			};
-//			controller = ModuleLayer.defineModules(config, parentLayers, clf);
-//			controller.layer().modules().forEach((m) -> {
-//				ModuleConnectLoader loader = (ModuleConnectLoader) m.getClassLoader();
-//				loader.initEdges(m,  config, parentLayers, classLoaders);
-//			});
-//			return controller.layer();
+			ConcurrentHashMap<String, ModuleConnectLoader> classLoaders = new ConcurrentHashMap<>();
+			Function<String, ClassLoader> clf = (moduleName) -> {
+				ResolvedModule m = config.findModule(moduleName).orElse(null);
+				if (m == null || m.configuration() != config) {
+					return null;
+				}
+
+				return classLoaders.computeIfAbsent(moduleName, (mn) -> {
+					try {
+						return new ModuleConnectLoader(m, this);
+					} catch (IOException e) {
+						throw new UncheckedIOException(e);
+					}
+				});
+			};
+			controller = ModuleLayer.defineModules(config, parentLayers, clf);
+			controller.layer().modules().forEach((m) -> {
+				ModuleConnectLoader loader = (ModuleConnectLoader) m.getClassLoader();
+				loader.initEdges(m,  config, classLoaders);
+			});
+			return controller.layer();
 		case MANY:
 			return ModuleLayer.defineModulesWithManyLoaders(config, parentLayers, null).layer();
 		default:
@@ -289,7 +290,7 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase {
 				}
 			}).orElse(Version.emptyVersion);
 			result.put(Constants.BUNDLE_VERSION, version.toString());
-	
+
 			// only do exports for non bundle modules
 			// real OSGi bundles already have good export capabilities
 			StringBuilder exportPackageHeader = new StringBuilder();
@@ -457,7 +458,7 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase {
 						return Version.emptyVersion;
 					}
 				}).orElse(Version.emptyVersion);
-				
+
 				found.add(new AtomosBundleInfoModule(resolved, m, location, resolved.name(), version));
 
 			}

@@ -16,6 +16,7 @@
     <module>service.impl.b</module>
     <module>service.user</module>
     <module>service.lib</module>
+    <module>resources.a</module>
     <module>modulepath.service.test</module>
     <module>classpath.service.test</module>
     <module>service.image</module>
