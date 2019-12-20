@@ -1,25 +1,5 @@
 [
   {
-    "name" : "org.eclipse.osgi.internal.connect.ConnectHookConfigurator",
-    "allPublicConstructors" : true,
-    "allPublicMethods" : true
-  },
-  {
-    "name" : "org.eclipse.osgi.internal.signedcontent.SignedBundleHook",
-    "allPublicConstructors" : true,
-    "allPublicMethods" : true
-  },
-  {
-    "name" : "org.eclipse.osgi.internal.cds.CDSHookConfigurator",
-    "allPublicConstructors" : true,
-    "allPublicMethods" : true
-  },
-  {
-    "name" : "org.eclipse.osgi.internal.framework.SystemBundleActivator",
-    "allPublicConstructors" : true,
-    "allPublicMethods" : true
-  },
-  {
     "name" : "org.apache.felix.scr.impl.Activator",
     "allPublicConstructors" : true,
     "allPublicMethods" : true
@@ -150,10 +130,6 @@
       { "name" : "disable", "parameterTypes" : ["java.lang.String"] },
       { "name" : "config", "parameterTypes" : [] }
     ]
-  },
-  {
-    "name" : "java.lang.Boolean",
-    "allPublicConstructors" : true
   },
   {
     "name" : "java.io.File",

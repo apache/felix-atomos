@@ -149,7 +149,7 @@
 					<buildArgs>
 						--allow-incomplete-classpath
 						--no-fallback
-						--initialize-at-build-time=org.atomos.framework,org.eclipse.osgi,org.eclipse.equinox.log,org.osgi.framework,org.osgi.dto,org.osgi.service.condpermadmin,org.osgi.service.log,org.osgi.service.packageadmin,org.osgi.service.permissionadmin,org.osgi.service.resolver,org.osgi.service.startlevel,org.osgi.service.url,org.osgi.util.tracker,org.osgi.resource,org.apache.felix.resolver,javax.servlet
+						--initialize-at-build-time=org.atomos.framework,javax.servlet
 						-H:ReflectionConfigurationFiles=${project.basedir}/graal_class_config.json
 						-H:ResourceConfigurationFiles=${project.basedir}/graal_resource_config.json
 						-H:+ReportUnsupportedElementsAtRuntime
