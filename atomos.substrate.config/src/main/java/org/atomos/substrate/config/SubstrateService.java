@@ -54,12 +54,16 @@ public class SubstrateService {
 			while(entries.hasMoreElements()) {
 				URL rootResource = entries.nextElement();
 				String rootPath = rootResource.getPath();
+				if (rootPath.startsWith("/")) {
+					rootPath = rootPath.substring(1);
+				}
+				// make sure this is not from a fragment
+				if (!rootResource.equals(b.getEntry(rootPath))) {
+					continue;
+				}
 				if (!rootPath.endsWith("/")) {
-					if (rootPath.startsWith("/")) {
-						rootPath = rootPath.substring(1);
-					}
-					// make sure this is not from a fragment
-					if (b.getEntry(rootPath) != null && !rootPath.endsWith(".class")) {
+					// skip default package classes
+					if (!rootPath.endsWith(".class")) {
 						resources.add(rootPath);
 						File resourceFile = new File(bundleDir, rootPath);
 						resourceFile.getParentFile().mkdirs();
@@ -76,7 +80,7 @@ public class SubstrateService {
 							path = path.substring(1);
 						}
 						// make sure this is not from a fragment
-						if (b.getEntry(path) != null) {
+						if (resource.equals(b.getEntry(path))) {
 							resources.add(path);
 							if (!path.endsWith("/")) {
 								File resourceFile = new File(bundleDir, path);
