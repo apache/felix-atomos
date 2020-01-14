@@ -27,7 +27,7 @@ This plugin provides some cool utilities for adding module-infos to existing dep
 This should create a jlink image under `atomos/atomos.tests/service.image/target/atomos`.  Executing the following command
 against the jlink image should produce a gogo shell prompt:
 
-`atomos/bin/atomos`
+`./bin/atomos`
 
 You should see the following output:
 
@@ -44,12 +44,25 @@ they cannot be automatic modules.
 The `atomos.tests/service.image` example uses the latest `1.0.0.Beta2` version of the `moditect-maven-plugin` to
 add `module-info.class` as necessary to the bundles used in the image.
 
-You can also load additional modules into atomos by using the `atomos.modules` option when launching `atomos`.
+You can also load additional modules into atomos at:
+
+ - System start
+by using the `atomos.modules` option when launching `atomos`.
 For example:
 
 ```
 atomos/bin/atomos atomos.modules=/path/to/more/modules
 ```
+
+ - Runtime
+by using the gogo command `atomos:install`
+For example:
+
+```
+atomos:install MyLayerName OSGI /path/to/more/modules
+```
+
+
 When doing that the additional modules will be loaded into a child layer where the Atomos OSGi Framework
 will control the class loaders.  This will produce a class loader per module bundle installed.  This has
 advantages because it allows the module class loader for the bundle to implement the
