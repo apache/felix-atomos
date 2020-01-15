@@ -41,7 +41,7 @@ public class AtomosCommands {
 	}
 
 	public ServiceRegistration<AtomosCommands> register(BundleContext context) {
-		final Hashtable<String, Object> props = new Hashtable<>();
+		Hashtable<String, Object> props = new Hashtable<>();
 		props.put("osgi.command.function", functions);
 		props.put("osgi.command.scope", "atomos");
 		return context.registerService(AtomosCommands.class, this, props);
@@ -49,27 +49,26 @@ public class AtomosCommands {
 
 	@Descriptor("List all layers")
 	public void list() {
-		final AtomosLayer bl = runtime.getBootLayer();
+		AtomosLayer bl = runtime.getBootLayer();
 		layers(bl.getParents().stream().findFirst().orElseGet(() -> bl), new HashSet<>());
 	}
 
 	private void layers(AtomosLayer layer, Set<AtomosLayer> visited) {
 		if (visited.add(layer)) {
 			System.out.println(layer.toString());
-			final Set<AtomosBundleInfo> bundles = layer.getAtomosBundles();
+			Set<AtomosBundleInfo> bundles = layer.getAtomosBundles();
 			if (!bundles.isEmpty()) {
 				System.out.println(" BUNDLES:");
-				for (final AtomosBundleInfo bundle : bundles) {
-					final Bundle b = runtime.getBundle(bundle);
+				for (AtomosBundleInfo bundle : bundles) {
+					Bundle b = runtime.getBundle(bundle);
 					System.out.println("  " + bundle.getSymbolicName() + getState(b));
 				}
 			}
-			for (final AtomosLayer child : layer.getChildren()) {
+			for (AtomosLayer child : layer.getChildren()) {
 				layers(child, visited);
 			}
 		}
 	}
-
 	private String getState(Bundle b) {
 		if (b == null) {
 			return " NOT_INSTALLED";
@@ -95,30 +94,29 @@ public class AtomosCommands {
 	@Descriptor("Install a new layer")
 	public void install(@Descriptor("Name of the layer") String name,
 			@Descriptor("LoaderType of the layer [OSGI, SINGLE, MANY]") String loaderType,
-			@Descriptor("Directory where the AtomosBundles are stored") File moduleDir)
+			@Descriptor("Directory containing bundle JARs to install into the layer") File moduleDir)
 					throws BundleException {
-
 		if (!moduleDir.isDirectory()) {
 			System.out.println("The specified path is not a directory: " + moduleDir.getAbsolutePath());
 			return;
 		}
 
-		final Optional<LoaderType> oLoaderType = Stream.of(LoaderType.values())
+		Optional<LoaderType> oLoaderType = Stream.of(LoaderType.values())
 				.filter(e -> e.name().equalsIgnoreCase(loaderType))
 				.findAny();
 
 		if (!oLoaderType.isPresent()) {
-			final String v = Stream.of(LoaderType.values())
+			String v = Stream.of(LoaderType.values())
 					.map(LoaderType::name)
 					.collect(Collectors.joining(", "));
 			System.out.printf("The specified loaderType is not valid. Use one of %s", v);
 			return;
 		}
 
-		final AtomosLayer layer = runtime.addLayer(Collections.singletonList(runtime.getBootLayer()),
+		AtomosLayer layer = runtime.addLayer(Collections.singletonList(runtime.getBootLayer()),
 				name, oLoaderType.get(), moduleDir.toPath());
 
-		final List<Bundle> bundles = new ArrayList<>();
+		List<Bundle> bundles = new ArrayList<>();
 		for (final AtomosBundleInfo atomosBundle : layer.getAtomosBundles()) {
 			bundles.add(atomosBundle.install(null));
 		}
@@ -131,8 +129,7 @@ public class AtomosCommands {
 
 	@Descriptor("Uninstall the layer with the given id")
 	public void uninstall(@Descriptor("Id of the layer") long id) throws BundleException {
-
-		final AtomosLayer layer = runtime.getById(id);
+		AtomosLayer layer = runtime.getById(id);
 		if (layer == null) {
 			System.out.println("No Atomos Layer with ID: " + id);
 		} else {
@@ -140,7 +137,9 @@ public class AtomosCommands {
 				layer.uninstall();
 				System.out.printf("Sucessfully uninstalled Atomos Layer \"%s\" with ID: %s",
 						layer.getName(), id);
-			} catch (final Exception e) {
+			} catch (Exception e) {
+				System.out.printf("Failing to uninstall this Atomos Layer \"%s\" with ID: %s",
+						layer.getName(), id);
 				throw e;
 			}
 		}
