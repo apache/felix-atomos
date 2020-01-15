@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<component name="org.eclipse.osgi_3.16.0.v20191218-1531" version="1.2">
-    <plugin id="org.eclipse.osgi_3.16.0.v20191218-1531"/>
+<component name="org.eclipse.osgi_3.16.0.tjwatson_osgiConnect05" version="1.2">
+    <plugin id="org.eclipse.osgi_3.16.0.tjwatson_osgiConnect05"/>
     <package name="org.eclipse.equinox.log" visibility="1">
         <type name="ExtendedLogService" restrictions="1"/>
         <type name="Logger" restrictions="1"/>

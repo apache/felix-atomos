@@ -1,0 +1,130 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Export-Package: org.eclipse.core.runtime.adaptor;x-friends:="org.eclip
+ se.core.runtime",org.eclipse.core.runtime.internal.adaptor;x-internal
+ :=true,org.eclipse.equinox.log;version="1.1";uses:="org.osgi.framewor
+ k,org.osgi.service.log",org.eclipse.osgi.container;version="1.5"; use
+ s:="org.eclipse.osgi.report.resolution,  org.osgi.framework.wiring,  
+ org.eclipse.osgi.framework.eventmgr,  org.osgi.framework.startlevel, 
+  org.osgi.framework,  org.osgi.framework.hooks.resolver,  org.osgi.se
+ rvice.resolver,  org.osgi.resource,  org.eclipse.osgi.service.debug",
+ org.eclipse.osgi.container.builders;version="1.0";uses:="org.eclipse.
+ osgi.util,org.eclipse.osgi.container",org.eclipse.osgi.container.name
+ spaces;version="1.0";uses:="org.osgi.resource",org.eclipse.osgi.frame
+ work.console;version="1.1";uses:="org.osgi.framework",org.eclipse.osg
+ i.framework.eventmgr;version="1.2",org.eclipse.osgi.framework.interna
+ l.reliablefile;x-internal:=true,org.eclipse.osgi.framework.log;versio
+ n="1.1";uses:="org.osgi.framework",org.eclipse.osgi.framework.util;x-
+ internal:=true,org.eclipse.osgi.internal.debug;x-internal:=true,org.e
+ clipse.osgi.internal.framework;x-internal:=true,org.eclipse.osgi.inte
+ rnal.hookregistry;x-friends:="org.eclipse.osgi.tests",org.eclipse.osg
+ i.internal.loader;x-internal:=true,org.eclipse.osgi.internal.loader.b
+ uddy;x-internal:=true,org.eclipse.osgi.internal.loader.classpath;x-in
+ ternal:=true,org.eclipse.osgi.internal.loader.sources;x-internal:=tru
+ e,org.eclipse.osgi.internal.location;x-internal:=true,org.eclipse.osg
+ i.internal.messages;x-internal:=true,org.eclipse.osgi.internal.provis
+ ional.service.security;version="1.0.0";x-friends:="org.eclipse.equino
+ x.security.ui",org.eclipse.osgi.internal.provisional.verifier;x-frien
+ ds:="org.eclipse.ui.workbench,org.eclipse.equinox.p2.artifact.reposit
+ ory",org.eclipse.osgi.internal.service.security;x-friends:="org.eclip
+ se.equinox.security.ui",org.eclipse.osgi.internal.serviceregistry;x-i
+ nternal:=true,org.eclipse.osgi.internal.signedcontent;x-internal:=tru
+ e,org.eclipse.osgi.internal.url;x-internal:=true,org.eclipse.osgi.lau
+ nch;version="1.1";uses:="org.osgi.framework,org.osgi.framework.launch
+ ,org.osgi.framework.connect",org.eclipse.osgi.report.resolution;versi
+ on="1.0";uses:="org.osgi.service.resolver,org.osgi.resource",org.ecli
+ pse.osgi.service.datalocation;version="1.3",org.eclipse.osgi.service.
+ debug;version="1.2",org.eclipse.osgi.service.environment;version="1.4
+ ",org.eclipse.osgi.service.localization;version="1.1";uses:="org.osgi
+ .framework",org.eclipse.osgi.service.pluginconversion;version="1.0",o
+ rg.eclipse.osgi.service.resolver;version="1.6";uses:="org.osgi.framew
+ ork,org.osgi.framework.hooks.resolver,org.osgi.framework.wiring",org.
+ eclipse.osgi.service.runnable;version="1.1",org.eclipse.osgi.service.
+ security;version="1.0",org.eclipse.osgi.service.urlconversion;version
+ ="1.0",org.eclipse.osgi.signedcontent;version="1.0";uses:="org.osgi.f
+ ramework",org.eclipse.osgi.storage;x-friends:="org.eclipse.osgi.tests
+ ",org.eclipse.osgi.storage.bundlefile;x-internal:=true,org.eclipse.os
+ gi.storage.url.reference;x-internal:=true,org.eclipse.osgi.storageman
+ ager;version="1.0",org.eclipse.osgi.util;version="1.1",org.osgi.dto;v
+ ersion="1.1",org.osgi.framework;version="1.10",org.osgi.framework.con
+ nect;version="1.0";uses:="org.osgi.framework.launch",org.osgi.framewo
+ rk.dto;version="1.8";uses:="org.osgi.dto",org.osgi.framework.hooks.bu
+ ndle;version="1.1";uses:="org.osgi.framework",org.osgi.framework.hook
+ s.resolver;version="1.0";uses:="org.osgi.framework.wiring",org.osgi.f
+ ramework.hooks.service;version="1.1";uses:="org.osgi.framework",org.o
+ sgi.framework.hooks.weaving;version="1.1";uses:="org.osgi.framework.w
+ iring",org.osgi.framework.launch;version="1.2";uses:="org.osgi.framew
+ ork",org.osgi.framework.namespace;version="1.2";uses:="org.osgi.resou
+ rce",org.osgi.framework.startlevel;version="1.0";uses:="org.osgi.fram
+ ework",org.osgi.framework.startlevel.dto;version="1.0";uses:="org.osg
+ i.dto",org.osgi.framework.wiring;version="1.2";uses:="org.osgi.framew
+ ork,org.osgi.resource",org.osgi.framework.wiring.dto;version="1.3";us
+ es:="org.osgi.dto,org.osgi.resource.dto",org.osgi.resource;version="1
+ .0",org.osgi.resource.dto;version="1.0";uses:="org.osgi.dto",org.osgi
+ .service.condpermadmin;version="1.1.1";uses:="org.osgi.framework",org
+ .osgi.service.log;version="1.4";uses:="org.osgi.framework",org.osgi.s
+ ervice.log.admin;version="1.0";uses:="org.osgi.service.log",org.osgi.
+ service.packageadmin;version="1.2";uses:="org.osgi.framework",org.osg
+ i.service.permissionadmin;version="1.2",org.osgi.service.resolver;ver
+ sion="1.1";uses:="org.osgi.resource",org.osgi.service.startlevel;vers
+ ion="1.1";uses:="org.osgi.framework",org.osgi.service.url;version="1.
+ 0",org.osgi.util.tracker;version="1.5.2";uses:="org.osgi.framework"
+Provide-Capability: osgi.service; objectClass:List<String>="org.osgi.s
+ ervice.log.LogReaderService,org.eclipse.equinox.log.ExtendedLogReader
+ Service"; uses:="org.osgi.service.log",osgi.service; objectClass:List
+ <String>="org.osgi.service.log.LoggerFactory,org.osgi.service.log.Log
+ Service,org.eclipse.equinox.log.ExtendedLogService"; uses:="org.osgi.
+ service.log",osgi.service; objectClass:List<String>="org.osgi.service
+ .log.admin.LoggerAdmin"; uses:="org.osgi.service.log.admin",osgi.serv
+ ice; objectClass:List<String>="org.eclipse.osgi.framework.log.Framewo
+ rkLog"; uses:="",osgi.service; objectClass:List<String>="org.eclipse.
+ osgi.service.datalocation.Location"; type="osgi.user.area"; uses:="or
+ g.eclipse.osgi.service.datalocation",osgi.service; objectClass:List<S
+ tring>="org.eclipse.osgi.service.datalocation.Location"; type="osgi.i
+ nstance.area"; uses:="org.eclipse.osgi.service.datalocation",osgi.ser
+ vice; objectClass:List<String>="org.eclipse.osgi.service.datalocation
+ .Location"; type="osgi.configuration.area"; uses:="org.eclipse.osgi.s
+ ervice.datalocation",osgi.service; objectClass:List<String>="org.ecli
+ pse.osgi.service.datalocation.Location"; type="osgi.install.area"; us
+ es:="org.eclipse.osgi.service.datalocation",osgi.service; objectClass
+ :List<String>="org.eclipse.osgi.service.datalocation.Location"; type=
+ "eclipse.home.location"; uses:="org.eclipse.osgi.service.datalocation
+ ",osgi.service; objectClass:List<String>="org.eclipse.osgi.service.en
+ vironment.EnvironmentInfo"; uses:="org.eclipse.osgi.service.environme
+ nt",osgi.service; objectClass:List<String>="org.osgi.service.packagea
+ dmin.PackageAdmin"; uses:="org.osgi.service.packageadmin",osgi.servic
+ e; objectClass:List<String>="org.osgi.service.startlevel.StartLevel";
+  uses:="org.osgi.service.startlevel",osgi.service; objectClass:List<S
+ tring>="org.osgi.service.permissionadmin.PermissionAdmin"; uses:="org
+ .osgi.service.permissionadmin",osgi.service; objectClass:List<String>
+ ="org.osgi.service.condpermadmin.ConditionalPermissionAdmin"; uses:="
+ org.osgi.service.condpermadmin",osgi.service; objectClass:List<String
+ >="org.osgi.service.resolver.Resolver"; uses:="org.osgi.service.resol
+ ver",osgi.service; objectClass:List<String>="org.eclipse.osgi.service
+ .debug.DebugOptions"; uses:="org.eclipse.osgi.service.debug",osgi.ser
+ vice; objectClass:List<String>="org.eclipse.osgi.service.urlconversio
+ n.URLConverter"; uses:="org.eclipse.osgi.service.urlconversion",osgi.
+ service; objectClass:List<String>="org.eclipse.osgi.service.localizat
+ ion.BundleLocalization"; uses:="org.eclipse.osgi.service.localization
+ ",osgi.service; objectClass:List<String>="org.eclipse.osgi.service.se
+ curity.TrustEngine"; uses:="org.eclipse.osgi.service.security",osgi.s
+ ervice; objectClass:List<String>="org.eclipse.osgi.signedcontent.Sign
+ edContentFactory"; uses:="org.eclipse.osgi.signedcontent"
+Bundle-Name: %systemBundle
+Bundle-SymbolicName: org.eclipse.osgi; singleton:=true
+Bundle-Activator: org.eclipse.osgi.internal.framework.SystemBundleActi
+ vator
+Bundle-Description: %systemBundle
+Bundle-Copyright: %copyright
+Bundle-Vendor: %eclipse.org
+Bundle-Version: 3.16.0.tjwatson_osgiConnect05
+Bundle-Localization: systembundle
+Bundle-DocUrl: http://www.eclipse.org
+Eclipse-ExtensibleAPI: true
+Eclipse-SystemBundle: true
+Main-Class: org.eclipse.core.runtime.adaptor.EclipseStarter
+Require-Capability: osgi.ee; filter:="(| (&(osgi.ee=JavaSE)(version=1.
+ 8)) (&(osgi.ee=JavaSE/compact1)(version=1.8)) )"
+Eclipse-BundleShape: jar
+Automatic-Module-Name: org.eclipse.osgi
+

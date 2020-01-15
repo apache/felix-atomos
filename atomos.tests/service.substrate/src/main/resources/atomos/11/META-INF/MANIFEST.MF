@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1546558792019
+Build-Jdk: 1.8.0_192
+Built-By: rotty
+Bundle-Activator: org.apache.felix.gogo.shell.Activator
+Bundle-Description: Apache Felix Gogo Subproject
+Bundle-DocURL: https://www.apache.org/
+Bundle-License: https://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: Apache Felix Gogo Shell
+Bundle-SymbolicName: org.apache.felix.gogo.shell
+Bundle-Vendor: The Apache Software Foundation
+Bundle-Version: 1.1.2
+Created-By: Apache Maven Bundle Plugin
+Import-Package: org.apache.felix.service.command;version="[1.0,2)",org
+ .osgi.framework;version="[1.8,2)",org.osgi.framework.startlevel;versi
+ on="[1.0,2)",org.osgi.util.tracker;version="[1.5,2)"
+Provide-Capability: org.apache.felix.gogo;org.apache.felix.gogo="shell
+ .implementation";version:Version="1.0.0";implementation.name="gogo.sh
+ ell"
+Require-Capability: org.apache.felix.gogo;filter:="(&(org.apache.felix
+ .gogo=command.implementation)(version>=1.0.0)(!(version>=2.0.0)))";ef
+ fective:=active,osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"
+Tool: Bnd-4.1.0.201810241949
+

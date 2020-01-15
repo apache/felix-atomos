@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Created-By: 11.0.5 (Eclipse OpenJ9)
+Built-By: tjwatson
+Build-Jdk: 11.0.5
+Bnd-LastModified: 1579122229292
+Bundle-ManifestVersion: 2
+Bundle-Name: service.user
+Bundle-SymbolicName: service.user
+Bundle-Version: 0.0.1.202001152103
+Import-Package: org.atomos.service.contract;version="[1.0,2)"
+Private-Package: org.atomos.service.user
+Provide-Capability: osgi.service;objectClass:List<String>="org.atomos.se
+ rvice.user.EchoUser"
+Require-Capability: osgi.service;filter:="(objectClass=org.atomos.servic
+ e.contract.Echo)";effective:=active,osgi.ee;filter:="(&(osgi.ee=JavaSE)
+ (version=1.8))",osgi.extender;filter:="(&(osgi.extender=osgi.component)
+ (version>=1.4.0)(!(version>=2.0.0)))"
+Service-Component: OSGI-INF/org.atomos.service.user.EchoUser.xml
+Tool: Bnd-4.1.0.201810181252
+
