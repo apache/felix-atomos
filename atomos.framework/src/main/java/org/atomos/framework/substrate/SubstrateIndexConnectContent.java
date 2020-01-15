@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import org.atomos.framework.base.AtomosRuntimeBase;
 import org.osgi.framework.connect.ConnectContent;

@@ -1,10 +1,7 @@
 package org.atomos.framework.modules;
 
 import java.io.IOException;
-import java.lang.StackWalker.Option;
-import java.lang.StackWalker.StackFrame;
 import java.lang.module.Configuration;
-import java.lang.module.ModuleDescriptor;
 import java.lang.module.ModuleReader;
 import java.lang.module.ModuleReference;
 import java.lang.module.ResolvedModule;
@@ -19,12 +16,9 @@ import java.security.PrivilegedExceptionAction;
 import java.security.SecureClassLoader;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleReference;
@@ -98,31 +92,6 @@ public final class ModuleConnectLoader extends SecureClassLoader implements Bund
         }        
     }
     
-    /** 
-     * Validates java package name.
-     * @param name
-     * @return true if valid package name.
-     */
-    private boolean isValidPackageName (String name) {
-    	if (name.endsWith(".") || name.startsWith(".")) {
-    		return false;
-    	}
-    	String[] names = name.split("\\.");
-    	for (String id : names) {
-    		char[] chars = id.toCharArray();
-    		if (chars.length < 1 || !Character.isJavaIdentifierStart(chars[0])) {
-    			return false;
-    		}
-    		for (int x=1; x<chars.length; x++) {
-    			if (!Character.isJavaIdentifierPart(chars[x])) {
-    				return false;
-    			}
-    		}
-    	}
-    	return true;
-    }
-
-
     // -- resources --
 
     /**
@@ -138,7 +107,6 @@ public final class ModuleConnectLoader extends SecureClassLoader implements Bund
         else {
             try {
                 resource = AccessController.doPrivileged((PrivilegedExceptionAction<URL>)(() -> {
-                    ModuleReader m = this.resolvedModule.reference().open();
                     URI rURI = this.reader.find(name).orElse(null);
                     return rURI==null ? null : rURI.toURL();
                 }));
