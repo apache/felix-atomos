@@ -23,6 +23,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +32,7 @@ import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosLayer;
 import org.atomos.framework.AtomosRuntime;
 import org.atomos.framework.AtomosRuntime.LoaderType;
+import org.atomos.framework.base.AtomosCommands;
 import org.atomos.service.contract.Echo;
 import org.junit.After;
 import org.junit.Before;
@@ -68,6 +70,26 @@ public class ClasspathLaunchTest {
 	      .sorted(Comparator.reverseOrder())
 	      .map(Path::toFile)
 	      .forEach(File::delete);
+	}
+
+	@Test
+	public void testClassPathGogo() throws BundleException, InvalidSyntaxException {
+
+		ClasspathLaunch.main(
+				new String[] { Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
+		testFramework = ClasspathLaunch.getFramework();
+		BundleContext bc = testFramework.getBundleContext();
+
+		String filter = "(osgi.command.scope=atomos)";
+
+		Collection<ServiceReference<AtomosCommands>> serviceReferences = bc
+				.getServiceReferences(AtomosCommands.class, filter);
+
+		assertEquals(1, serviceReferences.size());
+		AtomosCommands ac = bc.getService(serviceReferences.iterator().next());
+		assertNotNull("AtomosCommands required", ac);
+		ac.list();
+
 	}
 
 	@Test
