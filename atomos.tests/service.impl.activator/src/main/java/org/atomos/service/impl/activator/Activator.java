@@ -15,12 +15,11 @@ package org.atomos.service.impl.activator;
 
 import java.util.Collections;
 import java.util.Hashtable;
-import java.util.Map;
 
+import org.atomos.service.contract.Echo;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
-import org.atomos.service.contract.Echo;
 
 @org.osgi.annotation.bundle.Header(name = Constants.BUNDLE_ACTIVATOR, value = "${@class}")
 @org.osgi.annotation.bundle.Requirement(namespace = "osgi.ee", filter = "(&(osgi.ee=JavaSE)(version=1.8))")

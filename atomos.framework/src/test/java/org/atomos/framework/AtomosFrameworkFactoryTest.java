@@ -37,7 +37,6 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.launch.Framework;
-import org.osgi.framework.launch.FrameworkFactory;
 
 public class AtomosFrameworkFactoryTest
 {
