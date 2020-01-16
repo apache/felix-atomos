@@ -21,6 +21,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -31,6 +33,8 @@ import org.osgi.service.component.annotations.Component;
 
 @Component(service = SubstrateService.class, property = { "osgi.command.scope=atomos", "osgi.command.function=substrateBundles" })
 public class SubstrateService {
+	private static final Collection<String> EXCLUDE_NAMES = Arrays.asList("/about.html", "/DEPENDENCIES", "/LICENSE", "/NOTICE", "/changelog.txt", "/LICENSE.txt");
+	private static final Collection<String> EXCLUDE_PATHS = Arrays.asList("META-INF/maven/", "OSGI-OPT/");
 	private static final String ATOMOS_BUNDLES = "/atomos/";
 	private static final String ATOMOS_BUNDLES_INDEX = ATOMOS_BUNDLES + "bundles.index";
 	private static final String ATOMOS_BUNDLE = "ATOMOS_BUNDLE";
@@ -82,7 +86,7 @@ public class SubstrateService {
 						// make sure this is not from a fragment
 						if (resource.equals(b.getEntry(path))) {
 							resources.add(path);
-							if (!path.endsWith("/")) {
+							if (!path.endsWith("/") && !isExcluded(path)) {
 								File resourceFile = new File(bundleDir, path);
 								resourceFile.getParentFile().mkdirs();
 								try (InputStream in = resource.openStream()) {
@@ -104,6 +108,20 @@ public class SubstrateService {
 				}
 			});
 		}
+	}
+
+	private boolean isExcluded(String path) {
+		for (String excludedName : EXCLUDE_NAMES) {
+			if (path.endsWith(excludedName)) {
+				return true;
+			}
+		}
+		for (String excludedPath : EXCLUDE_PATHS) {
+			if (path.startsWith(excludedPath)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 
