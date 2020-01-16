@@ -24,89 +24,113 @@ import java.util.Optional;
 import org.atomos.framework.base.AtomosRuntimeBase;
 import org.osgi.framework.connect.ConnectContent;
 
-public class SubstrateIndexConnectContent implements ConnectContent {
-	static class URLConnectEntry implements ConnectEntry {
-		private final String name;
-		private final URL resource;
+public class SubstrateIndexConnectContent implements ConnectContent
+{
+    static class URLConnectEntry implements ConnectEntry
+    {
+        private final String name;
+        private final URL resource;
 
-		URLConnectEntry(String name, URL resource) {
-			this.name = name;
-			this.resource = resource;
-		}
-		@Override
-		public String getName() {
-			return name;
-		}
+        URLConnectEntry(String name, URL resource)
+        {
+            this.name = name;
+            this.resource = resource;
+        }
 
-		@Override
-		public long getContentLength() {
-			try {
-				return resource.openConnection().getContentLengthLong();
-			} catch (IOException e) {
-				return -1;
-			}
-		}
+        @Override
+        public String getName()
+        {
+            return name;
+        }
 
-		@Override
-		public long getLastModified() {
-			try {
-				return resource.openConnection().getDate();
-			} catch (IOException e) {
-				return 0;
-			}
-		}
+        @Override
+        public long getContentLength()
+        {
+            try
+            {
+                return resource.openConnection().getContentLengthLong();
+            }
+            catch (IOException e)
+            {
+                return -1;
+            }
+        }
 
-		@Override
-		public InputStream getInputStream() throws IOException {
-			return resource.openStream();
-		}
-		
-	}
+        @Override
+        public long getLastModified()
+        {
+            try
+            {
+                return resource.openConnection().getDate();
+            }
+            catch (IOException e)
+            {
+                return 0;
+            }
+        }
 
-	final String index;
-	final List<String> entries;
+        @Override
+        public InputStream getInputStream() throws IOException
+        {
+            return resource.openStream();
+        }
 
-	SubstrateIndexConnectContent(String index, List<String> entries) {
-		this.index = index;
-		this.entries = Collections.unmodifiableList(entries);
-	}
+    }
 
-	@Override
-	public Optional<Map<String, String>> getHeaders() {
-		return Optional.empty();
-	}
+    final String index;
+    final List<String> entries;
 
-	@Override
-	public Iterable<String> getEntries() throws IOException {
-		return entries;
-	}
+    SubstrateIndexConnectContent(String index, List<String> entries)
+    {
+        this.index = index;
+        this.entries = Collections.unmodifiableList(entries);
+    }
 
-	@Override
-	public Optional<ConnectEntry> getEntry(String name) {
-		if (entries.contains(name)) {
-			URL resource = getClass().getResource(AtomosRuntimeBase.ATOMOS_BUNDLES + index + '/' + name);
-			if (resource != null) {
-				return Optional.of(new URLConnectEntry(name, resource));
-			}
-		}
-		return Optional.empty();
-	}
+    @Override
+    public Optional<Map<String, String>> getHeaders()
+    {
+        return Optional.empty();
+    }
 
-	@Override
-	public Optional<ClassLoader> getClassLoader() {
-		return Optional.of(getClass().getClassLoader());
-	}
+    @Override
+    public Iterable<String> getEntries() throws IOException
+    {
+        return entries;
+    }
 
-	@Override
-	public ConnectContent open() throws IOException {
-		// do nothing
-		return this;
-	}
+    @Override
+    public Optional<ConnectEntry> getEntry(String name)
+    {
+        if (entries.contains(name))
+        {
+            URL resource = getClass().getResource(
+                AtomosRuntimeBase.ATOMOS_BUNDLES + index + '/' + name);
+            if (resource != null)
+            {
+                return Optional.of(new URLConnectEntry(name, resource));
+            }
+        }
+        return Optional.empty();
+    }
 
-	@Override
-	public ConnectContent close() throws IOException {
-		// do nothing
-		return this;
-	}
+    @Override
+    public Optional<ClassLoader> getClassLoader()
+    {
+        return Optional.of(getClass().getClassLoader());
+    }
+
+    @Override
+    public ConnectContent open() throws IOException
+    {
+        // do nothing
+        return this;
+    }
+
+    @Override
+    public ConnectContent close() throws IOException
+    {
+        // do nothing
+        return this;
+    }
 
 }

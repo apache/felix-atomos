@@ -18,20 +18,25 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
-@Component(service = EchoUser.class, property = {"echo.reference:Boolean=true"}, immediate = true)
+@Component(service = EchoUser.class, property = {
+        "echo.reference:Boolean=true" }, immediate = true)
 @org.osgi.annotation.bundle.Requirement(namespace = "osgi.ee", filter = "(&(osgi.ee=JavaSE)(version=1.8))")
-public class EchoUser {
-	@Activate
-	public void activate() {
-		System.out.println("Activated: " + getClass().getName());
-	}
+public class EchoUser
+{
+    @Activate
+    public void activate()
+    {
+        System.out.println("Activated: " + getClass().getName());
+    }
 
-	@Reference
-	protected void setEcho(Echo echo) {
-		System.out.println("Echo service found: " + echo.echo("hello"));
-	}
+    @Reference
+    protected void setEcho(Echo echo)
+    {
+        System.out.println("Echo service found: " + echo.echo("hello"));
+    }
 
-	protected void unsetEcho(Echo echo) {
-		System.out.println("Echo service unset: " + echo.echo("goodbye"));
-	}
+    protected void unsetEcho(Echo echo)
+    {
+        System.out.println("Echo service unset: " + echo.echo("goodbye"));
+    }
 }

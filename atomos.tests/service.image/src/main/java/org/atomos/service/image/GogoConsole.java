@@ -18,13 +18,13 @@ import java.util.concurrent.TimeUnit;
 import org.atomos.framework.AtomosRuntime;
 import org.osgi.framework.BundleException;
 
-public class GogoConsole 
+public class GogoConsole
 {
-    public static void main( String[] args ) throws BundleException
+    public static void main(String[] args) throws BundleException
     {
-    	long start = System.nanoTime();
-    	AtomosRuntime.launch(AtomosRuntime.getConfiguration(args));
-    	long total = System.nanoTime() - start;
-    	System.out.println("Total time: " + TimeUnit.NANOSECONDS.toMillis(total));
+        long start = System.nanoTime();
+        AtomosRuntime.launch(AtomosRuntime.getConfiguration(args));
+        long total = System.nanoTime() - start;
+        System.out.println("Total time: " + TimeUnit.NANOSECONDS.toMillis(total));
     }
 }

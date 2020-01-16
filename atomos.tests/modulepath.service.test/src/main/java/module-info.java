@@ -1,3 +1,4 @@
+
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +14,14 @@
  */
 import org.atomos.framework.AtomosRuntime;
 
-module service.test {
-	requires atomos.framework;
-	requires service.contract;
-	requires service.impl;
-	requires service.impl.activator;
-	requires org.apache.felix.scr;
-	requires osgi.promise;
-	uses AtomosRuntime;
+module service.test
+{
+    requires atomos.framework;
+    requires service.contract;
+    requires service.impl;
+    requires service.impl.activator;
+    requires org.apache.felix.scr;
+    requires osgi.promise;
+
+    uses AtomosRuntime;
 }

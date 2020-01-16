@@ -51,180 +51,226 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.launch.Framework;
 
-public class ClasspathLaunchTest {
-	private Path storage;
-	private Framework testFramework;
-	@Rule
-	public TestName name = new TestName();
+public class ClasspathLaunchTest
+{
+    private Path storage;
+    private Framework testFramework;
+    @Rule
+    public TestName name = new TestName();
 
-	@Before
-	public void beforeTest() throws IOException {
-		storage = Files.createTempDirectory("equinoxTestStorage");
+    @Before
+    public void beforeTest() throws IOException
+    {
+        storage = Files.createTempDirectory("equinoxTestStorage");
 
-	}
+    }
 
-	@After
-	public void afterTest() throws BundleException, InterruptedException, IOException {
-		if (testFramework != null && testFramework.getState() == Bundle.ACTIVE) {
-			testFramework.stop();
-			testFramework.waitForStop(10000);
-		}
-	    Files.walk(storage)
-	      .sorted(Comparator.reverseOrder())
-	      .map(Path::toFile)
-	      .forEach(File::delete);
-	}
+    @After
+    public void afterTest() throws BundleException, InterruptedException, IOException
+    {
+        if (testFramework != null && testFramework.getState() == Bundle.ACTIVE)
+        {
+            testFramework.stop();
+            testFramework.waitForStop(10000);
+        }
+        Files.walk(storage).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(
+            File::delete);
+    }
 
-	@Test
-	public void testClassPathGogo() throws BundleException, InvalidSyntaxException {
+    @Test
+    public void testClassPathGogo() throws BundleException, InvalidSyntaxException
+    {
 
-		ClasspathLaunch.main(
-				new String[] { Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
-		testFramework = ClasspathLaunch.getFramework();
-		BundleContext bc = testFramework.getBundleContext();
+        ClasspathLaunch.main(new String[] {
+                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
+        testFramework = ClasspathLaunch.getFramework();
+        BundleContext bc = testFramework.getBundleContext();
 
-		String filter = "(osgi.command.scope=atomos)";
+        String filter = "(osgi.command.scope=atomos)";
 
-		Collection<ServiceReference<AtomosCommands>> serviceReferences = bc
-				.getServiceReferences(AtomosCommands.class, filter);
+        Collection<ServiceReference<AtomosCommands>> serviceReferences = bc.getServiceReferences(
+            AtomosCommands.class, filter);
 
-		assertEquals(1, serviceReferences.size());
-		AtomosCommands ac = bc.getService(serviceReferences.iterator().next());
-		assertNotNull("AtomosCommands required", ac);
-		ac.list();
+        assertEquals(1, serviceReferences.size());
+        AtomosCommands ac = bc.getService(serviceReferences.iterator().next());
+        assertNotNull("AtomosCommands required", ac);
+        ac.list();
 
-	}
+    }
 
-	@Test
-	public void testClassPathServices() throws BundleException, InvalidSyntaxException {
-		ClasspathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
-		testFramework = ClasspathLaunch.getFramework();
-		BundleContext bc = testFramework.getBundleContext();
-		assertNotNull("No context found.", bc);
-		checkBundleStates(bc.getBundles());
+    @Test
+    public void testClassPathServices() throws BundleException, InvalidSyntaxException
+    {
+        ClasspathLaunch.main(new String[] {
+                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
+        testFramework = ClasspathLaunch.getFramework();
+        BundleContext bc = testFramework.getBundleContext();
+        assertNotNull("No context found.", bc);
+        checkBundleStates(bc.getBundles());
 
-		checkServices(bc, 4);
-		AtomosRuntime runtime = getRuntime(bc);
-		assertNull("Found a ModuleLayer.", runtime.getBootLayer().adapt(ModuleLayer.class).orElse(null));
-	}
+        checkServices(bc, 4);
+        AtomosRuntime runtime = getRuntime(bc);
+        assertNull("Found a ModuleLayer.",
+            runtime.getBootLayer().adapt(ModuleLayer.class).orElse(null));
+    }
 
-	private AtomosRuntime getRuntime(BundleContext bc) {
-		ServiceReference<AtomosRuntime> ref = bc.getServiceReference(AtomosRuntime.class);
-		assertNotNull("No reference found.", ref);
-		AtomosRuntime runtime = bc.getService(ref);
-		assertNotNull("No service found.", runtime);
-		return runtime;
-	}
+    private AtomosRuntime getRuntime(BundleContext bc)
+    {
+        ServiceReference<AtomosRuntime> ref = bc.getServiceReference(AtomosRuntime.class);
+        assertNotNull("No reference found.", ref);
+        AtomosRuntime runtime = bc.getService(ref);
+        assertNotNull("No service found.", runtime);
+        return runtime;
+    }
 
-	@Test
-	public void testInvalidCreateLayer() throws BundleException {
-		AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
-		try {
-			runtime.addLayer(List.of(runtime.getBootLayer()), "invalid", LoaderType.OSGI, storage);
-			fail("Expected exception when addLayer is called.");
-		} catch (UnsupportedOperationException e) {
-			// expected
-		}
-	}
+    @Test
+    public void testInvalidCreateLayer() throws BundleException
+    {
+        AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
+        try
+        {
+            runtime.addLayer(List.of(runtime.getBootLayer()), "invalid", LoaderType.OSGI,
+                storage);
+            fail("Expected exception when addLayer is called.");
+        }
+        catch (UnsupportedOperationException e)
+        {
+            // expected
+        }
+    }
 
-	@Test
-	public void testFindBundle() throws BundleException {
-		ClasspathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
-		testFramework = ClasspathLaunch.getFramework();
-		BundleContext bc = testFramework.getBundleContext();
-		assertNotNull("No context found.", bc);
+    @Test
+    public void testFindBundle() throws BundleException
+    {
+        ClasspathLaunch.main(new String[] {
+                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
+        testFramework = ClasspathLaunch.getFramework();
+        BundleContext bc = testFramework.getBundleContext();
+        assertNotNull("No context found.", bc);
 
-		AtomosRuntime runtime = getRuntime(bc);
-		assertFindBundle("java.base", runtime.getBootLayer(), runtime.getBootLayer(), true);
-		assertFindBundle("service.impl", runtime.getBootLayer(), runtime.getBootLayer(), true);
-		assertFindBundle("service.impl.a", runtime.getBootLayer(), runtime.getBootLayer(), true);
-		assertFindBundle("not.found", runtime.getBootLayer(), null, false);
-	}
+        AtomosRuntime runtime = getRuntime(bc);
+        assertFindBundle("java.base", runtime.getBootLayer(), runtime.getBootLayer(),
+            true);
+        assertFindBundle("service.impl", runtime.getBootLayer(), runtime.getBootLayer(),
+            true);
+        assertFindBundle("service.impl.a", runtime.getBootLayer(), runtime.getBootLayer(),
+            true);
+        assertFindBundle("not.found", runtime.getBootLayer(), null, false);
+    }
 
-	@Test
-	public void testGetEntry() throws BundleException {
-		ClasspathLaunch.main(new String[] {Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath()});
-		testFramework = ClasspathLaunch.getFramework();
-		BundleContext bc = testFramework.getBundleContext();
-		assertNotNull("No context found.", bc);
+    @Test
+    public void testGetEntry() throws BundleException
+    {
+        ClasspathLaunch.main(new String[] {
+                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
+        testFramework = ClasspathLaunch.getFramework();
+        BundleContext bc = testFramework.getBundleContext();
+        assertNotNull("No context found.", bc);
 
-		AtomosRuntime runtime = getRuntime(bc);
-		Bundle b = runtime.getBundle(assertFindBundle("service.impl.a", runtime.getBootLayer(), runtime.getBootLayer(), true));
-		assertNotNull("No bundle found.", b);
-		URL mf = b.getEntry("/META-INF/MANIFEST.MF");
-		assertNotNull("No manifest found.", mf);
-		mf = b.getEntry("META-INF/MANIFEST.MF");
-		assertNotNull("No manifest found.", mf);
-	}
+        AtomosRuntime runtime = getRuntime(bc);
+        Bundle b = runtime.getBundle(assertFindBundle("service.impl.a",
+            runtime.getBootLayer(), runtime.getBootLayer(), true));
+        assertNotNull("No bundle found.", b);
+        URL mf = b.getEntry("/META-INF/MANIFEST.MF");
+        assertNotNull("No manifest found.", mf);
+        mf = b.getEntry("META-INF/MANIFEST.MF");
+        assertNotNull("No manifest found.", mf);
+    }
 
-	private AtomosBundleInfo assertFindBundle(String name, AtomosLayer layer, AtomosLayer expectedLayer, boolean expectedToFind) {
-		Optional<AtomosBundleInfo> result = layer.findAtomosBundle(name);
-		if (expectedToFind) {
-			assertTrue("Could not find bundle: " + name, result.isPresent());
-			assertEquals("Wrong name", name, result.get().getSymbolicName());
-			assertEquals("Wrong layer for bundle: " + name, expectedLayer, result.get().getAtomosLayer());
-		} else {
-			assertFalse("Found unexpected bundle: " + name, result.isPresent());
-		}
-		return result.orElse(null);
-	}
+    private AtomosBundleInfo assertFindBundle(String name, AtomosLayer layer,
+        AtomosLayer expectedLayer, boolean expectedToFind)
+    {
+        Optional<AtomosBundleInfo> result = layer.findAtomosBundle(name);
+        if (expectedToFind)
+        {
+            assertTrue("Could not find bundle: " + name, result.isPresent());
+            assertEquals("Wrong name", name, result.get().getSymbolicName());
+            assertEquals("Wrong layer for bundle: " + name, expectedLayer,
+                result.get().getAtomosLayer());
+        }
+        else
+        {
+            assertFalse("Found unexpected bundle: " + name, result.isPresent());
+        }
+        return result.orElse(null);
+    }
 
-	private void checkServices(BundleContext bc, int expectedNumber) throws InvalidSyntaxException {
-		ServiceReference<?>[] echoRefs = bc.getAllServiceReferences(Echo.class.getName(), null);
-		assertNotNull("No Echo service ref found.", echoRefs);
-		assertEquals("Wrong number of services.", expectedNumber, echoRefs.length);
-		for (ServiceReference<?> ref : echoRefs) {
-			Echo echo = (Echo) bc.getService(ref);
-			assertNotNull("No Echo service found.", echo);
-			assertEquals("Wrong Echo.", ref.getProperty("type") + " Hello!!", echo.echo("Hello!!"));
-			checkClassBundle(echo, ref);
-		}
-	}
+    private void checkServices(BundleContext bc, int expectedNumber)
+        throws InvalidSyntaxException
+    {
+        ServiceReference<?>[] echoRefs = bc.getAllServiceReferences(Echo.class.getName(),
+            null);
+        assertNotNull("No Echo service ref found.", echoRefs);
+        assertEquals("Wrong number of services.", expectedNumber, echoRefs.length);
+        for (ServiceReference<?> ref : echoRefs)
+        {
+            Echo echo = (Echo) bc.getService(ref);
+            assertNotNull("No Echo service found.", echo);
+            assertEquals("Wrong Echo.", ref.getProperty("type") + " Hello!!",
+                echo.echo("Hello!!"));
+            checkClassBundle(echo, ref);
+        }
+    }
 
-	private void checkClassBundle(Object service, ServiceReference<?> ref) {
-		Bundle b = FrameworkUtil.getBundle(service.getClass());
-		assertEquals("Wrong bundle.", ref.getBundle(), b);
-	}
+    private void checkClassBundle(Object service, ServiceReference<?> ref)
+    {
+        Bundle b = FrameworkUtil.getBundle(service.getClass());
+        assertEquals("Wrong bundle.", ref.getBundle(), b);
+    }
 
-	private String getState(Bundle b) {
-		switch (b.getState()) {
-		case Bundle.UNINSTALLED:
-			return "UNINSTALLED";
-		case Bundle.INSTALLED:
-			return "INSTALLED";
-		case Bundle.RESOLVED:
-			return "RESOLVED";
-		case Bundle.STARTING:
-			return "STARTING";
-		case Bundle.ACTIVE:
-			return "ACTIVE";
-		case Bundle.STOPPING:
-			return "STOPPING";
-		default:
-			return "unknown";
-		}
-	}
+    private String getState(Bundle b)
+    {
+        switch (b.getState())
+        {
+            case Bundle.UNINSTALLED:
+                return "UNINSTALLED";
+            case Bundle.INSTALLED:
+                return "INSTALLED";
+            case Bundle.RESOLVED:
+                return "RESOLVED";
+            case Bundle.STARTING:
+                return "STARTING";
+            case Bundle.ACTIVE:
+                return "ACTIVE";
+            case Bundle.STOPPING:
+                return "STOPPING";
+            default:
+                return "unknown";
+        }
+    }
 
-	private void checkBundleStates(Bundle[] bundles) {
-		assertTrue("No bundles: " + Arrays.toString(bundles), bundles.length > 0);
-		for (Bundle b : bundles) {
-			String msg = b.getBundleId() + " " + b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b);
-			System.out.println(msg);
-			int expected;
-			if ("osgi.annotation".equals(b.getSymbolicName()) || "org.osgi.service.component.annotations".equals(b.getSymbolicName()) || b.getSymbolicName().startsWith("org.eclipse.jdt.junit")) {
-				expected = Bundle.INSTALLED;
-			} else {
-				expected = Bundle.ACTIVE;
-			}
-			if (b.getState() != expected && expected == Bundle.ACTIVE) {
-				// for debugging
-				try {
-					b.start();
-				} catch (Throwable t) {
-					t.printStackTrace();
-				}
-			}
-			assertEquals("Wrong bundle state for bundle: " + msg, expected, b.getState());
-		}
-	}
+    private void checkBundleStates(Bundle[] bundles)
+    {
+        assertTrue("No bundles: " + Arrays.toString(bundles), bundles.length > 0);
+        for (Bundle b : bundles)
+        {
+            String msg = b.getBundleId() + " " + b.getLocation() + ": "
+                + b.getSymbolicName() + ": " + getState(b);
+            System.out.println(msg);
+            int expected;
+            if ("osgi.annotation".equals(b.getSymbolicName())
+                || "org.osgi.service.component.annotations".equals(b.getSymbolicName())
+                || b.getSymbolicName().startsWith("org.eclipse.jdt.junit"))
+            {
+                expected = Bundle.INSTALLED;
+            }
+            else
+            {
+                expected = Bundle.ACTIVE;
+            }
+            if (b.getState() != expected && expected == Bundle.ACTIVE)
+            {
+                // for debugging
+                try
+                {
+                    b.start();
+                }
+                catch (Throwable t)
+                {
+                    t.printStackTrace();
+                }
+            }
+            assertEquals("Wrong bundle state for bundle: " + msg, expected, b.getState());
+        }
+    }
 }

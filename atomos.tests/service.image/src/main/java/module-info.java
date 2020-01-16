@@ -1,3 +1,4 @@
+
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,14 +13,16 @@
  * limitations under the License.
  */
 import org.atomos.framework.AtomosRuntime;
-module service.image {
-	requires atomos.framework;
-	requires service.impl;
-	requires service.impl.activator;
-	requires org.apache.felix.scr;
-	requires org.apache.felix.gogo.command;
-	requires org.apache.felix.gogo.runtime;
-	requires org.apache.felix.gogo.shell;
-	requires jdk.jdwp.agent;
-	uses AtomosRuntime;
+module service.image
+{
+    requires atomos.framework;
+    requires service.impl;
+    requires service.impl.activator;
+    requires org.apache.felix.scr;
+    requires org.apache.felix.gogo.command;
+    requires org.apache.felix.gogo.runtime;
+    requires org.apache.felix.gogo.shell;
+    requires jdk.jdwp.agent;
+
+    uses AtomosRuntime;
 }

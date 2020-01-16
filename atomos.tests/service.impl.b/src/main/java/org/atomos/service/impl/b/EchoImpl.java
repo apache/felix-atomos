@@ -16,12 +16,14 @@ package org.atomos.service.impl.b;
 import org.osgi.service.component.annotations.Component;
 import org.atomos.service.contract.Echo;
 
-@Component(property = {"type=impl.b.component"})
-public class EchoImpl implements Echo {
+@Component(property = { "type=impl.b.component" })
+public class EchoImpl implements Echo
+{
 
-	@Override
-	public String echo(String msg) {
-		return "impl.b.component " + msg;
-	}
+    @Override
+    public String echo(String msg)
+    {
+        return "impl.b.component " + msg;
+    }
 
 }

@@ -24,83 +24,103 @@ import java.util.zip.ZipFile;
 
 import org.osgi.framework.connect.ConnectContent;
 
-public class JarConnectContent implements ConnectContent {
-	final ZipFile zipFile;
+public class JarConnectContent implements ConnectContent
+{
+    final ZipFile zipFile;
 
-	public JarConnectContent(ZipFile zipFile) {
-		this.zipFile = zipFile;
-	}
+    public JarConnectContent(ZipFile zipFile)
+    {
+        this.zipFile = zipFile;
+    }
 
-	@Override
-	public ConnectContent open() throws IOException {
-		return this;
-	}
-	@Override
-	public ConnectContent close() throws IOException {
-		return this;
-	}
+    @Override
+    public ConnectContent open() throws IOException
+    {
+        return this;
+    }
 
-	@Override
-	public Optional<ClassLoader> getClassLoader() {
-		return Optional.of(getClass().getClassLoader());
-	}
+    @Override
+    public ConnectContent close() throws IOException
+    {
+        return this;
+    }
 
-	@Override
-	public Iterable<String> getEntries() throws IOException {
-		return () -> new Iterator<String>() {
-			final Enumeration<? extends ZipEntry> entries  = zipFile.entries();
-			@Override
-			public boolean hasNext() {
-				return entries.hasMoreElements();
-			}
+    @Override
+    public Optional<ClassLoader> getClassLoader()
+    {
+        return Optional.of(getClass().getClassLoader());
+    }
 
-			@Override
-			public String next() {
-				return entries.nextElement().getName(); 
-			}
-		};
-	}
+    @Override
+    public Iterable<String> getEntries() throws IOException
+    {
+        return () -> new Iterator<String>()
+        {
+            final Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
-	@Override
-	public Optional<ConnectEntry> getEntry(String name) {
-		ZipEntry entry = zipFile.getEntry(name);
-		if (entry != null) {
-			return Optional.of(new JarConnectEntry(entry));
-		}
-		return Optional.empty();
-	}
+            @Override
+            public boolean hasNext()
+            {
+                return entries.hasMoreElements();
+            }
 
-	@Override
-	public Optional<Map<String, String>> getHeaders() {
-		return Optional.empty();
-	}
+            @Override
+            public String next()
+            {
+                return entries.nextElement().getName();
+            }
+        };
+    }
 
-	class JarConnectEntry implements ConnectEntry {
-		final ZipEntry entry;
+    @Override
+    public Optional<ConnectEntry> getEntry(String name)
+    {
+        ZipEntry entry = zipFile.getEntry(name);
+        if (entry != null)
+        {
+            return Optional.of(new JarConnectEntry(entry));
+        }
+        return Optional.empty();
+    }
 
-		public JarConnectEntry(ZipEntry entry) {
-			this.entry = entry;
-		}
+    @Override
+    public Optional<Map<String, String>> getHeaders()
+    {
+        return Optional.empty();
+    }
 
-		@Override
-		public long getContentLength() {
-			return entry.getSize();
-		}
+    class JarConnectEntry implements ConnectEntry
+    {
+        final ZipEntry entry;
 
-		@Override
-		public InputStream getInputStream() throws IOException {
-			return zipFile.getInputStream(entry);
-		}
+        public JarConnectEntry(ZipEntry entry)
+        {
+            this.entry = entry;
+        }
 
-		@Override
-		public long getLastModified() {
-			return entry.getTime();
-		}
+        @Override
+        public long getContentLength()
+        {
+            return entry.getSize();
+        }
 
-		@Override
-		public String getName() {
-			return entry.getName();
-		}
-		
-	}
+        @Override
+        public InputStream getInputStream() throws IOException
+        {
+            return zipFile.getInputStream(entry);
+        }
+
+        @Override
+        public long getLastModified()
+        {
+            return entry.getTime();
+        }
+
+        @Override
+        public String getName()
+        {
+            return entry.getName();
+        }
+
+    }
 }

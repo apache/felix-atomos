@@ -11,8 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-open module service.user {
-	requires service.contract;
-	requires atomos.framework;
-	requires static org.osgi.service.component.annotations;
+open module service.user
+{
+    requires service.contract;
+    requires atomos.framework;
+    requires static org.osgi.service.component.annotations;
 }

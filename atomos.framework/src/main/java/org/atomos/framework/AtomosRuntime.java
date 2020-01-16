@@ -138,195 +138,207 @@ import org.osgi.framework.launch.FrameworkFactory;
  * system.bundle of the initialized framework will also have an AtomosRuntime
  * service registered with its bundle context.
  */
-public interface AtomosRuntime {
-	/**
-	 * The loader type used for the class loaders of an Atomos layer.
-	 */
-	public enum LoaderType {
-		OSGI, SINGLE, MANY
-	}
+public interface AtomosRuntime
+{
+    /**
+     * The loader type used for the class loaders of an Atomos layer.
+     */
+    public enum LoaderType
+    {
+        OSGI, SINGLE, MANY
+    }
 
-	/**
-	 * If set to false then the Atomos bundles will not be automatically installed.
-	 * Default is true.
-	 */
-	String ATOMOS_BUNDLE_INSTALL = "atomos.bundle.install";
-	/**
-	 * If set to false then the Atomos bundles will not be marked for start. Default
-	 * is true.
-	 */
-	String ATOMOS_BUNDLE_START = "atomos.boot.bundle.start";
-	/**
-	 * The initial bundle start level to set before installing the Atomos bundles at
-	 * {@link Framework#init() initialization}.
-	 */
-	String ATOMOS_INITIAL_BUNDLE_START_LEVEL = "atomos.initial.bundle.startlevel";
+    /**
+     * If set to false then the Atomos bundles will not be automatically installed.
+     * Default is true.
+     */
+    String ATOMOS_BUNDLE_INSTALL = "atomos.bundle.install";
+    /**
+     * If set to false then the Atomos bundles will not be marked for start. Default
+     * is true.
+     */
+    String ATOMOS_BUNDLE_START = "atomos.boot.bundle.start";
+    /**
+     * The initial bundle start level to set before installing the Atomos bundles at
+     * {@link Framework#init() initialization}.
+     */
+    String ATOMOS_INITIAL_BUNDLE_START_LEVEL = "atomos.initial.bundle.startlevel";
 
-	/**
-	 * A configuration option used by {@link #launch(Map)} which can be used to
-	 * configuration a modules folder to load additional Atomos bundles from.
-	 */
-	String ATOMOS_MODULES_DIR = "atomos.modules";
+    /**
+     * A configuration option used by {@link #launch(Map)} which can be used to
+     * configuration a modules folder to load additional Atomos bundles from.
+     */
+    String ATOMOS_MODULES_DIR = "atomos.modules";
 
-	/**
-	 * Returns the Atomos bundle info that is installed at the specified location
-	 * 
-	 * @param bundleLocation the bundle location.
-	 * @return the Atomos bundle with the specified location or {@code null} if no
-	 *         Atomos bundle is installed at the location.
-	 */
-	AtomosBundleInfo getAtomosBundle(String bundleLocation);
+    /**
+     * Returns the Atomos bundle info that is installed at the specified location
+     * 
+     * @param bundleLocation the bundle location.
+     * @return the Atomos bundle with the specified location or {@code null} if no
+     *         Atomos bundle is installed at the location.
+     */
+    AtomosBundleInfo getAtomosBundle(String bundleLocation);
 
-	/**
-	 * Returns the OSGi bundle installed which is associated with the specified
-	 * Atomos Bundle.
-	 * 
-	 * @return the OSGi bundle or {@code null} if the Atomos bundle has not been
-	 *         installed or if there is no OSGi Framework initialized with the
-	 *         Atomos Runtime.
-	 */
-	Bundle getBundle(AtomosBundleInfo atomosBundle);
+    /**
+     * Returns the OSGi bundle installed which is associated with the specified
+     * Atomos Bundle.
+     * 
+     * @return the OSGi bundle or {@code null} if the Atomos bundle has not been
+     *         installed or if there is no OSGi Framework initialized with the
+     *         Atomos Runtime.
+     */
+    Bundle getBundle(AtomosBundleInfo atomosBundle);
 
-	/**
-	 * Adds a layer with the specified parents and loads modules from the specified
-	 * module paths
-	 * 
-	 * @param parents     the parents for the new layer
-	 * @param name        the name of the new layer
-	 * @param loaderType  the type of class loader to use
-	 * @param modulePaths the paths to load modules for the new layer
-	 * @return a newly created layer
-	 * @throws UnsupportedOperationException if {@link #modulesSupported()} returns false.
-	 */
-	AtomosLayer addLayer(List<AtomosLayer> parents, String name, LoaderType loaderType, Path... modulePaths);
+    /**
+     * Adds a layer with the specified parents and loads modules from the specified
+     * module paths
+     * 
+     * @param parents     the parents for the new layer
+     * @param name        the name of the new layer
+     * @param loaderType  the type of class loader to use
+     * @param modulePaths the paths to load modules for the new layer
+     * @return a newly created layer
+     * @throws UnsupportedOperationException if {@link #modulesSupported()} returns false.
+     */
+    AtomosLayer addLayer(List<AtomosLayer> parents, String name, LoaderType loaderType,
+        Path... modulePaths);
 
-	/**
-	 * A convenience method that adds the modules found at the specified path
-	 * to a new child layer of the boot layer.
-	 * @param name The name of the layer.
-	 * @param path The path to the modules.  If {@code null} then the default will try to
-	 * determine the location on disk of the atomos.framework module and look for a
-	 * folder with the same name as the specified name of the layer.
-	 * @throws UnsupportedOperationException if {@link #modulesSupported()} returns false.
-	 */
-	AtomosLayer addModules(String name, Path path);
+    /**
+     * A convenience method that adds the modules found at the specified path
+     * to a new child layer of the boot layer.
+     * @param name The name of the layer.
+     * @param path The path to the modules.  If {@code null} then the default will try to
+     * determine the location on disk of the atomos.framework module and look for a
+     * folder with the same name as the specified name of the layer.
+     * @throws UnsupportedOperationException if {@link #modulesSupported()} returns false.
+     */
+    AtomosLayer addModules(String name, Path path);
 
-	/**
-	 * Returns {@code true} if modules and additional layers are supported.
-	 * @return if modules and additional layers are supported.
-	 */
-	boolean modulesSupported();
+    /**
+     * Returns {@code true} if modules and additional layers are supported.
+     * @return if modules and additional layers are supported.
+     */
+    boolean modulesSupported();
 
-	/**
-	 * The initial boot Atomos layer
-	 * 
-	 * @return the boot Atomos layer
-	 */
-	AtomosLayer getBootLayer();
+    /**
+     * The initial boot Atomos layer
+     * 
+     * @return the boot Atomos layer
+     */
+    AtomosLayer getBootLayer();
 
-	/**
-	 * Creates a new connect framework for this {@code AtomosRuntime}.
-	 * The connect factory can be used to create a new framework
-	 * by using a {@link ConnectFrameworkFactory} directly by calling
-	 * the {@link ConnectFrameworkFactory#newFramework(Map, ConnectFramework)}
-	 * method.
-	 * @return a new connect framework
-	 */
-	ConnectFramework newConnectFramework();
+    /**
+     * Creates a new connect framework for this {@code AtomosRuntime}.
+     * The connect factory can be used to create a new framework
+     * by using a {@link ConnectFrameworkFactory} directly by calling
+     * the {@link ConnectFrameworkFactory#newFramework(Map, ConnectFramework)}
+     * method.
+     * @return a new connect framework
+     */
+    ConnectFramework newConnectFramework();
 
-	/**
-	 * Creates a new {@link Framework} with the specified framework configuration
-	 * using this AtomosRuntime to provide the AtomosBundleInfo for installation
-	 * into the new Framework.
-	 * 
-	 * @see FrameworkFactory#newFramework(Map, ConnectFactory)
-	 * @param frameworkConfig the framework configuration
-	 * @return A new, configured {@link Framework} instance. The framework instance
-	 *         must be in the {@link Bundle#INSTALLED} state.
-	 */
-	Framework newFramework(Map<String, String> frameworkConfig);
+    /**
+     * Creates a new {@link Framework} with the specified framework configuration
+     * using this AtomosRuntime to provide the AtomosBundleInfo for installation
+     * into the new Framework.
+     * 
+     * @see FrameworkFactory#newFramework(Map, ConnectFactory)
+     * @param frameworkConfig the framework configuration
+     * @return A new, configured {@link Framework} instance. The framework instance
+     *         must be in the {@link Bundle#INSTALLED} state.
+     */
+    Framework newFramework(Map<String, String> frameworkConfig);
 
-	/**
-	 * A main method that can be used by executable jars to initialize and start an
-	 * Atomos Framework. Each string in the arguments array may contain a key=value
-	 * pair that will be used for the framework configuration.
-	 * 
-	 * @param args the args will be converted into a {@code Map<String, String>} to
-	 *             use as configuration parameters for the OSGi Framework.
-	 * @throws BundleException when an error occurs
-	 */
-	static void main(String[] args) throws BundleException {
-		launch(getConfiguration(args));
-	}
+    /**
+     * A main method that can be used by executable jars to initialize and start an
+     * Atomos Framework. Each string in the arguments array may contain a key=value
+     * pair that will be used for the framework configuration.
+     * 
+     * @param args the args will be converted into a {@code Map<String, String>} to
+     *             use as configuration parameters for the OSGi Framework.
+     * @throws BundleException when an error occurs
+     */
+    static void main(String[] args) throws BundleException
+    {
+        launch(getConfiguration(args));
+    }
 
-	/**
-	 * Convenience method that creates an AtomosRuntime in order to load the Atomos
-	 * bundles contained in the module path in the boot layer. It will also look for
-	 * additional modules to load into a child layer in a modules folder. The path
-	 * to the modules folder can be configured by using the
-	 * {@link #ATOMOS_MODULES_DIR} launch option. If the {@link #ATOMOS_MODULES_DIR}
-	 * option is not specified in the frameworkConfig then the default will try to
-	 * determine the location on disk of the atomos.framework module and look for a
-	 * folder called "modules". If the location of the atomos.framework module
-	 * cannot be determined then no additional modules folder will be searched.
-	 * 
-	 * @param frameworkConfig the framework configuration
-	 * @return a new Atomos framework instance which has been started.
-	 * @throws BundleException if an error occurred creating and starting the Atomos
-	 *                         framework
-	 */
-	static Framework launch(Map<String, String> frameworkConfig) throws BundleException {
-		AtomosRuntime atomosRuntime = newAtomosRuntime();
-		if (atomosRuntime.modulesSupported()) {
-			String modulesDirPath = frameworkConfig.get(ATOMOS_MODULES_DIR);
-			Path modulesPath = modulesDirPath == null ? null : new File(modulesDirPath).toPath();
-			atomosRuntime.addModules("modules", modulesPath);
-		}
+    /**
+     * Convenience method that creates an AtomosRuntime in order to load the Atomos
+     * bundles contained in the module path in the boot layer. It will also look for
+     * additional modules to load into a child layer in a modules folder. The path
+     * to the modules folder can be configured by using the
+     * {@link #ATOMOS_MODULES_DIR} launch option. If the {@link #ATOMOS_MODULES_DIR}
+     * option is not specified in the frameworkConfig then the default will try to
+     * determine the location on disk of the atomos.framework module and look for a
+     * folder called "modules". If the location of the atomos.framework module
+     * cannot be determined then no additional modules folder will be searched.
+     * 
+     * @param frameworkConfig the framework configuration
+     * @return a new Atomos framework instance which has been started.
+     * @throws BundleException if an error occurred creating and starting the Atomos
+     *                         framework
+     */
+    static Framework launch(Map<String, String> frameworkConfig) throws BundleException
+    {
+        AtomosRuntime atomosRuntime = newAtomosRuntime();
+        if (atomosRuntime.modulesSupported())
+        {
+            String modulesDirPath = frameworkConfig.get(ATOMOS_MODULES_DIR);
+            Path modulesPath = modulesDirPath == null ? null
+                : new File(modulesDirPath).toPath();
+            atomosRuntime.addModules("modules", modulesPath);
+        }
 
-		Framework framework = atomosRuntime.newFramework(frameworkConfig);
-		framework.start();
-		return framework;
-	}
+        Framework framework = atomosRuntime.newFramework(frameworkConfig);
+        framework.start();
+        return framework;
+    }
 
-	/**
-	 * Converts a string array into a {@code  Map<String,String>}
-	 * 
-	 * @param args the arguments where each element has key=string value, the key
-	 *             cannot contain an '=' (equals) character.
-	 * @return a map of the configuration specified by the args
-	 */
-	static Map<String, String> getConfiguration(String[] args) {
-		Map<String, String> config = new HashMap<>();
-		if (args != null) {
-			for (String arg : args) {
-				int equals = arg.indexOf('=');
-				if (equals != -1) {
-					String key = arg.substring(0, equals);
-					String value = arg.substring(equals + 1);
-					config.put(key, value);
-				}
-			}
-		}
-		return config;
-	}
+    /**
+     * Converts a string array into a {@code  Map<String,String>}
+     * 
+     * @param args the arguments where each element has key=string value, the key
+     *             cannot contain an '=' (equals) character.
+     * @return a map of the configuration specified by the args
+     */
+    static Map<String, String> getConfiguration(String[] args)
+    {
+        Map<String, String> config = new HashMap<>();
+        if (args != null)
+        {
+            for (String arg : args)
+            {
+                int equals = arg.indexOf('=');
+                if (equals != -1)
+                {
+                    String key = arg.substring(0, equals);
+                    String value = arg.substring(equals + 1);
+                    config.put(key, value);
+                }
+            }
+        }
+        return config;
+    }
 
-	/**
-	 * Creates a new AtomosRuntime that can be used to create a new Atomos framework
-	 * instance. If Atomos is running as a Java Module then this AtomosRuntime can
-	 * be used to create additional layers by using the
-	 * {@link #addLayer(List, String, LoaderType, Path...)} method. If the additional layers are added
-	 * before {@link #newFramework(Map) creating} and {@link Framework#init()
-	 * initializing} the framework then the Atomos bundles found in the added layers
-	 * will be automatically installed and started according to the
-	 * {@link #ATOMOS_BUNDLE_INSTALL} and {@link #ATOMOS_BUNDLE_START} options.
-	 * <p>
-	 * Note that this AtomosRuntime {@link #newFramework(Map)} must be used for a
-	 * new {@link Framework framework} instance to use the layers added to this
-	 * AtomosRuntime.
-	 * 
-	 * @return a new AtomosRuntime.
-	 */
-	static AtomosRuntime newAtomosRuntime() {
-		return AtomosRuntimeBase.newAtomosRuntime();
-	}
+    /**
+     * Creates a new AtomosRuntime that can be used to create a new Atomos framework
+     * instance. If Atomos is running as a Java Module then this AtomosRuntime can
+     * be used to create additional layers by using the
+     * {@link #addLayer(List, String, LoaderType, Path...)} method. If the additional layers are added
+     * before {@link #newFramework(Map) creating} and {@link Framework#init()
+     * initializing} the framework then the Atomos bundles found in the added layers
+     * will be automatically installed and started according to the
+     * {@link #ATOMOS_BUNDLE_INSTALL} and {@link #ATOMOS_BUNDLE_START} options.
+     * <p>
+     * Note that this AtomosRuntime {@link #newFramework(Map)} must be used for a
+     * new {@link Framework framework} instance to use the layers added to this
+     * AtomosRuntime.
+     * 
+     * @return a new AtomosRuntime.
+     */
+    static AtomosRuntime newAtomosRuntime()
+    {
+        return AtomosRuntimeBase.newAtomosRuntime();
+    }
 }

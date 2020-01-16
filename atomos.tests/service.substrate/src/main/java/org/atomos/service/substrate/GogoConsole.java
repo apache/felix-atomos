@@ -26,38 +26,46 @@ import org.osgi.service.log.LogLevel;
 import org.osgi.service.log.LogReaderService;
 import org.osgi.service.log.admin.LoggerContext;
 
-public class GogoConsole {
-	public static void main(String[] args) throws BundleException, ClassNotFoundException {
-		long start = System.nanoTime();
+public class GogoConsole
+{
+    public static void main(String[] args) throws BundleException, ClassNotFoundException
+    {
+        long start = System.nanoTime();
 
-		AtomosRuntime atomosRuntime = AtomosRuntime.newAtomosRuntime();
-		Map<String, String> config = AtomosRuntime.getConfiguration(args);
-		config.putIfAbsent(LoggerContext.LOGGER_CONTEXT_DEFAULT_LOGLEVEL, LogLevel.AUDIT.name());
-		Framework framework = atomosRuntime.newFramework(config);
-		framework.init();
-		BundleContext bc = framework.getBundleContext();
-		LogReaderService logReader = bc.getService(bc.getServiceReference(LogReaderService.class));
-		logReader.addLogListener((e) -> {
-			System.out.println(getLogMessage(e));
-		});
-		framework.start();
+        AtomosRuntime atomosRuntime = AtomosRuntime.newAtomosRuntime();
+        Map<String, String> config = AtomosRuntime.getConfiguration(args);
+        config.putIfAbsent(LoggerContext.LOGGER_CONTEXT_DEFAULT_LOGLEVEL,
+            LogLevel.AUDIT.name());
+        Framework framework = atomosRuntime.newFramework(config);
+        framework.init();
+        BundleContext bc = framework.getBundleContext();
+        LogReaderService logReader = bc.getService(
+            bc.getServiceReference(LogReaderService.class));
+        logReader.addLogListener((e) -> {
+            System.out.println(getLogMessage(e));
+        });
+        framework.start();
 
-		long total = System.nanoTime() - start;
-		System.out.println("Total time: " + TimeUnit.NANOSECONDS.toMillis(total));
+        long total = System.nanoTime() - start;
+        System.out.println("Total time: " + TimeUnit.NANOSECONDS.toMillis(total));
 
-		if (Arrays.asList(args).contains("-exit")) {
-			System.exit(0);
-		}
-	}
+        if (Arrays.asList(args).contains("-exit"))
+        {
+            System.exit(0);
+        }
+    }
 
-	private static String getLogMessage(LogEntry e) {
-		StringBuilder builder = new StringBuilder(e.getMessage());
-		if (e.getBundle() != null) {
-			builder.append(" - bundle: " + e.getBundle());
-		}
-		if (e.getServiceReference() != null) {
-			builder.append(" - service: " + e.getServiceReference());
-		}
-		return builder.toString();
-	}
+    private static String getLogMessage(LogEntry e)
+    {
+        StringBuilder builder = new StringBuilder(e.getMessage());
+        if (e.getBundle() != null)
+        {
+            builder.append(" - bundle: " + e.getBundle());
+        }
+        if (e.getServiceReference() != null)
+        {
+            builder.append(" - service: " + e.getServiceReference());
+        }
+        return builder.toString();
+    }
 }

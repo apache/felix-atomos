@@ -25,107 +25,136 @@ import java.util.stream.Collectors;
 
 import org.osgi.framework.connect.ConnectContent;
 
-public class FileConnectContent implements ConnectContent {
-	public class FileConnectEntry implements ConnectEntry {
-		private final File entry;
-		private final String name;
-		public FileConnectEntry(File entry, String name) {
-			this.entry = entry;
-			boolean endsInSlash = name.length() > 0 && name.charAt(name.length() - 1) == '/';
-			if (entry.isDirectory()) {
-				if (!endsInSlash)
-					name += '/';
-			} else if (endsInSlash)
-				name = name.substring(0, name.length() - 1);
-			this.name = name;
-		}
+public class FileConnectContent implements ConnectContent
+{
+    public class FileConnectEntry implements ConnectEntry
+    {
+        private final File entry;
+        private final String name;
 
-		@Override
-		public long getContentLength() {
-			return entry.length();
-		}
+        public FileConnectEntry(File entry, String name)
+        {
+            this.entry = entry;
+            boolean endsInSlash = name.length() > 0
+                && name.charAt(name.length() - 1) == '/';
+            if (entry.isDirectory())
+            {
+                if (!endsInSlash)
+                    name += '/';
+            }
+            else if (endsInSlash)
+                name = name.substring(0, name.length() - 1);
+            this.name = name;
+        }
 
-		@Override
-		public InputStream getInputStream() throws IOException {
-			return new FileInputStream(entry);
-		}
+        @Override
+        public long getContentLength()
+        {
+            return entry.length();
+        }
 
-		@Override
-		public long getLastModified() {
-			return entry.lastModified();
-		}
+        @Override
+        public InputStream getInputStream() throws IOException
+        {
+            return new FileInputStream(entry);
+        }
 
-		@Override
-		public String getName() {
-			return name;
-		}
+        @Override
+        public long getLastModified()
+        {
+            return entry.lastModified();
+        }
 
-	}
+        @Override
+        public String getName()
+        {
+            return name;
+        }
 
-	private static final String POINTER_UPPER_DIRECTORY = "..";
+    }
 
-	final File root;
+    private static final String POINTER_UPPER_DIRECTORY = "..";
 
-	public FileConnectContent(File root) {
-		this.root = root;
-	}
+    final File root;
 
-	@Override
-	public ConnectContent open() throws IOException {
-		return this;
-	}
-	@Override
-	public ConnectContent close() throws IOException {
-		return this;
-	}
+    public FileConnectContent(File root)
+    {
+        this.root = root;
+    }
 
-	@Override
-	public Optional<ClassLoader> getClassLoader() {
-		return Optional.of(getClass().getClassLoader());
-	}
+    @Override
+    public ConnectContent open() throws IOException
+    {
+        return this;
+    }
 
-	@Override
-	public Iterable<String> getEntries() throws IOException {
-		Path rootPath = root.toPath();
-		return Files.find(rootPath, Integer.MAX_VALUE, (p, a) -> true).map((p) -> {
-			Path relative = rootPath.relativize(p);
-			StringBuilder builder = new StringBuilder();
-			for (Path path : relative) {
-				builder.append(path.getFileName());
-				if (Files.isDirectory(path)) {
-					builder.append('/');
-				}
-			}
-			return builder.toString();
-		}).collect(Collectors.toList());
-	}
+    @Override
+    public ConnectContent close() throws IOException
+    {
+        return this;
+    }
 
-	@Override
-	public Optional<ConnectEntry> getEntry(final String name) {
-		return getFile(name).map((f)->new FileConnectEntry(f, name));
-	}
+    @Override
+    public Optional<ClassLoader> getClassLoader()
+    {
+        return Optional.of(getClass().getClassLoader());
+    }
 
-	private Optional<File> getFile(String path) {
-		File file = new File(root, path);
-		if (!file.exists()) {
-			return Optional.empty();
-		}
-		final boolean checkInFile = path != null && path.indexOf(POINTER_UPPER_DIRECTORY) >= 0;
-		if (checkInFile) {
-			try {
-				if (!file.getCanonicalPath().startsWith(root.getCanonicalPath())) {
-					return Optional.empty();
-				}
-			} catch (IOException e) {
-				return Optional.empty();
-			}
-		}
-		return Optional.of(file);
-	}
+    @Override
+    public Iterable<String> getEntries() throws IOException
+    {
+        Path rootPath = root.toPath();
+        return Files.find(rootPath, Integer.MAX_VALUE, (p, a) -> true).map((p) -> {
+            Path relative = rootPath.relativize(p);
+            StringBuilder builder = new StringBuilder();
+            for (Path path : relative)
+            {
+                builder.append(path.getFileName());
+                if (Files.isDirectory(path))
+                {
+                    builder.append('/');
+                }
+            }
+            return builder.toString();
+        }).collect(Collectors.toList());
+    }
 
-	@Override
-	public Optional<Map<String, String>> getHeaders() {
-		return Optional.empty();
-	}
+    @Override
+    public Optional<ConnectEntry> getEntry(final String name)
+    {
+        return getFile(name).map((f) -> new FileConnectEntry(f, name));
+    }
+
+    private Optional<File> getFile(String path)
+    {
+        File file = new File(root, path);
+        if (!file.exists())
+        {
+            return Optional.empty();
+        }
+        final boolean checkInFile = path != null
+            && path.indexOf(POINTER_UPPER_DIRECTORY) >= 0;
+        if (checkInFile)
+        {
+            try
+            {
+                if (!file.getCanonicalPath().startsWith(root.getCanonicalPath()))
+                {
+                    return Optional.empty();
+                }
+            }
+            catch (IOException e)
+            {
+                return Optional.empty();
+            }
+        }
+        return Optional.of(file);
+    }
+
+    @Override
+    public Optional<Map<String, String>> getHeaders()
+    {
+        return Optional.empty();
+    }
 
 }

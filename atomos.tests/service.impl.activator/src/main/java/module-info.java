@@ -11,8 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-open module service.impl.activator {
-	requires transitive service.contract;
-	requires atomos.framework;
-	requires static osgi.annotation;
+open module service.impl.activator
+{
+    requires transitive service.contract;
+    requires atomos.framework;
+    requires static osgi.annotation;
 }

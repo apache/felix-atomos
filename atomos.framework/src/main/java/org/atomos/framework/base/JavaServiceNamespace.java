@@ -13,7 +13,8 @@
  */
 package org.atomos.framework.base;
 
-public final class JavaServiceNamespace {
-	public static final String JAVA_SERVICE_NAMESPACE = "equinox.java.service";
-	public static final String CAPABILITY_PROVIDES_WITH = "provides.with";
+public final class JavaServiceNamespace
+{
+    public static final String JAVA_SERVICE_NAMESPACE = "equinox.java.service";
+    public static final String CAPABILITY_PROVIDES_WITH = "provides.with";
 }

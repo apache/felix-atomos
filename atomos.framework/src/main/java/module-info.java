@@ -1,3 +1,4 @@
+
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +16,16 @@ import org.atomos.framework.base.AtomosFrameworkUtilHelper;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.connect.FrameworkUtilHelper;
 
-open module atomos.framework {
-	exports org.atomos.framework;
-	requires transitive org.eclipse.osgi;
-	requires static osgi.annotation;
-	requires static jdk.unsupported;
-	requires static org.apache.felix.gogo.runtime;
-	uses ConnectFrameworkFactory;
-	provides FrameworkUtilHelper with AtomosFrameworkUtilHelper;
+open module atomos.framework
+{
+    exports org.atomos.framework;
+
+    requires transitive org.eclipse.osgi;
+    requires static osgi.annotation;
+    requires static jdk.unsupported;
+    requires static org.apache.felix.gogo.runtime;
+
+    uses ConnectFrameworkFactory;
+
+    provides FrameworkUtilHelper with AtomosFrameworkUtilHelper;
 }

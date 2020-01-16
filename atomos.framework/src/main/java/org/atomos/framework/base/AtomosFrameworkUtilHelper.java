@@ -13,6 +13,7 @@
  */
 
 package org.atomos.framework.base;
+
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -20,22 +21,26 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.connect.FrameworkUtilHelper;
 
-public class AtomosFrameworkUtilHelper implements FrameworkUtilHelper {
-	static private final Set<FrameworkUtilHelper> helpers = new CopyOnWriteArraySet<>();
+public class AtomosFrameworkUtilHelper implements FrameworkUtilHelper
+{
+    static private final Set<FrameworkUtilHelper> helpers = new CopyOnWriteArraySet<>();
 
-	static void addHelper(FrameworkUtilHelper helper) {
-		helpers.add(helper);
-	}
-	static void removeHelper(FrameworkUtilHelper helper) {
-		helpers.remove(helper);
-	}
+    static void addHelper(FrameworkUtilHelper helper)
+    {
+        helpers.add(helper);
+    }
 
-	@Override
-	public Optional<Bundle> getBundle(Class<?> classFromBundle) {
-		return helpers.stream()
-			.map(h -> h.getBundle(classFromBundle)) //
-			.filter(Optional::isPresent) //
-			.map(Optional::get) //
-			.findFirst();
-	}
+    static void removeHelper(FrameworkUtilHelper helper)
+    {
+        helpers.remove(helper);
+    }
+
+    @Override
+    public Optional<Bundle> getBundle(Class<?> classFromBundle)
+    {
+        return helpers.stream().map(h -> h.getBundle(classFromBundle)) //
+            .filter(Optional::isPresent) //
+            .map(Optional::get) //
+            .findFirst();
+    }
 }

@@ -11,7 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-open module service.impl {
-	requires transitive service.contract;
-	requires static org.osgi.service.component.annotations;
+open module service.impl
+{
+    requires transitive service.contract;
+    requires static org.osgi.service.component.annotations;
 }

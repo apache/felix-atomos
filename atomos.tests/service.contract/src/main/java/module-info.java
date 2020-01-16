@@ -11,7 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-module service.contract {
-	requires static osgi.annotation;
-	exports org.atomos.service.contract;
+module service.contract
+{
+    requires static osgi.annotation;
+
+    exports org.atomos.service.contract;
 }

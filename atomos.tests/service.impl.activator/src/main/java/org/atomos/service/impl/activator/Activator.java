@@ -24,18 +24,22 @@ import org.atomos.service.contract.Echo;
 
 @org.osgi.annotation.bundle.Header(name = Constants.BUNDLE_ACTIVATOR, value = "${@class}")
 @org.osgi.annotation.bundle.Requirement(namespace = "osgi.ee", filter = "(&(osgi.ee=JavaSE)(version=1.8))")
-public class Activator implements BundleActivator {
+public class Activator implements BundleActivator
+{
 
-	@Override
-	public void start(BundleContext context) throws Exception {
-		Echo impl = (m) -> "impl.activator " + m;
-		context.registerService(Echo.class, impl, new Hashtable<String, String>(Collections.singletonMap("type", "impl.activator")));
-		System.out.println("Registered Echo service from activator.");
-	}
+    @Override
+    public void start(BundleContext context) throws Exception
+    {
+        Echo impl = (m) -> "impl.activator " + m;
+        context.registerService(Echo.class, impl, new Hashtable<String, String>(
+            Collections.singletonMap("type", "impl.activator")));
+        System.out.println("Registered Echo service from activator.");
+    }
 
-	@Override
-	public void stop(BundleContext context) throws Exception {
-		// Do nothing; unregistration happens automatically
-	}
+    @Override
+    public void stop(BundleContext context) throws Exception
+    {
+        // Do nothing; unregistration happens automatically
+    }
 
 }

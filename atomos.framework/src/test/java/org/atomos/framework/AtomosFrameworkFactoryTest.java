@@ -39,94 +39,112 @@ import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 
-public class AtomosFrameworkFactoryTest {
-	private Path storage;
-	private Framework testFramework;
+public class AtomosFrameworkFactoryTest
+{
+    private Path storage;
+    private Framework testFramework;
 
-	@Before
-	public void beforeTest() throws IOException {
-		storage = Files.createTempDirectory("equinoxTestStorage");
+    @Before
+    public void beforeTest() throws IOException
+    {
+        storage = Files.createTempDirectory("equinoxTestStorage");
 
-	}
+    }
 
-	@After
-	public void afterTest() throws BundleException, InterruptedException, IOException {
-		if (testFramework != null && testFramework.getState() == Bundle.ACTIVE) {
-			testFramework.stop();
-			testFramework.waitForStop(10000);
-		}
-	    Files.walk(storage)
-	      .sorted(Comparator.reverseOrder())
-	      .map(Path::toFile)
-	      .forEach(File::delete);
-	}
-	@Test
-	public void testFactory() throws BundleException {
-		ServiceLoader<ConnectFrameworkFactory> loader = ServiceLoader.load(getClass().getModule().getLayer(), ConnectFrameworkFactory.class);
-		assertNotNull("null loader.", loader);
+    @After
+    public void afterTest() throws BundleException, InterruptedException, IOException
+    {
+        if (testFramework != null && testFramework.getState() == Bundle.ACTIVE)
+        {
+            testFramework.stop();
+            testFramework.waitForStop(10000);
+        }
+        Files.walk(storage).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(
+            File::delete);
+    }
 
-		List<ConnectFrameworkFactory> factories = new ArrayList<>();
-		loader.forEach((f) -> factories.add(f));
-		assertFalse("No factory found.", factories.isEmpty());
+    @Test
+    public void testFactory() throws BundleException
+    {
+        ServiceLoader<ConnectFrameworkFactory> loader = ServiceLoader.load(
+            getClass().getModule().getLayer(), ConnectFrameworkFactory.class);
+        assertNotNull("null loader.", loader);
 
-		ConnectFrameworkFactory factory = factories.get(0);
-		assertNotNull("null factory.", factory);
+        List<ConnectFrameworkFactory> factories = new ArrayList<>();
+        loader.forEach((f) -> factories.add(f));
+        assertFalse("No factory found.", factories.isEmpty());
 
-		Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath());
-		testFramework = factory.newFramework(config, AtomosRuntime.newAtomosRuntime().newConnectFramework());
-		doTestFramework(testFramework);
-	}
+        ConnectFrameworkFactory factory = factories.get(0);
+        assertNotNull("null factory.", factory);
 
-	@Test
-	public void testRuntime() throws BundleException {
-		AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
-		Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath());
-		testFramework = runtime.newFramework(config);
-		doTestFramework(testFramework);
-	}
+        Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE,
+            storage.toFile().getAbsolutePath());
+        testFramework = factory.newFramework(config,
+            AtomosRuntime.newAtomosRuntime().newConnectFramework());
+        doTestFramework(testFramework);
+    }
 
-	private void doTestFramework(Framework testFramework) throws BundleException {
-		testFramework.start();
-		BundleContext bc = testFramework.getBundleContext();
-		assertNotNull("No context found.", bc);
-		Bundle[] bundles = bc.getBundles();
+    @Test
+    public void testRuntime() throws BundleException
+    {
+        AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
+        Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE,
+            storage.toFile().getAbsolutePath());
+        testFramework = runtime.newFramework(config);
+        doTestFramework(testFramework);
+    }
 
-		assertEquals("Wrong number of bundles.", ModuleLayer.boot().modules().size(), bundles.length);
+    private void doTestFramework(Framework testFramework) throws BundleException
+    {
+        testFramework.start();
+        BundleContext bc = testFramework.getBundleContext();
+        assertNotNull("No context found.", bc);
+        Bundle[] bundles = bc.getBundles();
 
-		for (Bundle b : bundles) {
-			String msg = b.getLocation() + ": " + b.getSymbolicName() + ": " + getState(b);
-			System.out.println(msg);
-			int expected;
-			if ("osgi.annotation".equals(b.getSymbolicName())) {
-				expected = Bundle.INSTALLED;
-			} else {
-				expected = Bundle.ACTIVE;
-			}
-			assertEquals("Wrong bundle state for bundle: " + msg, expected, b.getState());
-		}
-		Bundle javaLang = FrameworkUtil.getBundle(String.class);
-		assertNotNull("No bundle found.", javaLang);
-		assertEquals("Wrong bundle name.", String.class.getModule().getName(), javaLang.getSymbolicName());
-	}
+        assertEquals("Wrong number of bundles.", ModuleLayer.boot().modules().size(),
+            bundles.length);
 
-	
-	private String getState(Bundle b) {
-		switch (b.getState()) {
-		case Bundle.UNINSTALLED:
-			return "UNINSTALLED";
-		case Bundle.INSTALLED:
-			return "INSTALLED";
-		case Bundle.RESOLVED:
-			return "RESOLVED";
-		case Bundle.STARTING:
-			return "STARTING";
-		case Bundle.ACTIVE:
-			return "ACTIVE";
-		case Bundle.STOPPING:
-			return "STOPPING";
-		default:
-			return "unknown";
-		}
-	}
+        for (Bundle b : bundles)
+        {
+            String msg = b.getLocation() + ": " + b.getSymbolicName() + ": "
+                + getState(b);
+            System.out.println(msg);
+            int expected;
+            if ("osgi.annotation".equals(b.getSymbolicName()))
+            {
+                expected = Bundle.INSTALLED;
+            }
+            else
+            {
+                expected = Bundle.ACTIVE;
+            }
+            assertEquals("Wrong bundle state for bundle: " + msg, expected, b.getState());
+        }
+        Bundle javaLang = FrameworkUtil.getBundle(String.class);
+        assertNotNull("No bundle found.", javaLang);
+        assertEquals("Wrong bundle name.", String.class.getModule().getName(),
+            javaLang.getSymbolicName());
+    }
+
+    private String getState(Bundle b)
+    {
+        switch (b.getState())
+        {
+            case Bundle.UNINSTALLED:
+                return "UNINSTALLED";
+            case Bundle.INSTALLED:
+                return "INSTALLED";
+            case Bundle.RESOLVED:
+                return "RESOLVED";
+            case Bundle.STARTING:
+                return "STARTING";
+            case Bundle.ACTIVE:
+                return "ACTIVE";
+            case Bundle.STOPPING:
+                return "STOPPING";
+            default:
+                return "unknown";
+        }
+    }
 
 }

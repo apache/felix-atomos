@@ -11,7 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-module service.lib {
-	requires static osgi.annotation;
-	exports org.atomos.service.lib;
+module service.lib
+{
+    requires static osgi.annotation;
+
+    exports org.atomos.service.lib;
 }
