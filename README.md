@@ -1,4 +1,5 @@
-# Atomos
+# Atomos ![](https://github.com/tjwatson/atomos/workflows/Java%20CI/badge.svg)
+
 Atomos - A Java Module Framework using OSGi Connect
 
 Atomos requires an Equinox OSGi Framework implementation which supports OSGi Connect initially described in this OSGi [blog post](https://blog.osgi.org/2019/09/osgi-connect-revisited.html).  The OSGi Connect specification is currently being developed as an RFC with the OSGi Alliance and the current version of the RFC can be found [here](https://github.com/osgi/design/blob/master/rfcs/rfc0243/rfc-0243-Connect.pdf).  Currently a snapshot of the Equinox OSGi Framework is being used that implements the proposed OSGi Connect specification for an upcoming OSGi R8 Core specification.  Source for the snapshot is found in https://git.eclipse.org/c/equinox/rt.equinox.framework.git in the `osgiR8` branch and tempary binaries are pushed to https://github.com/tjwatson/atomos-temp-m2repo for Atomos.
