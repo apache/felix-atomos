@@ -13,21 +13,18 @@
  */
 package org.atomos.classpath.service.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,11 +34,9 @@ import org.atomos.framework.AtomosRuntime;
 import org.atomos.framework.AtomosRuntime.LoaderType;
 import org.atomos.framework.base.AtomosCommands;
 import org.atomos.service.contract.Echo;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -53,32 +48,22 @@ import org.osgi.framework.launch.Framework;
 
 public class ClasspathLaunchTest
 {
-    private Path storage;
+
     private Framework testFramework;
-    @Rule
-    public TestName name = new TestName();
 
-    @Before
-    public void beforeTest() throws IOException
-    {
-        storage = Files.createTempDirectory("equinoxTestStorage");
-
-    }
-
-    @After
-    public void afterTest() throws BundleException, InterruptedException, IOException
+    @AfterEach
+    void afterTest() throws BundleException, InterruptedException, IOException
     {
         if (testFramework != null && testFramework.getState() == Bundle.ACTIVE)
         {
             testFramework.stop();
             testFramework.waitForStop(10000);
         }
-        Files.walk(storage).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(
-            File::delete);
     }
 
     @Test
-    public void testClassPathGogo() throws BundleException, InvalidSyntaxException
+    void testClassPathGogo(@TempDir Path storage)
+        throws BundleException, InvalidSyntaxException
     {
 
         ClasspathLaunch.main(new String[] {
@@ -93,38 +78,39 @@ public class ClasspathLaunchTest
 
         assertEquals(1, serviceReferences.size());
         AtomosCommands ac = bc.getService(serviceReferences.iterator().next());
-        assertNotNull("AtomosCommands required", ac);
+        assertNotNull(ac, "AtomosCommands required");
         ac.list();
 
     }
 
     @Test
-    public void testClassPathServices() throws BundleException, InvalidSyntaxException
+    void testClassPathServices(@TempDir Path storage)
+        throws BundleException, InvalidSyntaxException
     {
         ClasspathLaunch.main(new String[] {
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
         testFramework = ClasspathLaunch.getFramework();
         BundleContext bc = testFramework.getBundleContext();
-        assertNotNull("No context found.", bc);
+        assertNotNull(bc, "No context found.");
         checkBundleStates(bc.getBundles());
 
         checkServices(bc, 4);
         AtomosRuntime runtime = getRuntime(bc);
-        assertNull("Found a ModuleLayer.",
-            runtime.getBootLayer().adapt(ModuleLayer.class).orElse(null));
+        assertNull(runtime.getBootLayer().adapt(ModuleLayer.class).orElse(null),
+            "Found a ModuleLayer.");
     }
 
     private AtomosRuntime getRuntime(BundleContext bc)
     {
         ServiceReference<AtomosRuntime> ref = bc.getServiceReference(AtomosRuntime.class);
-        assertNotNull("No reference found.", ref);
+        assertNotNull(ref, "No reference found.");
         AtomosRuntime runtime = bc.getService(ref);
-        assertNotNull("No service found.", runtime);
+        assertNotNull(runtime, "No service found.");
         return runtime;
     }
 
     @Test
-    public void testInvalidCreateLayer() throws BundleException
+    void testInvalidCreateLayer(@TempDir Path storage) throws BundleException
     {
         AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
         try
@@ -140,13 +126,13 @@ public class ClasspathLaunchTest
     }
 
     @Test
-    public void testFindBundle() throws BundleException
+    void testFindBundle(@TempDir Path storage) throws BundleException
     {
         ClasspathLaunch.main(new String[] {
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
         testFramework = ClasspathLaunch.getFramework();
         BundleContext bc = testFramework.getBundleContext();
-        assertNotNull("No context found.", bc);
+        assertNotNull(bc, "No context found.");
 
         AtomosRuntime runtime = getRuntime(bc);
         assertFindBundle("java.base", runtime.getBootLayer(), runtime.getBootLayer(),
@@ -159,22 +145,22 @@ public class ClasspathLaunchTest
     }
 
     @Test
-    public void testGetEntry() throws BundleException
+    void testGetEntry(@TempDir Path storage) throws BundleException
     {
         ClasspathLaunch.main(new String[] {
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
         testFramework = ClasspathLaunch.getFramework();
         BundleContext bc = testFramework.getBundleContext();
-        assertNotNull("No context found.", bc);
+        assertNotNull(bc, "No context found.");
 
         AtomosRuntime runtime = getRuntime(bc);
         Bundle b = runtime.getBundle(assertFindBundle("service.impl.a",
             runtime.getBootLayer(), runtime.getBootLayer(), true));
-        assertNotNull("No bundle found.", b);
+        assertNotNull(b, "No bundle found.");
         URL mf = b.getEntry("/META-INF/MANIFEST.MF");
-        assertNotNull("No manifest found.", mf);
+        assertNotNull(mf, "No manifest found.");
         mf = b.getEntry("META-INF/MANIFEST.MF");
-        assertNotNull("No manifest found.", mf);
+        assertNotNull(mf, "No manifest found.");
     }
 
     private AtomosBundleInfo assertFindBundle(String name, AtomosLayer layer,
@@ -183,14 +169,14 @@ public class ClasspathLaunchTest
         Optional<AtomosBundleInfo> result = layer.findAtomosBundle(name);
         if (expectedToFind)
         {
-            assertTrue("Could not find bundle: " + name, result.isPresent());
-            assertEquals("Wrong name", name, result.get().getSymbolicName());
-            assertEquals("Wrong layer for bundle: " + name, expectedLayer,
-                result.get().getAtomosLayer());
+            assertTrue(result.isPresent(), "Could not find bundle: " + name);
+            assertEquals(name, result.get().getSymbolicName(), "Wrong name");
+            assertEquals(expectedLayer, result.get().getAtomosLayer(),
+                "Wrong layer for bundle: " + name);
         }
         else
         {
-            assertFalse("Found unexpected bundle: " + name, result.isPresent());
+            assertFalse(result.isPresent(), "Found unexpected bundle: " + name);
         }
         return result.orElse(null);
     }
@@ -200,14 +186,14 @@ public class ClasspathLaunchTest
     {
         ServiceReference<?>[] echoRefs = bc.getAllServiceReferences(Echo.class.getName(),
             null);
-        assertNotNull("No Echo service ref found.", echoRefs);
-        assertEquals("Wrong number of services.", expectedNumber, echoRefs.length);
+        assertNotNull(echoRefs, "No Echo service ref found.");
+        assertEquals(expectedNumber, echoRefs.length, "Wrong number of services.");
         for (ServiceReference<?> ref : echoRefs)
         {
             Echo echo = (Echo) bc.getService(ref);
-            assertNotNull("No Echo service found.", echo);
-            assertEquals("Wrong Echo.", ref.getProperty("type") + " Hello!!",
-                echo.echo("Hello!!"));
+            assertNotNull(echo, "No Echo service found.");
+            assertEquals(ref.getProperty("type") + " Hello!!", echo.echo("Hello!!"),
+                "Wrong Echo.");
             checkClassBundle(echo, ref);
         }
     }
@@ -215,7 +201,7 @@ public class ClasspathLaunchTest
     private void checkClassBundle(Object service, ServiceReference<?> ref)
     {
         Bundle b = FrameworkUtil.getBundle(service.getClass());
-        assertEquals("Wrong bundle.", ref.getBundle(), b);
+        assertEquals(ref.getBundle(), b, "Wrong bundle.");
     }
 
     private String getState(Bundle b)
@@ -241,7 +227,7 @@ public class ClasspathLaunchTest
 
     private void checkBundleStates(Bundle[] bundles)
     {
-        assertTrue("No bundles: " + Arrays.toString(bundles), bundles.length > 0);
+        assertTrue(bundles.length > 0, "No bundles: " + Arrays.toString(bundles));
         for (Bundle b : bundles)
         {
             String msg = b.getBundleId() + " " + b.getLocation() + ": "
@@ -270,7 +256,7 @@ public class ClasspathLaunchTest
                     t.printStackTrace();
                 }
             }
-            assertEquals("Wrong bundle state for bundle: " + msg, expected, b.getState());
+            assertEquals(expected, b.getState(), "Wrong bundle state for bundle: " + msg);
         }
     }
 }

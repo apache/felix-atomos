@@ -10,7 +10,6 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>modulepath.service.test</artifactId>
-
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -64,8 +63,8 @@
 			<artifactId>osgi.promise</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

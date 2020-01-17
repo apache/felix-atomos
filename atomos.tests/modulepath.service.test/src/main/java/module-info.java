@@ -24,4 +24,6 @@ module service.test
     requires osgi.promise;
 
     uses AtomosRuntime;
+
+    opens org.atomos.modulepath.service.test;
 }

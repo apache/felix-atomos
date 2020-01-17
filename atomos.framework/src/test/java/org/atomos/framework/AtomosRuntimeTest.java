@@ -13,18 +13,18 @@
  */
 package org.atomos.framework;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class AtomosRuntimeTest
 {
 
     @Test
-    public void testRuntimeConfigSimple()
+    void testRuntimeConfigSimple()
     {
         String[] args = { "a=1", "b=2" };
         Map<String, String> map = AtomosRuntime.getConfiguration(args);
@@ -34,7 +34,7 @@ public class AtomosRuntimeTest
     }
 
     @Test
-    public void testRuntimeConfig()
+    void testRuntimeConfig()
     {
         String[] args = { "calc=1+1=2", "separator==" };
         Map<String, String> map = AtomosRuntime.getConfiguration(args);
@@ -44,7 +44,7 @@ public class AtomosRuntimeTest
     }
 
     @Test
-    public void testRuntimeConfigFilter()
+    void testRuntimeConfigFilter()
     {
         String[] args = { "nono", "no:no" };
         Map<String, String> map = AtomosRuntime.getConfiguration(args);
@@ -52,7 +52,7 @@ public class AtomosRuntimeTest
     }
 
     @Test
-    public void testRuntimeConfigSameKey()
+    void testRuntimeConfigSameKey()
     {
         String[] args = { "a=1", "a=2" };
         Map<String, String> map = AtomosRuntime.getConfiguration(args);
@@ -61,7 +61,7 @@ public class AtomosRuntimeTest
     }
 
     @Test
-    public void testRuntimeConfigNoValue()
+    void testRuntimeConfigNoValue()
     {
         String[] args = { "a=" };
         Map<String, String> map = AtomosRuntime.getConfiguration(args);
@@ -70,7 +70,7 @@ public class AtomosRuntimeTest
     }
 
     @Test
-    public void testRuntimeConfigEmpty()
+    void testRuntimeConfigEmpty()
     {
         String[] args = {};
         Map<String, String> map = AtomosRuntime.getConfiguration(args);
@@ -78,7 +78,7 @@ public class AtomosRuntimeTest
     }
 
     @Test
-    public void testRuntimeConfigNull()
+    void testRuntimeConfigNull()
     {
         String[] args = null;
         Map<String, String> map = AtomosRuntime.getConfiguration(args);

@@ -3,15 +3,12 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
 	<groupId>org.atomos</groupId>
 	<artifactId>atomos</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
-
 	<name>atomos</name>
 	<url>https://github.com/tjwatson/atomos</url>
-
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>11</java.version>
@@ -20,13 +17,11 @@
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<atomos.version>${project.version}</atomos.version>
 	</properties>
-
 	<modules>
 		<module>atomos.framework</module>
 		<module>atomos.tests</module>
 		<module>atomos.substrate.config</module>
 	</modules>
-
 	<build>
 		<pluginManagement>
 			<plugins>
@@ -48,7 +43,7 @@
 				</plugin>
 				<plugin>
 					<artifactId>maven-surefire-plugin</artifactId>
-					<version>2.21.0</version>
+					<version>2.22.2</version>
 					<dependencies>
 						<dependency>
 							<groupId>org.ow2.asm</groupId>
@@ -81,7 +76,7 @@
 									<pluginExecutionFilter>
 										<groupId>org.apache.maven.plugins</groupId>
 										<artifactId>maven-dependency-plugin</artifactId>
-										<versionRange>${maven-dependency-plugin.version}
+										<versionRange>${maven-dependency-plugin.version} 
 										</versionRange>
 										<goals>
 											<goal>copy-dependencies</goal>
@@ -101,9 +96,10 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>4.12</version>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter</artifactId>
+				<version>5.5.2</version>
+				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.osgi</groupId>
