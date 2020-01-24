@@ -13,7 +13,6 @@
  */
 package org.atomos.framework.base;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -413,7 +412,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         Bundle result = null;
         try
         {
-            result = bc.installBundle(location, new ByteArrayInputStream(new byte[0]));
+            result = bc.installBundle(location);
         }
         finally
         {
