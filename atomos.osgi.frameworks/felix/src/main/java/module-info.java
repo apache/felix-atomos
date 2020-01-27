@@ -12,18 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.atomos.framework.AtomosRuntime;
-module service.image
-{
-    requires atomos.framework;
-    requires atomos.osgi.framework;
-    requires service.impl;
-    requires service.impl.activator;
-    requires org.apache.felix.scr;
-    requires org.apache.felix.gogo.command;
-    requires org.apache.felix.gogo.runtime;
-    requires org.apache.felix.gogo.shell;
-    requires jdk.jdwp.agent;
 
-    uses AtomosRuntime;
+open module atomos.osgi.framework
+{
+    requires transitive org.apache.felix.framework;
 }

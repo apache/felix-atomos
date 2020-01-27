@@ -27,9 +27,19 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.atomos.osgi.frameworks.equinox</groupId>
+			<artifactId>atomos.osgi.framework</artifactId>
+			<version>${atomos.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.eclipse.platform</groupId>
 			<artifactId>org.eclipse.osgi</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.framework</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>org.atomos</groupId>
 			<artifactId>atomos.framework</artifactId>
@@ -185,6 +195,56 @@
 										}
 									</moduleInfoSource>
 								</module>
+
+								<module>
+									<artifact>
+										<groupId>org.apache.felix</groupId>
+										<artifactId>org.apache.felix.framework</artifactId>
+									</artifact>
+									<moduleInfoSource>
+										open module org.apache.felix.framework {
+										requires java.xml;
+
+										exports org.apache.felix.framework;
+										exports org.apache.felix.framework.cache;
+										exports org.apache.felix.framework.capabilityset;
+										exports org.apache.felix.framework.ext;
+										exports org.apache.felix.framework.resolver;
+										exports org.apache.felix.framework.util;
+										exports org.apache.felix.framework.util.manifestparser;
+										exports org.apache.felix.framework.wiring;
+										exports org.apache.felix.resolver;
+										exports org.apache.felix.resolver.util;
+
+										exports org.osgi.dto;
+										exports org.osgi.framework;
+										exports org.osgi.framework.connect;
+										exports org.osgi.framework.dto;
+										exports org.osgi.framework.hooks.bundle;
+										exports org.osgi.framework.hooks.resolver;
+										exports org.osgi.framework.hooks.service;
+										exports org.osgi.framework.hooks.weaving;
+										exports org.osgi.framework.launch;
+										exports org.osgi.framework.namespace;
+										exports org.osgi.framework.startlevel;
+										exports org.osgi.framework.startlevel.dto;
+										exports org.osgi.framework.wiring;
+										exports org.osgi.framework.wiring.dto;
+										exports org.osgi.resource;
+										exports org.osgi.resource.dto;
+										exports org.osgi.service.packageadmin;
+										exports org.osgi.service.resolver;
+										exports org.osgi.service.startlevel;
+										exports org.osgi.service.url;
+										exports org.osgi.util.tracker;
+
+										provides org.osgi.framework.launch.FrameworkFactory with org.apache.felix.framework.FrameworkFactory;
+										provides org.osgi.framework.connect.ConnectFrameworkFactory with org.apache.felix.framework.FrameworkFactory;
+
+										}
+									</moduleInfoSource>
+								</module>
+
 								<module>
 									<artifact>
 										<groupId>org.osgi</groupId>
@@ -301,6 +361,7 @@
 								<path>${project.build.directory}/${project.artifactId}-${project.version}.jar</path>
 							</modulePath>
 							<modules>
+								<module>atomos.osgi.framework</module>
 								<module>atomos.framework</module>
 								<module>org.apache.felix.gogo.command</module>
 								<module>org.apache.felix.gogo.runtime</module>
@@ -342,7 +403,7 @@
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>
 							<excludeTransitive>true</excludeTransitive>
-							<excludeGroupIds>org.apache.felix,org.eclipse.platform</excludeGroupIds>
+							<excludeGroupIds>org.osgi,org.apache.felix,org.eclipse.platform</excludeGroupIds>
 						</configuration>
 					</execution>
 				</executions>

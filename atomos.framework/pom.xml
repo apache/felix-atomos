@@ -26,8 +26,9 @@
 	</repositories>
 	<dependencies>
 		<dependency>
-			<groupId>org.eclipse.platform</groupId>
-			<artifactId>org.eclipse.osgi</artifactId>
+			<groupId>org.atomos.osgi.frameworks.equinox</groupId>
+			<artifactId>atomos.osgi.framework</artifactId>
+			<version>${atomos.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -86,6 +87,14 @@
 	</profiles>
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+
+				<configuration>
+					<argLine>--add-opens java.base/java.net=org.apache.felix.framework</argLine>
+				</configuration>
+			</plugin>
 			<plugin>
 				<!-- Build an executable JAR -->
 				<groupId>org.apache.maven.plugins</groupId>

@@ -20,7 +20,7 @@ open module atomos.framework
 {
     exports org.atomos.framework;
 
-    requires transitive org.eclipse.osgi;
+    requires transitive atomos.osgi.framework;
     requires static osgi.annotation;
     requires static jdk.unsupported;
     requires static org.apache.felix.gogo.runtime;

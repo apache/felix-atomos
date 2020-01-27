@@ -18,6 +18,7 @@
 		<atomos.version>${project.version}</atomos.version>
 	</properties>
 	<modules>
+		<module>atomos.osgi.frameworks</module>
 		<module>atomos.framework</module>
 		<module>atomos.tests</module>
 		<module>atomos.substrate.config</module>
@@ -144,6 +145,17 @@
 				<groupId>org.eclipse.platform</groupId>
 				<artifactId>org.eclipse.osgi</artifactId>
 				<version>3.16.0.tjwatson_osgiConnect06</version>
+				<exclusions>
+					<exclusion>
+						<groupId>*</groupId>
+						<artifactId>*</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>org.apache.felix.framework</artifactId>
+				<version>6.1.0-CONNECT</version>
 				<exclusions>
 					<exclusion>
 						<groupId>*</groupId>
