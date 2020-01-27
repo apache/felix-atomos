@@ -192,10 +192,10 @@
 										provides org.osgi.framework.launch.FrameworkFactory with org.eclipse.osgi.launch.EquinoxFactory;
 										provides org.osgi.framework.connect.ConnectFrameworkFactory with org.eclipse.osgi.launch.EquinoxFactory;
 
+										uses org.osgi.framework.connect.FrameworkUtilHelper;
 										}
 									</moduleInfoSource>
 								</module>
-
 								<module>
 									<artifact>
 										<groupId>org.apache.felix</groupId>
@@ -203,7 +203,6 @@
 									</artifact>
 									<moduleInfoSource>
 										open module org.apache.felix.framework {
-										requires java.xml;
 
 										exports org.apache.felix.framework;
 										exports org.apache.felix.framework.cache;
@@ -241,10 +240,11 @@
 										provides org.osgi.framework.launch.FrameworkFactory with org.apache.felix.framework.FrameworkFactory;
 										provides org.osgi.framework.connect.ConnectFrameworkFactory with org.apache.felix.framework.FrameworkFactory;
 
+										uses org.apache.felix.framework.ext.ClassPathExtenderFactory;
+										uses org.osgi.framework.connect.FrameworkUtilHelper;
 										}
 									</moduleInfoSource>
 								</module>
-
 								<module>
 									<artifact>
 										<groupId>org.osgi</groupId>
@@ -268,7 +268,7 @@
 										requires java.logging;
 										requires java.management;
 										requires transitive org.apache.felix.gogo.runtime;
-										requires transitive org.eclipse.osgi;
+										requires transitive atomos.osgi.framework;
 										requires transitive osgi.promise;
 
 										exports org.apache.felix.scr.component;
@@ -302,7 +302,7 @@
 									<moduleInfoSource>
 										module org.apache.felix.gogo.command {
 										requires transitive org.apache.felix.gogo.runtime;
-										requires transitive org.eclipse.osgi;
+										requires transitive atomos.osgi.framework;
 
 										exports org.apache.felix.gogo.command;
 
@@ -318,7 +318,7 @@
 										module org.apache.felix.gogo.runtime {
 										requires java.logging;
 
-										requires transitive org.eclipse.osgi;
+										requires transitive atomos.osgi.framework;
 
 										exports org.apache.felix.gogo.runtime;
 										exports org.apache.felix.gogo.runtime.activator;
@@ -337,7 +337,7 @@
 									<moduleInfoSource>
 										module org.apache.felix.gogo.shell {
 										requires transitive org.apache.felix.gogo.runtime;
-										requires transitive org.eclipse.osgi;
+										requires transitive atomos.osgi.framework;
 
 										exports org.apache.felix.gogo.options;
 										exports org.apache.felix.gogo.shell;
@@ -367,7 +367,6 @@
 								<module>org.apache.felix.gogo.runtime</module>
 								<module>org.apache.felix.gogo.shell</module>
 								<module>org.apache.felix.scr</module>
-								<module>org.eclipse.osgi</module>
 								<module>osgi.promise</module>
 								<module>service.impl</module>
 								<module>service.impl.activator</module>
