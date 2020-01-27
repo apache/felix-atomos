@@ -461,13 +461,18 @@ public class ModulepathLaunchTest
     }
 
     @Test
-    void testInvalidUseOfRuntime(@TempDir Path storage1,
-        @TempDir Path storage2)
+    void testInvalidUseOfRuntime(
+        @TempDir Path storage)
         throws BundleException, InterruptedException
     {
+        File storage1 = new File(storage.toFile(), "s1");
+        storage1.mkdirs();
+        File storage2 = new File(storage.toFile(), "s2");
+        storage2.mkdirs();
+
         ModulepathLaunch.main(new String[] {
                 Constants.FRAMEWORK_STORAGE + '='
-                    + storage1.toFile().getAbsolutePath() });
+                    + storage1.getAbsolutePath() });
         testFramework = ModulepathLaunch.getFramework();
         final BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
@@ -475,16 +480,24 @@ public class ModulepathLaunchTest
         final AtomosRuntime atomosRuntime = bc.getService(
             bc.getServiceReference(AtomosRuntime.class));
 
+        Framework f = null;
         try
         {
-            Framework f = atomosRuntime.newFramework(
-                Map.of(Constants.FRAMEWORK_STORAGE, storage2.toFile().getAbsolutePath()));
+            f = atomosRuntime.newFramework(
+                Map.of(Constants.FRAMEWORK_STORAGE, storage2.getAbsolutePath()));
             f.start();
             fail();
         }
         catch (final IllegalStateException e)
         {
             // expected
+        }
+        finally
+        {
+            if (f != null)
+            {
+                f.stop();
+            }
         }
     }
 
