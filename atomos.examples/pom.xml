@@ -7,17 +7,8 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <packaging>pom</packaging>
-  <artifactId>atomos.tests</artifactId>
+  <artifactId>atomos.examples</artifactId>
   <modules>
-    <module>service.contract</module>
-    <module>service.impl</module>
-    <module>service.impl.activator</module>
-    <module>service.impl.a</module>
-    <module>service.impl.b</module>
-    <module>service.user</module>
-    <module>service.lib</module>
-    <module>resources.a</module>
-    <module>modulepath.service.test</module>
-    <module>classpath.service.test</module>
+    <module>atomos.examples.jlink</module>
   </modules>
 </project>

@@ -33,4 +33,4 @@ jobs:
       run: gu install native-image
     - name: Build substrate with maven
       if: matrix.os == 'ubuntu-latest'
-      run: mvn clean package -f atomos.tests/service.substrate.equinox/pom.xml
+      run: mvn clean package -f atomos.examples/atomos.examples.substrate.equinox/pom.xml 
