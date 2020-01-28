@@ -29,6 +29,10 @@ public class GogoConsole
 
         AtomosRuntime atomosRuntime = AtomosRuntime.newAtomosRuntime();
         Map<String, String> config = AtomosRuntime.getConfiguration(args);
+        // Add this configs until we figure out why Felix cannot do module reflection for system packages
+        config.put("org.osgi.framework.system.packages",
+            "${osgi-exports},javax.management,javax.management.modelmbean,javax.management.remote,javax.naming,javax.net.ssl,javax.security.auth,javax.xml.parsers,org.xml.sax,org.xml.sax.helpers");
+        config.put("felix.systempackages.substitution", "true");
         Framework framework = atomosRuntime.newFramework(config);
         framework.init();
         framework.start();

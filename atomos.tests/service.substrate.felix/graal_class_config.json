@@ -1,28 +1,58 @@
 [
-  {
-    "name":"org.atomos.framework.AtomosRuntime"
-  },
-  {
-    "name":"org.osgi.framework.hooks.bundle.CollisionHook"
-  },
-  {
-    "name":"org.osgi.framework.hooks.resolver.ResolverHookFactory"
-  },
-  {
-    "name" : "java.net.URL",
-    "allPublicConstructors" : true,
+{"name":"org.osgi.service.http.runtime.HttpServiceRuntime"},
+{"name":"javax.servlet.Servlet"},
+{"name":"org.osgi.service.log.admin.LoggerAdmin"},
+{
+"name":"org.apache.felix.webconsole.ConfigurationPrinter"
+},
+{
+"name":"org.apache.felix.webconsole.bundleinfo.BundleInfoProvider"
+},
+{
+  "name":"java.lang.Boolean",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }]
+},
+{
+"name":"org.apache.felix.service.command.Converter"
+},
+{
+"name":"org.apache.felix.service.command.CommandProcessor"
+},
+{
+"name":"org.osgi.service.component.runtime.ServiceComponentRuntime"
+},
+{
+"name":"org.apache.felix.service.threadio.ThreadIO"
+},
+{
+"name":"org.atomos.framework.AtomosRuntime"
+},
+{
+"name":"org.osgi.framework.Version",
+"allPublicConstructors" : true,
+    "allPublicMethods" : true
+},
+{
+"name":"org.osgi.framework.VersionRange",
+"allPublicConstructors" : true,
+    "allPublicMethods" : true
+},
+{
+"name":"org.osgi.framework.hooks.bundle.CollisionHook"
+},
+{
+"name":"org.osgi.framework.hooks.resolver.ResolverHookFactory"
+},
+   {
+     "name" : "java.net.URL",
+ "allPublicConstructors" : true,
     "allPublicMethods" : true,
     "allDeclaredMethods" : true,
     "allPublicFields" : true,
     "allDeclaredFields" : true
-  },
-  {
+   },
+   {
     "name" : "org.apache.felix.log.Activator",
-    "allPublicConstructors" : true,
-    "allPublicMethods" : true
-  },
-  {
-    "name" : "org.apache.felix.log.extension.Activator",
     "allPublicConstructors" : true,
     "allPublicMethods" : true
   },
