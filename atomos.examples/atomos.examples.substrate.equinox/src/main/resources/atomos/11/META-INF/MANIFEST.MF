@@ -1,25 +1,29 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1546558792019
-Build-Jdk: 1.8.0_192
-Built-By: rotty
-Bundle-Activator: org.apache.felix.gogo.shell.Activator
-Bundle-Description: Apache Felix Gogo Subproject
-Bundle-DocURL: https://www.apache.org/
-Bundle-License: https://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-Description: Java(TM) Common Annotations 1.3 API Design Specifi
+ cation
+Automatic-Module-Name: java.annotation
+Bundle-License: https://github.com/javaee/javax.annotation/blob/master
+ /LICENSE
+Bundle-SymbolicName: javax.annotation-api
+Implementation-Version: 1.3.2
+Archiver-Version: Plexus Archiver
+Built-By: jayaskum
 Bundle-ManifestVersion: 2
-Bundle-Name: Apache Felix Gogo Shell
-Bundle-SymbolicName: org.apache.felix.gogo.shell
-Bundle-Vendor: The Apache Software Foundation
-Bundle-Version: 1.1.2
-Created-By: Apache Maven Bundle Plugin
-Import-Package: org.apache.felix.service.command;version="[1.0,2)",org
- .osgi.framework;version="[1.8,2)",org.osgi.framework.startlevel;versi
- on="[1.0,2)",org.osgi.util.tracker;version="[1.5,2)"
-Provide-Capability: org.apache.felix.gogo;org.apache.felix.gogo="shell
- .implementation";version:Version="1.0.0";implementation.name="gogo.sh
- ell"
-Require-Capability: org.apache.felix.gogo;filter:="(&(org.apache.felix
- .gogo=command.implementation)(version>=1.0.0)(!(version>=2.0.0)))";ef
- fective:=active,osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"
-Tool: Bnd-4.1.0.201810241949
+Bnd-LastModified: 1519208655595
+Specification-Vendor: Oracle Corporation
+Implementation-Vendor-Id: org.glassfish
+Bundle-DocURL: https://javaee.github.io/glassfish
+Bundle-Vendor: GlassFish Community
+Import-Package: javax.annotation;version="1.3.2",javax.annotation.secu
+ rity;version="1.3.2",javax.annotation.sql;version="1.3.2"
+Tool: Bnd-0.0.255
+Implementation-Vendor: GlassFish Community
+Export-Package: javax.annotation;version="1.3.2",javax.annotation.secu
+ rity;version="1.3.2",javax.annotation.sql;version="1.3.2"
+Bundle-Version: 1.3.2
+Bundle-Name: javax.annotation API
+Extension-Name: javax.annotation
+Created-By: 1.8.0_60 (Oracle Corporation)
+Build-Jdk: 1.8.0_60
+Specification-Version: 1.3
 

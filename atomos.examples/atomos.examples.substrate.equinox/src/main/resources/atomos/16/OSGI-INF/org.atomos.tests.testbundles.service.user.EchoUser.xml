@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="org.atomos.tests.testbundles.service.user.EchoUser" immediate="true" activate="activate">
+  <property name="echo.reference" type="Boolean" value="true"/>
+  <service>
+    <provide interface="org.atomos.tests.testbundles.service.user.EchoUser"/>
+  </service>
+  <reference name="Echo" interface="org.atomos.tests.testbundles.service.contract.Echo" bind="setEcho" unbind="unsetEcho"/>
+  <implementation class="org.atomos.tests.testbundles.service.user.EchoUser"/>
+</scr:component>

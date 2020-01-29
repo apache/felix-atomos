@@ -1,26 +1,25 @@
 Manifest-Version: 1.0
-Created-By: 11.0.5 (Eclipse OpenJ9)
-Built-By: tjwatson
-Build-Jdk: 11.0.5
-Bnd-LastModified: 1579125918508
+Bundle-Copyright: Copyright (c) OSGi Alliance (2000, 2019). All Rights
+  Reserved.
+Bundle-Description: OSGi Promise API Release 7 for use inside and outs
+ ide of OSGi environments
+Bundle-Developers: osgi; email=info@osgi.org; name="OSGi Alliance"; or
+ ganization="OSGi Alliance"; organizationUrl=https://www.osgi.org/
+Bundle-DocURL: https://www.osgi.org/
+Bundle-License: Apache-2.0; link="http://www.apache.org/licenses/LICEN
+ SE-2.0"; description="Apache License, Version 2.0"
 Bundle-ManifestVersion: 2
-Bundle-Name: atomos.substrate.config
-Bundle-SymbolicName: atomos.substrate.config
-Bundle-Version: 0.0.1.202001152205
-Import-Package: org.osgi.framework;version="[1.10,2)",org.osgi.framework
- .wiring;version="[1.2,2)",org.osgi.service.component.runtime;version="[
- 1.4,2)",org.osgi.service.component.runtime.dto;version="[1.4,2)"
-Private-Package: org.atomos.substrate.config
-Provide-Capability: osgi.service;objectClass:List<String>="org.atomos.su
- bstrate.config.ReflectConfig",osgi.service;objectClass:List<String>="or
- g.atomos.substrate.config.ResourceConfig",osgi.service;objectClass:List
- <String>="org.atomos.substrate.config.SubstrateService"
-Require-Capability: osgi.service;filter:="(objectClass=org.osgi.service.
- component.runtime.ServiceComponentRuntime)";effective:=active,osgi.exte
- nder;filter:="(&(osgi.extender=osgi.component)(version>=1.4.0)(!(versio
- n>=2.0.0)))",osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"
-Service-Component: OSGI-INF/org.atomos.substrate.config.ReflectConfig.xm
- l,OSGI-INF/org.atomos.substrate.config.ResourceConfig.xml,OSGI-INF/org.
- atomos.substrate.config.SubstrateService.xml
-Tool: Bnd-4.1.0.201810181252
+Bundle-Name: org.osgi:osgi.promise
+Bundle-SCM: url=https://osgi.org/gitweb/build.git, connection=scm:git:
+ https://osgi.org/git/build.git, developerConnection=scm:git:https://o
+ sgi.org/git/build.git, tag=r7-cmpn-ri-ct-final
+Bundle-SymbolicName: osgi.promise
+Bundle-Vendor: OSGi Alliance https://www.osgi.org/
+Bundle-Version: 7.0.1.201901141957
+Export-Package: org.osgi.util.promise;version="1.1.1";uses:="org.osgi.
+ util.function",org.osgi.util.function;version="1.1"
+Git-Descriptor: r7-cmpn-ri-ct-final
+Git-SHA: c886e125edee3b79de55b0a2002e6ea61570b481
+Import-Package: org.osgi.util.function;version="[1.1,2)"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.7))"
 

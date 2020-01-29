@@ -1,16 +1,21 @@
 Manifest-Version: 1.0
-Created-By: 11.0.5 (Eclipse OpenJ9)
+Created-By: 11.0.6 (Oracle Corporation)
 Built-By: tjwatson
-Build-Jdk: 11.0.5
-Bnd-LastModified: 1579122228832
-Bundle-Activator: org.atomos.service.impl.activator.Activator
+Build-Jdk: 11.0.6
+Bnd-LastModified: 1580309411034
 Bundle-ManifestVersion: 2
-Bundle-Name: service.impl.activator
-Bundle-SymbolicName: service.impl.activator
-Bundle-Version: 0.0.1.202001152103
-Import-Package: org.atomos.service.contract;version="[1.0,2)",org.osgi.f
- ramework;version="[1.10,2)"
-Private-Package: org.atomos.service.impl.activator
-Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"
+Bundle-Name: atomos.tests.testbundles.service.impl
+Bundle-SymbolicName: atomos.tests.testbundles.service.impl
+Bundle-Version: 0.0.1.202001291450
+Import-Package: org.atomos.tests.testbundles.service.contract;version="[
+ 1.0,2)"
+Private-Package: org.atomos.tests.testbundles.service.impl
+Provide-Capability: osgi.service;objectClass:List<String>="org.atomos.te
+ sts.testbundles.service.contract.Echo"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))",o
+ sgi.extender;filter:="(&(osgi.extender=osgi.component)(version>=1.4.0)(
+ !(version>=2.0.0)))"
+Service-Component: OSGI-INF/org.atomos.tests.testbundles.service.impl.Ec
+ hoImpl.xml
 Tool: Bnd-4.1.0.201810181252
 

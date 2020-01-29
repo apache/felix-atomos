@@ -1,29 +1,32 @@
 Manifest-Version: 1.0
-Bundle-Description: Java(TM) Common Annotations 1.3 API Design Specifi
- cation
-Automatic-Module-Name: java.annotation
-Bundle-License: https://github.com/javaee/javax.annotation/blob/master
- /LICENSE
-Bundle-SymbolicName: javax.annotation-api
-Implementation-Version: 1.3.2
-Archiver-Version: Plexus Archiver
-Built-By: jayaskum
+Bnd-LastModified: 1438816203355
+Build-Jdk: 1.7.0_71
+Built-By: cziegeler
+Bundle-Description: Apache Felix is a community effort to implement the 
+ OSGi Framework and Service platform and other interesting OSGi-related 
+ technologies.
+Bundle-DocURL: http://www.apache.org/
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
 Bundle-ManifestVersion: 2
-Bnd-LastModified: 1519208655595
-Specification-Vendor: Oracle Corporation
-Implementation-Vendor-Id: org.glassfish
-Bundle-DocURL: https://javaee.github.io/glassfish
-Bundle-Vendor: GlassFish Community
-Import-Package: javax.annotation;version="1.3.2",javax.annotation.secu
- rity;version="1.3.2",javax.annotation.sql;version="1.3.2"
-Tool: Bnd-0.0.255
-Implementation-Vendor: GlassFish Community
-Export-Package: javax.annotation;version="1.3.2",javax.annotation.secu
- rity;version="1.3.2",javax.annotation.sql;version="1.3.2"
-Bundle-Version: 1.3.2
-Bundle-Name: javax.annotation API
-Extension-Name: javax.annotation
-Created-By: 1.8.0_60 (Oracle Corporation)
-Build-Jdk: 1.8.0_60
-Specification-Version: 1.3
-
+Bundle-Name: Apache Felix Http API
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.apache.felix.http.api
+Bundle-Vendor: The Apache Software Foundation
+Bundle-Version: 3.0.0
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.osgi.service.http;version="1.2.1";uses:="javax.servl
+ et,javax.servlet.http",org.osgi.service.http.context;version="1.0";uses
+ :="javax.servlet.http,org.osgi.framework",org.osgi.service.http.runtime
+ ;version="1.0";uses:="org.osgi.service.http.runtime.dto",org.osgi.servi
+ ce.http.runtime.dto;version="1.0";uses:="org.osgi.dto,org.osgi.framewor
+ k.dto",org.osgi.service.http.whiteboard;version="1.0",org.apache.felix.
+ http.api;version="2.0.6";uses:="javax.servlet,org.osgi.service.http"
+Import-Package: javax.servlet;version="[3.1,4)",javax.servlet.http;versi
+ on="[3.1,4)",org.osgi.dto;version="[1.0,2)",org.osgi.framework;version=
+ "[1.8,2)",org.osgi.framework.dto;version="[1.8,2)",org.osgi.service.htt
+ p.runtime.dto;version="[1.0,2)",org.osgi.service.http.context;version="
+ [1.0,2)",org.osgi.service.http.whiteboard;version="[1.0,2)",org.osgi.se
+ rvice.http.runtime;version="[1.0,2)",org.osgi.service.http;version="[1.
+ 2,2)"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.6))"
+Tool: Bnd-2.3.0.201405100607
