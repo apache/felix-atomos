@@ -12,4 +12,14 @@
     <modules>
         <module>atomos.examples.jlink</module>
     </modules>
+    <profiles>
+        <profile>
+            <id>substrate</id>
+            <modules>
+                <module>atomos.examples.jlink</module>
+                <module>atomos.examples.substrate.equinox</module>
+                <module>atomos.examples.substrate.felix</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>
