@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.atomos.tests</groupId>
-    <artifactId>atomos.tests</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-  </parent>
-  <packaging>pom</packaging>
-  <artifactId>atomos.tests.testbundles</artifactId>
-  <modules>
-    <module>atomos.tests.testbundles.service.contract</module>
-    <module>atomos.tests.testbundles.service.impl</module>
-    <module>atomos.tests.testbundles.service.impl.activator</module>
-    <module>atomos.tests.testbundles.service.impl.a</module>
-    <module>atomos.tests.testbundles.service.impl.b</module>
-    <module>atomos.tests.testbundles.service.user</module>
-    <module>atomos.tests.testbundles.service.library</module>
-    <module>atomos.tests.testbundles.resources.a</module>
-  </modules>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.atomos.tests</groupId>
+        <artifactId>atomos.tests</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <packaging>pom</packaging>
+    <artifactId>atomos.tests.testbundles</artifactId>
+    <modules>
+        <module>atomos.tests.testbundles.service.contract</module>
+        <module>atomos.tests.testbundles.service.impl</module>
+        <module>atomos.tests.testbundles.service.impl.activator</module>
+        <module>atomos.tests.testbundles.service.impl.a</module>
+        <module>atomos.tests.testbundles.service.impl.b</module>
+        <module>atomos.tests.testbundles.service.user</module>
+        <module>atomos.tests.testbundles.service.library</module>
+        <module>atomos.tests.testbundles.resources.a</module>
+    </modules>
 </project>
