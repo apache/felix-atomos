@@ -21,7 +21,7 @@ jobs:
       with:
         java-version: ${{ matrix.java_version }}
     - name: Build with Maven
-      run: ./mvnw clean install -B -Pjava8
+      run: ./mvnw clean install -B -Pequinox -Pjava8
     - name: Setup GraalVM environment
       if: matrix.os == 'ubuntu-latest'
       uses: DeLaGuardo/setup-graalvm@2.0
@@ -33,4 +33,4 @@ jobs:
       run: gu install native-image
     - name: Build substrate with maven
       if: matrix.os == 'ubuntu-latest'
-      run: mvn clean package -f atomos.examples/atomos.examples.substrate.equinox/pom.xml
+      run: ./mvnw clean package -f atomos.examples/atomos.examples.substrate.equinox/pom.xml

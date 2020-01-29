@@ -26,7 +26,11 @@ and declarative service components.
 Java 11 must be used to build Atomos.  Atomos build uses the latest 1.0.0.Beta2 version of the moditect plugin (https://github.com/moditect/moditect.git).  
 This plugin provides some cool utilities for adding module-infos to existing dependency JARs and building `jlink` images.  You can build the Atomos with the following:
 
-`./mvnw clean install -Pjava8`
+`./mvnw clean install -Pjava8 -Pequinox`
+
+Or if you want to use the Felix Framework
+
+`./mvnw clean install -Pjava8 -Pfelix`
 
 This should create a jlink image under `atomos/atomos.examples/atomos.examples.jlink/target/atomos`.
 Executing the following command against the jlink image should produce a gogo shell prompt:
@@ -95,12 +99,12 @@ run the `gu` command that comes with Graal VM:
 If you are using GraalVM CE 19.3.1 Java 11 then you can build all of Atomos, including the substrate
 examples for Equinox and Felix, with the following single maven build using the `substrate` profile:
 
-`./mvnw clean install -Pjava8 -Psubstrate`
+`./mvnw clean install -Pjava8 -Psubstrate -Pequinox`
 
 If using GraalVM CE 19.3.1 Java 8 then you must first use Java 11 for the main Atomos build 
 using the Java 8 profile:
 
-`./mvnw clean install -Pjava8`
+`./mvnw clean install -Pjava8 -Pequinox`
 
 Note that `install` target must be used so that Atomos is installed into your local m2 repository. This still requires Java 11 to be used to build but the result allows the `atomos.framework` JAR to be used on Java 8. Next you must switch to a Java installation of Graal with the Substrate native-image tools installed and then run the following maven builds:
 

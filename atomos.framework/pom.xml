@@ -23,11 +23,6 @@
     </repositories>
     <dependencies>
         <dependency>
-            <groupId>org.atomos.osgi.frameworks.equinox</groupId>
-            <artifactId>atomos.osgi.framework</artifactId>
-            <version>${atomos.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
@@ -44,6 +39,42 @@
         </dependency>
     </dependencies>
     <profiles>
+        <profile>
+            <id>default</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.atomos.osgi.frameworks.equinox</groupId>
+                    <artifactId>atomos.osgi.framework</artifactId>
+                    <version>${atomos.version}</version>
+                </dependency>
+            </dependencies>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>equinox</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.atomos.osgi.frameworks.equinox</groupId>
+                    <artifactId>atomos.osgi.framework</artifactId>
+                    <version>${atomos.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>felix</id>
+            <properties>
+                <buildWithFelix>true</buildWithFelix>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.atomos.osgi.frameworks.felix</groupId>
+                    <artifactId>atomos.osgi.framework</artifactId>
+                    <version>${atomos.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
         <profile>
             <id>java8</id>
             <build>
