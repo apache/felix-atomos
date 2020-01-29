@@ -55,7 +55,7 @@
 		<dependency>
 			<groupId>org.atomos</groupId>
 			<artifactId>atomos.framework</artifactId>
-			<version>${atomos.version}</version>
+			<version>0.0.1-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<groupId>*</groupId>
@@ -64,29 +64,29 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.atomos</groupId>
-			<artifactId>service.contract</artifactId>
-			<version>${atomos.version}</version>
+			<groupId>org.atomos.tests</groupId>
+			<artifactId>atomos.tests.testbundles.service.contract</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.atomos</groupId>
-			<artifactId>service.impl</artifactId>
-			<version>${atomos.version}</version>
+			<groupId>org.atomos.tests</groupId>
+			<artifactId>atomos.tests.testbundles.service.impl</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.atomos</groupId>
-			<artifactId>service.impl.activator</artifactId>
-			<version>${atomos.version}</version>
+			<groupId>org.atomos.tests</groupId>
+			<artifactId>atomos.tests.testbundles.service.impl.activator</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.atomos</groupId>
-			<artifactId>service.user</artifactId>
-			<version>${atomos.version}</version>
+			<groupId>org.atomos.tests</groupId>
+			<artifactId>atomos.tests.testbundles.service.user</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.atomos</groupId>
 			<artifactId>atomos.substrate.config</artifactId>
-			<version>${atomos.version}</version>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.felix</groupId>
@@ -186,7 +186,7 @@
 			<plugin>
 				<groupId>org.graalvm.nativeimage</groupId>
 				<artifactId>native-image-maven-plugin</artifactId>
-				<version>19.3.0</version> 
+				<version>19.3.1</version> 
 				<executions>
 					<execution>
 						<goals>
