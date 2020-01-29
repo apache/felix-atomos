@@ -342,7 +342,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     @Override
     public ConnectFramework newConnectFramework()
     {
-        return new AtomosConnectFactory(this);
+        return new AtomosConnectFramework(this);
     }
 
     abstract protected ConnectFrameworkFactory findFrameworkFactory();

@@ -25,16 +25,16 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.connect.ConnectFramework;
 import org.osgi.framework.connect.ConnectModule;
 
-public class AtomosConnectFactory implements ConnectFramework
+public class AtomosConnectFramework implements ConnectFramework
 {
     final AtomosRuntimeBase atomosRuntime;
 
-    public AtomosConnectFactory()
+    public AtomosConnectFramework()
     {
         this(null);
     }
 
-    public AtomosConnectFactory(AtomosRuntime atomosRuntime)
+    public AtomosConnectFramework(AtomosRuntime atomosRuntime)
     {
         if (atomosRuntime == null)
         {
