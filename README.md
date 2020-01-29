@@ -1,4 +1,4 @@
-# Atomos ![](https://github.com/tjwatson/atomos/workflows/Java%20CI/badge.svg)
+# Atomos ![](https://github.com/tjwatson/atomos/workflows/Java%20CI/badge.svg) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/Atomos-OSGi-Connect-Framework/community)
 
 Atomos - A Java Module Framework using OSGi Connect
 
