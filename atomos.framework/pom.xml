@@ -128,8 +128,8 @@
             </plugin>
             <plugin>
                 <!-- work around until maven-jar-plugin supports main-class attribute for module-info.class -->
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.8</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
