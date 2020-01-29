@@ -17,8 +17,8 @@ module atomos.examples.jlink
 {
     requires atomos.framework;
     requires atomos.osgi.framework;
-    requires service.impl;
-    requires service.impl.activator;
+    requires atomos.tests.testbundles.service.impl;
+    requires atomos.tests.testbundles.service.impl.activator;
     requires org.apache.felix.scr;
     requires org.apache.felix.gogo.command;
     requires org.apache.felix.gogo.runtime;

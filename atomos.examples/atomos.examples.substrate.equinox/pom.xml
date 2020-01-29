@@ -39,23 +39,23 @@
 			<version>${atomos.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.atomos</groupId>
-			<artifactId>service.contract</artifactId>
+			<groupId>org.atomos.tests</groupId>
+			<artifactId>atomos.tests.testbundles.service.contract</artifactId>
 			<version>${atomos.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.atomos</groupId>
-			<artifactId>service.impl</artifactId>
+			<groupId>org.atomos.tests</groupId>
+			<artifactId>atomos.tests.testbundles.service.impl</artifactId>
 			<version>${atomos.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.atomos</groupId>
-			<artifactId>service.impl.activator</artifactId>
+			<groupId>org.atomos.tests</groupId>
+			<artifactId>atomos.tests.testbundles.service.impl.activator</artifactId>
 			<version>${atomos.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.atomos</groupId>
-			<artifactId>service.user</artifactId>
+			<groupId>org.atomos.tests</groupId>
+			<artifactId>atomos.tests.testbundles.service.user</artifactId>
 			<version>${atomos.version}</version>
 		</dependency>
 		<dependency>
@@ -134,7 +134,7 @@
 			<plugin>
 				<groupId>org.graalvm.nativeimage</groupId>
 				<artifactId>native-image-maven-plugin</artifactId>
-				<version>19.3.0</version> 
+				<version>19.3.1</version> 
 				<executions>
 					<execution>
 						<goals>
@@ -149,9 +149,10 @@
 					<buildArgs>
 						--allow-incomplete-classpath
 						--no-fallback
-						--initialize-at-build-time=org.atomos.framework,javax.servlet
+						--initialize-at-build-time=org.atomos.framework,javax.servlet,org.apache.felix.service.command.Converter
 						-H:ReflectionConfigurationFiles=${project.basedir}/graal_class_config.json
 						-H:ResourceConfigurationFiles=${project.basedir}/graal_resource_config.json
+						-H:DynamicProxyConfigurationFiles=${project.basedir}/graal_proxy_config.json
 						-H:+ReportUnsupportedElementsAtRuntime
 						-H:+ReportExceptionStackTraces
 						-H:+TraceClassInitialization

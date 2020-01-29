@@ -46,18 +46,18 @@
 			<version>${atomos.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.atomos</groupId>
-			<artifactId>service.contract</artifactId>
+			<groupId>org.atomos.tests</groupId>
+			<artifactId>atomos.tests.testbundles.service.contract</artifactId>
 			<version>${atomos.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.atomos</groupId>
-			<artifactId>service.impl</artifactId>
+			<groupId>org.atomos.tests</groupId>
+			<artifactId>atomos.tests.testbundles.service.impl</artifactId>
 			<version>${atomos.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.atomos</groupId>
-			<artifactId>service.impl.activator</artifactId>
+			<groupId>org.atomos.tests</groupId>
+			<artifactId>atomos.tests.testbundles.service.impl.activator</artifactId>
 			<version>${atomos.version}</version>
 		</dependency>
 		<dependency>
@@ -368,8 +368,8 @@
 								<module>org.apache.felix.gogo.shell</module>
 								<module>org.apache.felix.scr</module>
 								<module>osgi.promise</module>
-								<module>service.impl</module>
-								<module>service.impl.activator</module>
+								<module>atomos.tests.testbundles.service.impl</module>
+								<module>atomos.tests.testbundles.service.impl.activator</module>
 								<module>atomos.examples.jlink</module>
 							</modules>
 
