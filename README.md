@@ -78,7 +78,7 @@ There are two examples projects that build native images using Graal Substrate:
 1. `atomos/atomos.examples/atomos.examples.substrate.equinox` - Using Eclipse Equinox Framework
 1. `atomos/atomos.examples/atomos.examples.substrate.felix` - Using Apache Felix Framework
 
-These two example projects are not built as part of the main Atomos build because the require an
+These two example projects are not built as part of the main Atomos build because they require an
 installation of GraalVM CE 19.3.1 (Java 8 or Java 11 can be used) and the native-image tools for Substrate.
 The Java 11 version of Graal Substrate does not currently support full introspection at image runtime of
 the Java Platform Module System. Atomos Module support expects to have full introspection of the Java Platform
@@ -86,7 +86,7 @@ Module System when running on Java versions greater than Java 8.
 Therefore the example will run in basic class path mode for both Java 8 and Java 11 when running with
 a native substrate image.
 
-To build the native image you must to install the native image support for Graal
+To build the native image you must install the native image support for Graal
 (see https://www.graalvm.org/docs/reference-manual/native-image/).  You need to 
 run the `gu` command that comes with Graal VM: 
 
