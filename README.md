@@ -2,8 +2,11 @@
 
 Atomos - A Java Module Framework using OSGi Connect
 
-Atomos requires an Equinox OSGi Framework implementation which supports OSGi Connect initially described in this OSGi [blog post](https://blog.osgi.org/2019/09/osgi-connect-revisited.html).  The OSGi Connect specification is currently being developed as an RFC with the OSGi Alliance and the current version of the RFC can be found [here](https://github.com/osgi/design/blob/master/rfcs/rfc0243/rfc-0243-Connect.pdf).  Currently a snapshot of the Equinox OSGi Framework is being used that implements the proposed OSGi Connect specification for an upcoming OSGi R8 Core specification.  Source for the snapshot is found in https://git.eclipse.org/c/equinox/rt.equinox.framework.git in the `osgiR8` branch and tempary binaries are pushed to https://github.com/tjwatson/atomos-temp-m2repo for Atomos.
-Atomos is an implementation of an OSGi Connect factory that can be used to create an OSGi Framework instance. Framework instances created
+Atomos requires an OSGi Framework implementation which supports OSGi Connect initially described in this OSGi [blog post](https://blog.osgi.org/2019/09/osgi-connect-revisited.html).  The OSGi Connect specification is currently being developed as an RFC with the OSGi Alliance and the current version of the RFC can be found [here](https://github.com/osgi/design/blob/master/rfcs/rfc0243/rfc-0243-Connect.pdf).
+
+Currently a snapshot of the Equinox OSGi Framework is being used that implements the proposed OSGi Connect specification for an upcoming OSGi R8 Core specification. Source for the snapshot is found in https://git.eclipse.org/c/equinox/rt.equinox.framework.git in the `osgiR8` branch and temporary binaries are pushed to https://github.com/tjwatson/atomos-temp-m2repo for Atomos. Similarly a snapshot of the Felix OSGi Framework is being used which also implements the OSGi Connect specification. This snapshot is also pushed to https://github.com/tjwatson/atomos-temp-m2repo for Atomos.
+
+Atomos is an implementation of an OSGi Connect Framework that can be used to create an OSGi Framework instance. Framework instances created
 with Atomos add support to the OSGi Framework that enables bundles to be installed
 which are managed outside of the OSGi Framework module layer.  Currently Atomos supports three different modes for
 loading bundles from outside the OSGi module layer:
@@ -23,7 +26,7 @@ and declarative service components.
 Java 11 must be used to build Atomos.  Atomos build uses the latest 1.0.0.Beta2 version of the moditect plugin (https://github.com/moditect/moditect.git).  
 This plugin provides some cool utilities for adding module-infos to existing dependency JARs and building `jlink` images.  You can build the Atomos with the following:
 
-`mvn clean install -Pjava8`
+`./mvnw clean install -Pjava8`
 
 This should create a jlink image under `atomos/atomos.examples/atomos.examples.jlink/target/atomos`.
 Executing the following command against the jlink image should produce a gogo shell prompt:
@@ -81,13 +84,7 @@ The Java 11 version of Graal Substrate does not currently support full introspec
 the Java Platform Module System. Atomos Module support expects to have full introspection of the Java Platform
 Module System when running on Java versions greater than Java 8.
 Therefore the example will run in basic class path mode for both Java 8 and Java 11 when running with
-a native substrate image. To build the Substrate example the main Atomos build must first be built
-using the Java 8 profile:
-
-`mvn clean install -Pjava8`
-
-Note that `install` target must be used so that Atomos is installed into your local m2 repository.
-This still requires Java 11 to be used to build but the result allows the `atomos.framework` JAR to be used on Java 8.
+a native substrate image.
 
 To build the native image you must to install the native image support for Graal
 (see https://www.graalvm.org/docs/reference-manual/native-image/).  You need to 
@@ -95,9 +92,23 @@ run the `gu` command that comes with Graal VM:
 
 `gu install native-image`
 
-Next you must switch to a Java installation of Graal with the Substrate native-image tools installed and then change into one of the  `atomos.examples.substrate` projects and run `mvn clean package`
+If you are using GraalVM CE 19.3.1 Java 11 then you can build all of Atomos, including the substrate
+examples for Equinox and Felix, with the following single maven build using the `substrate` profile:
 
-This will create a `target/atomos` executable. If you launch `atomos` it will give you a gogo `g!` prompt to run gogo commands.  Also included in this example is a version of the Felix web console.  The web console can be access with http://localhost:8080/system/console/bundles and the id/password is admin/admin.
+`./mvnw clean install -Pjava8 -Psubstrate`
+
+If using GraalVM CE 19.3.1 Java 8 then you must first use Java 11 for the main Atomos build 
+using the Java 8 profile:
+
+`./mvnw clean install -Pjava8`
+
+Note that `install` target must be used so that Atomos is installed into your local m2 repository. This still requires Java 11 to be used to build but the result allows the `atomos.framework` JAR to be used on Java 8. Next you must switch to a Java installation of Graal with the Substrate native-image tools installed and then run the following maven builds:
+
+`./mvnw clean install -Pjava8 -f atomos.examples/atomos.examples.substrate.equinox/pom.xml`
+
+`./mvnw clean install -Pjava8 -f atomos.examples/atomos.examples.substrate.felix/pom.xml`
+
+This will create a `target/atomos` executable in each substrate example project. If you launch `atomos` it will give you a gogo `g!` prompt to run gogo commands.  Also included in this example is a version of the Felix web console.  The web console can be access with http://localhost:8080/system/console/bundles and the id/password is admin/admin.
 
 For the Felix example a directory `target/substrate_lib/` is created.  This contains all the original bundle JARs that got compiled into the native image `atomos`.  In order to launch the native `atomos` you must be in the directory containing both `atomos` and the `substrate_lib/` folder.  This is a simple way for Atomos to discover the available bundlesand load additional bundle entries at runtime.
 
