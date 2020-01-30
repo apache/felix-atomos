@@ -272,6 +272,7 @@
                                     </artifact>
                                     <moduleInfoSource>
                                         open module org.apache.felix.framework {
+                                        requires jdk.unsupported;
 
                                         exports org.apache.felix.framework;
                                         exports org.apache.felix.framework.cache;
