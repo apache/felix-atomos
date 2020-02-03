@@ -163,8 +163,8 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.felix</groupId>
-                <artifactId>org.apache.felix.framework</artifactId>
-                <version>6.1.0-CONNECT</version>
+                <artifactId>org.apache.felix.framework.connect</artifactId>
+                <version>0.1.0-CONNECT</version>
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>

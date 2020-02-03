@@ -15,5 +15,5 @@
 
 open module atomos.osgi.framework
 {
-    requires transitive org.apache.felix.framework;
+    requires transitive org.apache.felix.framework.connect;
 }

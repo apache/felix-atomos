@@ -29,7 +29,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.framework</artifactId>
+            <artifactId>org.apache.felix.framework.connect</artifactId>
         </dependency>
 
         <dependency>
@@ -268,10 +268,10 @@
                                 <module>
                                     <artifact>
                                         <groupId>org.apache.felix</groupId>
-                                        <artifactId>org.apache.felix.framework</artifactId>
+                                        <artifactId>org.apache.felix.framework.connect</artifactId>
                                     </artifact>
                                     <moduleInfoSource>
-                                        open module org.apache.felix.framework {
+                                        open module org.apache.felix.framework.connect {
                                         requires jdk.unsupported;
 
                                         exports org.apache.felix.framework;
