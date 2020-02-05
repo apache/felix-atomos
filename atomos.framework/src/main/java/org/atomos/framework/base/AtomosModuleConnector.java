@@ -22,19 +22,19 @@ import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosRuntime;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.connect.ConnectFramework;
 import org.osgi.framework.connect.ConnectModule;
+import org.osgi.framework.connect.ModuleConnector;
 
-public class AtomosConnectFramework implements ConnectFramework
+public class AtomosModuleConnector implements ModuleConnector
 {
     final AtomosRuntimeBase atomosRuntime;
 
-    public AtomosConnectFramework()
+    public AtomosModuleConnector()
     {
         this(null);
     }
 
-    public AtomosConnectFramework(AtomosRuntime atomosRuntime)
+    public AtomosModuleConnector(AtomosRuntime atomosRuntime)
     {
         if (atomosRuntime == null)
         {
@@ -63,7 +63,7 @@ public class AtomosConnectFramework implements ConnectFramework
     }
 
     @Override
-    public Optional<ConnectModule> getModule(String location)
+    public Optional<ConnectModule> connect(String location)
     {
         final AtomosBundleInfo atomosBundle = atomosRuntime.getAtomosBundle(location);
         if (atomosBundle == null)
@@ -75,10 +75,9 @@ public class AtomosConnectFramework implements ConnectFramework
     }
 
     @Override
-    public ConnectFramework initialize(File storage, Map<String, String> configuration)
+    public void initialize(File storage, Map<String, String> configuration)
     {
         atomosRuntime.initialize(storage, configuration);
-        return this;
     }
 
 }

@@ -68,7 +68,7 @@ public class AtomosFrameworkFactoryTest
         Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE,
             storage.toFile().getAbsolutePath());
         testFramework = factory.newFramework(config,
-            AtomosRuntime.newAtomosRuntime().newConnectFramework());
+            AtomosRuntime.newAtomosRuntime().newModuleConnector());
         doTestFramework(testFramework);
     }
 

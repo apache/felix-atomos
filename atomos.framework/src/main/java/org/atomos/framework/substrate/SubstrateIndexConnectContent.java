@@ -120,17 +120,15 @@ public class SubstrateIndexConnectContent implements ConnectContent
     }
 
     @Override
-    public ConnectContent open() throws IOException
+    public void open() throws IOException
     {
         // do nothing
-        return this;
     }
 
     @Override
-    public ConnectContent close() throws IOException
+    public void close() throws IOException
     {
         // do nothing
-        return this;
     }
 
 }

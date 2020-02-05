@@ -41,14 +41,13 @@ public class ModuleConnectContent implements ConnectContent
     }
 
     @Override
-    public ConnectContent open() throws IOException
+    public void open() throws IOException
     {
         reader = reference.open();
-        return this;
     }
 
     @Override
-    public ConnectContent close() throws IOException
+    public void close() throws IOException
     {
         ModuleReader current = reader;
         if (current != null)
@@ -56,7 +55,6 @@ public class ModuleConnectContent implements ConnectContent
             reader = null;
             current.close();
         }
-        return this;
     }
 
     @Override

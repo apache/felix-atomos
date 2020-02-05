@@ -55,9 +55,9 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.framework.Version;
 import org.osgi.framework.connect.ConnectContent;
-import org.osgi.framework.connect.ConnectFramework;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.connect.FrameworkUtilHelper;
+import org.osgi.framework.connect.ModuleConnector;
 import org.osgi.framework.hooks.bundle.CollisionHook;
 import org.osgi.framework.hooks.resolver.ResolverHookFactory;
 import org.osgi.framework.launch.Framework;
@@ -336,13 +336,13 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             frameworkConfig.put("osgi.console", "");
         }
         return findFrameworkFactory().newFramework(frameworkConfig,
-            newConnectFramework());
+            newModuleConnector());
     }
 
     @Override
-    public ConnectFramework newConnectFramework()
+    public ModuleConnector newModuleConnector()
     {
-        return new AtomosConnectFramework(this);
+        return new AtomosModuleConnector(this);
     }
 
     abstract protected ConnectFrameworkFactory findFrameworkFactory();
