@@ -164,7 +164,7 @@
             <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.framework.connect</artifactId>
-                <version>0.1.0-CONNECT</version>
+                <version>0.1.0-SNAPSHOT</version>
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>
