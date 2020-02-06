@@ -81,13 +81,13 @@ import org.osgi.framework.launch.FrameworkFactory;
  * be used to setup additional module layer configurations before launching the
  * framework.
  * <p>
- * The following will launch using the standard {@link FrameworkFactory}:
+ * The following will launch using the standard {@link ConnectFrameworkFactory}:
  * 
  * <pre>
  * {@code Map<String, String>} config = getConfiguration();
  * config.put(Constants.FRAMEWORK_SYSTEMPACKAGES, "");
- * ConnectFactory atomosConnect = AtomosRuntime.newAtomosRuntime().newConnectFactory();
- * Framework framework = ServiceLoader.load(FrameworkFactory.class).iterator().next().newFramework(config, atomosConnect);
+ * ModuleConnector atomosConnect = AtomosRuntime.newAtomosRuntime().newModuleConnector();
+ * Framework framework = ServiceLoader.load(ConnectFrameworkFactory.class).iterator().next().newFramework(config, atomosConnect);
  * framework.start();
  * </pre>
  * 
