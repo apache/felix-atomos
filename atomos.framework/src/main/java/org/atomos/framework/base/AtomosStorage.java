@@ -202,14 +202,7 @@ public class AtomosStorage
                 atomosLocation);
             if (atomosBundle != null)
             {
-                int firstColon = osgiLocation.indexOf(':');
-                if (firstColon >= 0)
-                {
-                    if (atomosLocation.equals(osgiLocation.substring(firstColon + 1)))
-                    {
-                        atomosRuntime.addToInstalledBundles(osgiLocation, atomosBundle);
-                    }
-                }
+                atomosRuntime.addToInstalledBundles(osgiLocation, atomosBundle);
             }
         }
     }
