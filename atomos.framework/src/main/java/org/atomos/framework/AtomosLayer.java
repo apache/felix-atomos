@@ -21,7 +21,7 @@ import org.atomos.framework.AtomosRuntime.LoaderType;
 import org.osgi.framework.BundleException;
 
 /**
- * An Atomos Layer represents a {@link ModuleLayer} that was added to
+ * An Atomos Layer may represents a {@link ModuleLayer} that was added to
  * a {@link AtomosRuntime} using the {@link AtomosRuntime#addLayer(Configuration) addLayer}
  * method or the Atomos Layer could represent the {@link AtomosRuntime#getBootLayer() boot layer}.
  * An Atomos Layer will contain one or more {@link AtomosBundleInfo atomos bundles} which can
@@ -33,7 +33,7 @@ public interface AtomosLayer
     /**
      * Adapt this Atomos layer to the specified type. For example,
      * if running in a module layer then the layer can be adapted
-     * to a ModuleLayer associated with this Atmos Layer.
+     * to a ModuleLayer associated with this Atomos Layer.
      * @param <A> The type to which this Atomos bundle is to be adapted.
      * @param type Class object for the type to which this Atomos bundle is to be
      *        adapted.

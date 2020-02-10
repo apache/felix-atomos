@@ -221,7 +221,9 @@ public interface AtomosRuntime
     boolean modulesSupported();
 
     /**
-     * The initial boot Atomos layer
+     * The initial Atomos boot layer. Depending on the mode Atomos is running
+     * this may be the backed by {@link ModuleLayer#boot()} or by the
+     * class path.
      * 
      * @return the boot Atomos layer
      */
