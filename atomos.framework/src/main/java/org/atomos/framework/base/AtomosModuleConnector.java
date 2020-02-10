@@ -18,8 +18,8 @@ import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 
-import org.atomos.framework.AtomosBundleInfo;
 import org.atomos.framework.AtomosRuntime;
+import org.atomos.framework.base.AtomosRuntimeBase.AtomosLayerBase.AtomosBundleInfoBase;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.connect.ConnectModule;
@@ -65,7 +65,8 @@ public class AtomosModuleConnector implements ModuleConnector
     @Override
     public Optional<ConnectModule> connect(String location)
     {
-        final AtomosBundleInfo atomosBundle = atomosRuntime.getAtomosBundle(location);
+        final AtomosBundleInfoBase atomosBundle = atomosRuntime.getByOSGiLocation(
+            location);
         if (atomosBundle == null)
         {
             return Optional.empty();
