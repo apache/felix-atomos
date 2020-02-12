@@ -393,9 +393,6 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
                 result.put(Constants.EXPORT_PACKAGE, exportPackageHeader.toString());
             }
 
-            // add a contract based on the module name
-            addOSGiContractCapability(capabilities, desc, version.toString());
-
             // only do requires for non bundle modules
             // map requires to require bundle
             StringBuilder requireBundleHeader = new StringBuilder();
@@ -481,25 +478,6 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
             result.put(Constants.REQUIRE_CAPABILITY, requirements.toString());
         }
         return result;
-    }
-
-    private void addOSGiContractCapability(StringBuilder capabilities,
-        ModuleDescriptor desc, String version)
-    {
-        if (capabilities.length() > 0)
-        {
-            capabilities.append(", ");
-        }
-        capabilities.append(OSGI_CONTRACT_NAMESPACE).append("; ").append(
-            OSGI_VERSION_ATTR).append("=").append(version);
-        Set<Exports> exports = desc.exports();
-        if (!exports.isEmpty())
-        {
-            String uses = exports.stream().map(e -> e.source()).sorted().collect(
-                Collectors.joining(","));
-            capabilities.append("; ").append(Namespace.CAPABILITY_USES_DIRECTIVE).append(
-                "=\"").append(uses).append("\"");
-        }
     }
 
     @Override
