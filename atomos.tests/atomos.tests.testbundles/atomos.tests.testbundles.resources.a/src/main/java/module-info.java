@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-open module atomos.tests.testbundles.resource.a
+open module org.apache.felix.atomos.tests.testbundles.resource.a
 {
-    exports org.atomos.tests.testbundles.resource.a;
+    exports org.apache.felix.atomos.tests.testbundles.resource.a;
 }

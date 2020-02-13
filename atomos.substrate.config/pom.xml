@@ -2,11 +2,11 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.atomos</groupId>
-        <artifactId>atomos</artifactId>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>atomos-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>atomos.substrate.config</artifactId>
+    <artifactId>org.apache.felix.atomos.substrate.config</artifactId>
 
     <name>atomos.substrate.config</name>
     <properties>
@@ -18,8 +18,8 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>org.atomos</groupId>
-            <artifactId>atomos.framework</artifactId>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.atomos.runtime</artifactId>
             <version>${atomos.version}</version>
         </dependency>
         <dependency>

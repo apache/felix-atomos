@@ -23,20 +23,20 @@
      "name":"org.apache.felix.service.command.Converter"
   },
   {
-    "name" : "org.atomos.tests.testbundles.service.impl.activator.Activator",
+    "name" : "org.apache.felix.atomos.tests.testbundles.service.impl.activator.Activator",
     "allPublicConstructors" : true,
     "allPublicMethods" : true
   },
   {
-    "name" : "org.atomos.tests.testbundles.service.contract.Echo"
+    "name" : "org.apache.felix.atomos.tests.testbundles.service.contract.Echo"
   },
   {
-    "name" : "org.atomos.tests.testbundles.service.impl.EchoImpl",
+    "name" : "org.apache.felix.atomos.tests.testbundles.service.impl.EchoImpl",
     "allPublicConstructors" : true,
     "allPublicMethods" : true
   },
   {
-    "name" : "org.atomos.tests.testbundles.service.user.EchoUser",
+    "name" : "org.apache.felix.atomos.tests.testbundles.service.user.EchoUser",
     "allPublicConstructors" : true,
     "allPublicMethods" : true,
     "allDeclaredMethods" : true,
@@ -44,17 +44,17 @@
     "allDeclaredFields" : true
   },
   {
-    "name" : "org.atomos.substrate.config.ReflectConfig",
+    "name" : "org.apache.felix.atomos.substrate.config.ReflectConfig",
     "allPublicConstructors" : true,
     "allPublicMethods" : true
   },
   {
-    "name" : "org.atomos.substrate.config.ResourceConfig",
+    "name" : "org.apache.felix.atomos.substrate.config.ResourceConfig",
     "allPublicConstructors" : true,
     "allPublicMethods" : true
   },
   {
-    "name" : "org.atomos.substrate.config.SubstrateService",
+    "name" : "org.apache.felix.atomos.substrate.config.SubstrateService",
     "allPublicConstructors" : true,
     "allPublicMethods" : true,
     "allDeclaredFields" : true
@@ -116,7 +116,7 @@
     "allDeclaredFields" : true
   },
   {
-    "name" : "org.atomos.framework.base.AtomosCommands",
+    "name" : "org.apache.felix.atomos.impl.runtime.base.AtomosCommands",
     "allPublicMethods" : true,
     "allDeclaredMethods" : true,
     "allPublicFields" : true,

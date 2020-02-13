@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-open module atomos.tests.testbundles.service.impl.activator
+open module org.apache.felix.atomos.tests.testbundles.service.impl.activator
 {
-    requires transitive atomos.tests.testbundles.service.contract;
-    requires atomos.framework;
+    requires transitive org.apache.felix.atomos.tests.testbundles.service.contract;
+    requires org.apache.felix.atomos.runtime;
     requires static osgi.annotation;
 }

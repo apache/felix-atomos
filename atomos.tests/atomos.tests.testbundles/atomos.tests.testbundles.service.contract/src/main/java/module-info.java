@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-module atomos.tests.testbundles.service.contract
+module org.apache.felix.atomos.tests.testbundles.service.contract
 {
     requires static osgi.annotation;
 
-    exports org.atomos.tests.testbundles.service.contract;
+    exports org.apache.felix.atomos.tests.testbundles.service.contract;
 }

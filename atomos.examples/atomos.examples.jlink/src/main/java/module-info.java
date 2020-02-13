@@ -12,13 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.atomos.framework.AtomosRuntime;
-module atomos.examples.jlink
+import org.apache.felix.atomos.runtime.AtomosRuntime;
+module org.apache.felix.atomos.examples.jlink
 {
-    requires atomos.framework;
+    requires org.apache.felix.atomos.runtime;
     requires atomos.osgi.framework;
-    requires atomos.tests.testbundles.service.impl;
-    requires atomos.tests.testbundles.service.impl.activator;
+    requires org.apache.felix.atomos.tests.testbundles.service.impl;
+    requires org.apache.felix.atomos.tests.testbundles.service.impl.activator;
     requires org.apache.felix.scr;
     requires org.apache.felix.gogo.command;
     requires org.apache.felix.gogo.runtime;

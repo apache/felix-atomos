@@ -2,11 +2,12 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.atomos.examples</groupId>
-        <artifactId>atomos.examples</artifactId>
+        <groupId>org.apache.felix.atomos.examples</groupId>
+        <artifactId>org.apache.felix.atomos.examples</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>atomos.examples.substrate.felix</artifactId>
+    <artifactId>org.apache.felix.atomos.examples.substrate.felix</artifactId>
+    <name>atomos.examples.substrate.felix</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
@@ -39,8 +40,8 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.atomos</groupId>
-            <artifactId>atomos.framework</artifactId>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.atomos.runtime</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
@@ -50,28 +51,28 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.atomos.tests</groupId>
-            <artifactId>atomos.tests.testbundles.service.contract</artifactId>
+            <groupId>org.apache.felix.atomos.tests</groupId>
+            <artifactId>org.apache.felix.atomos.tests.testbundles.service.contract</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.atomos.tests</groupId>
-            <artifactId>atomos.tests.testbundles.service.impl</artifactId>
+            <groupId>org.apache.felix.atomos.tests</groupId>
+            <artifactId>org.apache.felix.atomos.tests.testbundles.service.impl</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.atomos.tests</groupId>
-            <artifactId>atomos.tests.testbundles.service.impl.activator</artifactId>
+            <groupId>org.apache.felix.atomos.tests</groupId>
+            <artifactId>org.apache.felix.atomos.tests.testbundles.service.impl.activator</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.atomos.tests</groupId>
-            <artifactId>atomos.tests.testbundles.service.user</artifactId>
+            <groupId>org.apache.felix.atomos.tests</groupId>
+            <artifactId>org.apache.felix.atomos.tests.testbundles.service.user</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.atomos</groupId>
-            <artifactId>atomos.substrate.config</artifactId>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.atomos.substrate.config</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -182,11 +183,11 @@
                 </executions>
                 <configuration>
                     <imageName>atomos</imageName>
-                    <mainClass>org.atomos.examples.substrate.felix.GogoConsole</mainClass>
+                    <mainClass>org.apache.felix.atomos.examples.substrate.felix.GogoConsole</mainClass>
                     <buildArgs>
                         --allow-incomplete-classpath
                         --no-fallback
-                        --initialize-at-build-time=org.atomos.framework,javax.servlet,org.apache.felix.framework,org.osgi.framework,org.apache.felix.framework.util,org.apache.felix.service.command.Converter
+                        --initialize-at-build-time=org.apache.felix.atomos.runtime,org.apache.felix.atomos.impl,javax.servlet,org.apache.felix.framework,org.osgi.framework,org.apache.felix.framework.util,org.apache.felix.service.command.Converter
                         -H:ReflectionConfigurationFiles=${project.basedir}/graal_class_config.json
                         -H:ResourceConfigurationFiles=${project.basedir}/graal_resource_config.json
                         -H:DynamicProxyConfigurationFiles=${project.basedir}/graal_proxy_config.json

@@ -2,11 +2,12 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.atomos.examples</groupId>
-        <artifactId>atomos.examples</artifactId>
+        <groupId>org.apache.felix.atomos.examples</groupId>
+        <artifactId>org.apache.felix.atomos.examples</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>atomos.examples.jlink</artifactId>
+    <artifactId>org.apache.felix.atomos.examples.jlink</artifactId>
+    <name>atomos.examples.jlink</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -33,23 +34,23 @@
         </dependency>
 
         <dependency>
-            <groupId>org.atomos</groupId>
-            <artifactId>atomos.framework</artifactId>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.atomos.runtime</artifactId>
             <version>${atomos.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.atomos.tests</groupId>
-            <artifactId>atomos.tests.testbundles.service.contract</artifactId>
+            <groupId>org.apache.felix.atomos.tests</groupId>
+            <artifactId>org.apache.felix.atomos.tests.testbundles.service.contract</artifactId>
             <version>${atomos.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.atomos.tests</groupId>
-            <artifactId>atomos.tests.testbundles.service.impl</artifactId>
+            <groupId>org.apache.felix.atomos.tests</groupId>
+            <artifactId>org.apache.felix.atomos.tests.testbundles.service.impl</artifactId>
             <version>${atomos.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.atomos.tests</groupId>
-            <artifactId>atomos.tests.testbundles.service.impl.activator</artifactId>
+            <groupId>org.apache.felix.atomos.tests</groupId>
+            <artifactId>org.apache.felix.atomos.tests.testbundles.service.impl.activator</artifactId>
             <version>${atomos.version}</version>
         </dependency>
         <dependency>
@@ -80,7 +81,7 @@
             <id>default</id>
             <dependencies>
                 <dependency>
-                    <groupId>org.atomos.osgi.frameworks.equinox</groupId>
+                    <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
                     <artifactId>atomos.osgi.framework</artifactId>
                     <version>${atomos.version}</version>
                 </dependency>
@@ -93,7 +94,7 @@
             <id>equinox</id>
             <dependencies>
                 <dependency>
-                    <groupId>org.atomos.osgi.frameworks.equinox</groupId>
+                    <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
                     <artifactId>atomos.osgi.framework</artifactId>
                     <version>${atomos.version}</version>
                 </dependency>
@@ -106,7 +107,7 @@
             </properties>
             <dependencies>
                 <dependency>
-                    <groupId>org.atomos.osgi.frameworks.felix</groupId>
+                    <groupId>org.apache.felix.atomos.osgi.frameworks.felix</groupId>
                     <artifactId>atomos.osgi.framework</artifactId>
                     <version>${atomos.version}</version>
                 </dependency>
@@ -456,21 +457,21 @@
                             </modulePath>
                             <modules>
                                 <module>atomos.osgi.framework</module>
-                                <module>atomos.framework</module>
+                                <module>org.apache.felix.atomos.runtime</module>
                                 <module>org.apache.felix.gogo.command</module>
                                 <module>org.apache.felix.gogo.runtime</module>
                                 <module>org.apache.felix.gogo.shell</module>
                                 <module>org.apache.felix.scr</module>
                                 <module>osgi.promise</module>
-                                <module>atomos.tests.testbundles.service.impl</module>
-                                <module>atomos.tests.testbundles.service.impl.activator</module>
-                                <module>atomos.examples.jlink</module>
+                                <module>org.apache.felix.atomos.tests.testbundles.service.impl</module>
+                                <module>org.apache.felix.atomos.tests.testbundles.service.impl.activator</module>
+                                <module>org.apache.felix.atomos.examples.jlink</module>
                             </modules>
 
 
                             <launcher>
                                 <name>atomos</name>
-                                <module>atomos.examples.jlink/org.atomos.examples.jlink.GogoConsole</module>
+                                <module>org.apache.felix.atomos.examples.jlink/org.apache.felix.atomos.examples.jlink.GogoConsole</module>
                             </launcher>
                             <outputDirectory>
                                 ${project.build.directory}/atomos
@@ -495,7 +496,13 @@
                             <overWriteSnapshots>false</overWriteSnapshots>
                             <overWriteIfNewer>true</overWriteIfNewer>
                             <excludeTransitive>true</excludeTransitive>
-                            <excludeGroupIds>org.osgi,org.apache.felix,org.eclipse.platform</excludeGroupIds>
+                            <includeArtifactIds>
+                                atomos.osgi.framework,
+                                org.apache.felix.atomos.runtime,
+                                org.apache.felix.atomos.tests.testbundles.service.contract,
+                                org.apache.felix.atomos.tests.testbundles.service.impl,
+                                org.apache.felix.atomos.tests.testbundles.service.impl.activator
+                            </includeArtifactIds>
                         </configuration>
                     </execution>
                 </executions>
