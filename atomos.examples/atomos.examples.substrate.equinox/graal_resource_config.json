@@ -2,7 +2,6 @@
   "resources": [
     {"pattern": "templates/.*$"},
     {"pattern": "res/.*$"},
-    {"pattern": "META-INF/services/.*$"},
-    {"pattern": "atomos/.*$"}
+    {"pattern": "META-INF/services/.*$"}
   ]
 }
