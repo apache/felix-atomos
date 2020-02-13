@@ -62,8 +62,6 @@ import org.osgi.resource.Namespace;
 
 public class AtomosRuntimeModules extends AtomosRuntimeBase
 {
-    private static final String OSGI_CONTRACT_NAMESPACE = "osgi.contract";
-    private static final String OSGI_VERSION_ATTR = "version:Version";
     private final Module thisModule = AtomosRuntimeModules.class.getModule();
     private final Configuration thisConfig = thisModule.getLayer() == null ? null
         : thisModule.getLayer().configuration();
