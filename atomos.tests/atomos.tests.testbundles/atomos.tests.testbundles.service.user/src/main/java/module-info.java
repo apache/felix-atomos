@@ -14,6 +14,6 @@
 open module org.apache.felix.atomos.tests.testbundles.service.user
 {
     requires org.apache.felix.atomos.tests.testbundles.service.contract;
-    requires org.apache.felix.atomos.runtime;
+    requires atomos.osgi.framework;
     requires static org.osgi.service.component.annotations;
 }

@@ -16,7 +16,6 @@ import org.apache.felix.atomos.runtime.AtomosRuntime;
 module org.apache.felix.atomos.examples.jlink
 {
     requires org.apache.felix.atomos.runtime;
-    requires atomos.osgi.framework;
     requires org.apache.felix.atomos.tests.testbundles.service.impl;
     requires org.apache.felix.atomos.tests.testbundles.service.impl.activator;
     requires org.apache.felix.scr;
