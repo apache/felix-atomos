@@ -35,31 +35,67 @@
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.atomos.runtime</artifactId>
             <version>${atomos.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.contract</artifactId>
             <version>${atomos.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.impl</artifactId>
             <version>${atomos.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.impl.activator</artifactId>
             <version>${atomos.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.user</artifactId>
             <version>${atomos.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.atomos.substrate.config</artifactId>
             <version>${atomos.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.felix</groupId>
