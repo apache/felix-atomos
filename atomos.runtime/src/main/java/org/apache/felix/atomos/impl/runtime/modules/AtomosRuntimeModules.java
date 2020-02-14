@@ -264,46 +264,6 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
     }
 
     @Override
-    public AtomosLayer addModules(String name, Path path)
-    {
-        if (modulesSupported())
-        {
-            if (path == null)
-            {
-                ResolvedModule resolved = thisConfig.findModule(
-                    AtomosRuntime.class.getModule().getName()).get();
-                URI location = resolved.reference().location().get();
-                if (location.getScheme().equals("file"))
-                {
-                    // Use the module location as the relative base to locate the modules folder
-                    File thisModuleFile = new File(location);
-                    File candidate = new File(thisModuleFile.getParent(), "modules");
-                    path = candidate.isDirectory() ? candidate.toPath() : null;
-                }
-            }
-            if (path != null)
-            {
-                return addLayer(Collections.singletonList(getBootLayer()), "modules",
-                    LoaderType.OSGI, path);
-            }
-            else
-            {
-                return null;
-            }
-        }
-        else
-        {
-            return super.addModules(name, path);
-        }
-    }
-
-    @Override
-    public boolean modulesSupported()
-    {
-        return thisConfig != null;
-    }
-
-    @Override
     public AtomosLayer getBootLayer()
     {
         return bootLayer;
@@ -525,6 +485,45 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
             super(parents, id, name, loaderType, paths);
             moduleLayer = findModuleLayer(config, parents, loaderType);
             atomosBundles = findAtomosBundles();
+        }
+
+        @Override
+        public boolean isAddLayerSupported()
+        {
+            return thisConfig != null;
+        }
+
+        @Override
+        public AtomosLayer addModules(String name, Path path)
+        {
+            if (isAddLayerSupported())
+            {
+                if (path == null)
+                {
+                    ResolvedModule resolved = thisConfig.findModule(
+                        AtomosRuntime.class.getModule().getName()).get();
+                    URI location = resolved.reference().location().get();
+                    if (location.getScheme().equals("file"))
+                    {
+                        // Use the module location as the relative base to locate the modules folder
+                        File thisModuleFile = new File(location);
+                        File candidate = new File(thisModuleFile.getParent(), "modules");
+                        path = candidate.isDirectory() ? candidate.toPath() : null;
+                    }
+                }
+                if (path != null)
+                {
+                    return addLayer("modules", LoaderType.OSGI, path);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                return super.addModules(name, path);
+            }
         }
 
         private Set<AtomosBundleInfoBase> findAtomosBundles()

@@ -69,12 +69,6 @@ public class AtomosRuntimeClassPath extends AtomosRuntimeBase
     }
 
     @Override
-    public boolean modulesSupported()
-    {
-        return false;
-    }
-
-    @Override
     protected void filterBasedOnReadEdges(AtomosBundleInfo atomosBundle,
         Collection<BundleCapability> candidates)
     {

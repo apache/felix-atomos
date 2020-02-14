@@ -16,7 +16,6 @@ package org.apache.felix.atomos.runtime;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
@@ -190,37 +189,6 @@ public interface AtomosRuntime
     Bundle getBundle(AtomosBundleInfo atomosBundle);
 
     /**
-     * Adds a layer with the specified parents and loads modules from the specified
-     * module paths
-     * 
-     * @param parents     the parents for the new layer
-     * @param name        the name of the new layer
-     * @param loaderType  the type of class loader to use
-     * @param modulePaths the paths to load modules for the new layer
-     * @return a newly created layer
-     * @throws UnsupportedOperationException if {@link #modulesSupported()} returns false.
-     */
-    AtomosLayer addLayer(List<AtomosLayer> parents, String name, LoaderType loaderType,
-        Path... modulePaths);
-
-    /**
-     * A convenience method that adds the modules found at the specified path
-     * to a new child layer of the boot layer.
-     * @param name The name of the layer.
-     * @param path The path to the modules.  If {@code null} then the default will try to
-     * determine the location on disk of the atomos.framework module and look for a
-     * folder with the same name as the specified name of the layer.
-     * @throws UnsupportedOperationException if {@link #modulesSupported()} returns false.
-     */
-    AtomosLayer addModules(String name, Path path);
-
-    /**
-     * Returns {@code true} if modules and additional layers are supported.
-     * @return if modules and additional layers are supported.
-     */
-    boolean modulesSupported();
-
-    /**
      * The initial Atomos boot layer. Depending on the mode Atomos is running
      * this may be the backed by {@link ModuleLayer#boot()} or by the
      * class path.
@@ -284,12 +252,12 @@ public interface AtomosRuntime
     static Framework launch(Map<String, String> frameworkConfig) throws BundleException
     {
         AtomosRuntime atomosRuntime = newAtomosRuntime();
-        if (atomosRuntime.modulesSupported())
+        if (atomosRuntime.getBootLayer().isAddLayerSupported())
         {
             String modulesDirPath = frameworkConfig.get(ATOMOS_MODULES_DIR);
             Path modulesPath = modulesDirPath == null ? null
                 : new File(modulesDirPath).toPath();
-            atomosRuntime.addModules("modules", modulesPath);
+            atomosRuntime.getBootLayer().addModules("modules", modulesPath);
         }
 
         Framework framework = atomosRuntime.newFramework(frameworkConfig);
@@ -327,7 +295,7 @@ public interface AtomosRuntime
      * Creates a new AtomosRuntime that can be used to create a new Atomos framework
      * instance. If Atomos is running as a Java Module then this AtomosRuntime can
      * be used to create additional layers by using the
-     * {@link #addLayer(List, String, LoaderType, Path...)} method. If the additional layers are added
+     * {@link AtomosLayer#addLayer(String, LoaderType, Path...)} method. If the additional layers are added
      * before {@link #newFramework(Map) creating} and {@link Framework#init()
      * initializing} the framework then the Atomos bundles found in the added layers
      * will be automatically installed and started according to the

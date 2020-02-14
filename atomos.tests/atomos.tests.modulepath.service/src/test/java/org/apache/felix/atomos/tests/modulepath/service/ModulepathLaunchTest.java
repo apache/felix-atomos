@@ -295,8 +295,7 @@ public class ModulepathLaunchTest
         final File modules = new File("target/modules");
         assertTrue(modules.isDirectory(), "Modules directory does not exist: " + modules);
 
-        final AtomosLayer child = atomosRuntime.addLayer(List.of(parent), name,
-            loaderType, modules.toPath());
+        final AtomosLayer child = parent.addLayer(name, loaderType, modules.toPath());
 
         final List<Bundle> bundles = new ArrayList<>();
         for (final AtomosBundleInfo atomosBundle : child.getAtomosBundles())

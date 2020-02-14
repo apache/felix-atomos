@@ -25,7 +25,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosCommands;
@@ -119,8 +118,7 @@ public class ClasspathLaunchTest
         AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
         try
         {
-            runtime.addLayer(List.of(runtime.getBootLayer()), "invalid", LoaderType.OSGI,
-                storage);
+            runtime.getBootLayer().addLayer("invalid", LoaderType.OSGI, storage);
             fail("Expected exception when addLayer is called.");
         }
         catch (UnsupportedOperationException e)

@@ -15,7 +15,6 @@ package org.apache.felix.atomos.impl.runtime.base;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -130,8 +129,7 @@ public class AtomosCommands
             return;
         }
 
-        AtomosLayer layer = runtime.addLayer(
-            Collections.singletonList(runtime.getBootLayer()), name, oLoaderType.get(),
+        AtomosLayer layer = runtime.getBootLayer().addLayer(name, oLoaderType.get(),
             moduleDir.toPath());
 
         List<Bundle> bundles = new ArrayList<>();

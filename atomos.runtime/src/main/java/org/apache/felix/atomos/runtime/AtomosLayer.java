@@ -13,6 +13,7 @@
  */
 package org.apache.felix.atomos.runtime;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -42,6 +43,35 @@ public interface AtomosLayer
      *         specified type.
      */
     public <T> Optional<T> adapt(Class<T> type);
+
+    /**
+     * Adds a layer as a child of this layer and loads modules from the specified
+     * module paths
+     * 
+     * @param name        the name of the new layer
+     * @param loaderType  the type of class loader to use
+     * @param modulePaths the paths to load modules for the new layer
+     * @return a newly created layer
+     * @throws UnsupportedOperationException if {@link #isAddLayerSupported()} returns false.
+     */
+    AtomosLayer addLayer(String name, LoaderType loaderType, Path... modulePaths);
+
+    /**
+     * A convenience method that adds the modules found at the specified path
+     * to a new child layer of this layer.
+     * @param name The name of the layer.
+     * @param path The path to the modules.  If {@code null} then the default will try to
+     * determine the location on disk of the atomos runtime module and look for a
+     * folder with the same name as the specified name of the layer.
+     * @throws UnsupportedOperationException if {@link #isAddLayerSupported()} returns false.
+     */
+    public AtomosLayer addModules(String name, Path path);
+
+    /**
+     * Returns {@code true} if additional layers are supported.
+     * @return if modules and additional layers are supported.
+     */
+    boolean isAddLayerSupported();
 
     /**
      * The Atomos Layer children of this layer

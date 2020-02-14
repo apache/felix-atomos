@@ -308,13 +308,6 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         return null;
     }
 
-    @Override
-    public final AtomosLayer addLayer(List<AtomosLayer> parents, String name,
-        LoaderType loaderType, Path... paths)
-    {
-        return addLayer(parents, name, -1, loaderType, paths);
-    }
-
     abstract protected AtomosLayer addLayer(List<AtomosLayer> parents, String name,
         long id, LoaderType loaderType, Path... paths);
 
@@ -323,7 +316,8 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     {
         frameworkConfig = frameworkConfig == null ? new HashMap<>()
             : new HashMap<>(frameworkConfig);
-        if (modulesSupported()
+
+        if (getBootLayer().isAddLayerSupported()
             && frameworkConfig.get(Constants.FRAMEWORK_SYSTEMPACKAGES) == null)
         {
             // this is to prevent the framework from exporting all the packages provided
@@ -501,6 +495,27 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             this.paths = Arrays.asList(paths);
             this.parents = parents;
             this.loaderType = loaderType;
+        }
+
+        @Override
+        public AtomosLayer addLayer(String name, LoaderType loaderType,
+            Path... modulePaths)
+        {
+            return AtomosRuntimeBase.this.addLayer(Collections.singletonList(this), name,
+                -1, loaderType, modulePaths);
+        }
+
+        @Override
+        public AtomosLayer addModules(String name, Path path)
+        {
+            throw new UnsupportedOperationException(
+                "Cannot add module layers when Atomos is not loaded as module.");
+        }
+
+        @Override
+        public boolean isAddLayerSupported()
+        {
+            return false;
         }
 
         protected final void addChild(AtomosLayerBase child)
@@ -1076,16 +1091,6 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         }
         return false;
     }
-
-    @Override
-    public AtomosLayer addModules(String name, Path path)
-    {
-        throw new UnsupportedOperationException(
-            "Cannot add module layers when Atomos is not loaded as module.");
-    }
-
-    @Override
-    abstract public boolean modulesSupported();
 
     @SuppressWarnings("unchecked")
     public static <T> Set<T> asSet(Set<? extends T> l)
