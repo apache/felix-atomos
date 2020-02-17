@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
@@ -72,6 +73,7 @@ public class ModulepathLaunchTest
      *
      */
     private static final String RESSOURCE_A_CLAZZ_NAME = TESTBUNDLES_RESOURCE_A + ".Clazz";
+    private static final String ATOMOS_DEBUG_PROP = "atomos.enable.debug";
     private Framework testFramework;
 
     @AfterEach
@@ -82,7 +84,7 @@ public class ModulepathLaunchTest
             testFramework.stop();
             testFramework.waitForStop(10000);
         }
-
+        System.getProperties().remove(ATOMOS_DEBUG_PROP);
     }
 
     private AtomosContent assertFindBundle(String name, AtomosLayer layer,
@@ -160,7 +162,7 @@ public class ModulepathLaunchTest
         final List<Class<?>> classes = new ArrayList<>();
         for (final AtomosContent atomosBundle : atomosBundles)
         {
-            final Bundle b = runtime.getBundle(atomosBundle);
+            final Bundle b = atomosBundle.getBundle();
             assertNotNull(b, "No bundle found: " + atomosBundle.getSymbolicName());
             final String name = getTestClassName(b);
             assertNotNull(name, "No class name.");
@@ -219,7 +221,7 @@ public class ModulepathLaunchTest
     {
         ModulepathLaunch.main(new String[] {
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(),
-                AtomosRuntime.ATOMOS_MODULES_DIR
+                AtomosLauncher.ATOMOS_MODULES_DIR
                 + "=target/modules/" + TESTBUNDLES_RESOURCE_A
                 + "-" + ATOMOS_VERSION + ".jar" });
         testFramework = ModulepathLaunch.getFramework();
@@ -316,7 +318,7 @@ public class ModulepathLaunchTest
     {
         ModulepathLaunch.main(new String[] {
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(),
-                AtomosRuntime.ATOMOS_MODULES_DIR + "=target/modules" });
+                AtomosLauncher.ATOMOS_MODULES_DIR + "=target/modules" });
         testFramework = ModulepathLaunch.getFramework();
         final BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
@@ -341,15 +343,15 @@ public class ModulepathLaunchTest
 
         final List<Bundle> allChildBundles = layers.stream().flatMap(
             (l) -> l.getAtomosContents().stream()).map(
-                (a) -> atomosRuntime.getBundle(a)).filter(Objects::nonNull).collect(
-                    Collectors.toList());
+                (a) -> a.getBundle()).filter(
+                    Objects::nonNull).collect(Collectors.toList());
 
         final AtomosLayer firstChild = layers.iterator().next();
-        final Set<AtomosContent> firstChildInfos = firstChild.getAtomosContents();
+        final Set<AtomosContent> firstChildContents = firstChild.getAtomosContents();
 
-        List<Bundle> firstChildBundles = firstChildInfos.stream().map(
-            (a) -> atomosRuntime.getBundle(a)).filter(Objects::nonNull).collect(
-                Collectors.toList());
+        List<Bundle> firstChildBundles = firstChildContents.stream().map(
+            (a) -> a.getBundle()).filter(
+                Objects::nonNull).collect(Collectors.toList());
 
         assertEquals(5, firstChildBundles.size(),
             "Wrong number of bundles in first child.");
@@ -364,14 +366,15 @@ public class ModulepathLaunchTest
             }
         });
 
+        // note that doing a bundle uninstall forces the location to be disconnected
         firstChildBundles.forEach((b) -> {
-            assertNull(atomosRuntime.getAtomosContent(b.getLocation()),
-                "No AtomsBundle expected.");
+            assertNull(atomosRuntime.getConnectedContent(b.getLocation()),
+                "Atomos content not expected.");
         });
 
-        firstChildBundles = firstChildInfos.stream().map(
-            (a) -> atomosRuntime.getBundle(a)).filter(Objects::nonNull).collect(
-                Collectors.toList());
+        firstChildBundles = firstChildContents.stream().map(
+            (a) -> a.getBundle()).filter(
+                Objects::nonNull).collect(Collectors.toList());
         assertEquals(0, firstChildBundles.size(),
             "Wrong number of bundles in first child.");
 
@@ -387,9 +390,10 @@ public class ModulepathLaunchTest
         });
         checkServices(bc, 4);
 
+        // uninstalling the layer forces all of its content to get disconnected
         allChildBundles.forEach((b) -> {
-            assertNull(atomosRuntime.getAtomosContent(b.getLocation()),
-                "No AtomsBundle expected.");
+            assertNull(atomosRuntime.getConnectedContent(b.getLocation()),
+                "Atomos content not expected.");
         });
 
         assertEquals(originalNum, bc.getBundles().length,
@@ -430,8 +434,8 @@ public class ModulepathLaunchTest
             bc.getServiceReference(AtomosRuntime.class));
         final AtomosLayer child = installChild(atomosRuntime.getBootLayer(), "SINGLE",
             atomosRuntime, LoaderType.SINGLE);
-        final Bundle b = atomosRuntime.getBundle(
-            child.findAtomosContent(TESTBUNDLES_SERVICE_IMPL_A).get());
+        final Bundle b = child.findAtomosContent(
+            TESTBUNDLES_SERVICE_IMPL_A).get().getBundle();
         assertNotNull(b, "No bundle found.");
         URL mf = b.getEntry("/META-INF/MANIFEST.MF");
         assertNotNull(mf, "No manifest found.");
@@ -454,7 +458,7 @@ public class ModulepathLaunchTest
             atomosRuntime, LoaderType.SINGLE);
         final AtomosContent ab = child.findAtomosContent(
             TESTBUNDLES_SERVICE_IMPL_A).get();
-        Bundle b = atomosRuntime.getBundle(ab);
+        Bundle b = ab.getBundle();
         assertNotNull(b, "No bundle found.");
 
         try
@@ -502,8 +506,9 @@ public class ModulepathLaunchTest
         Framework f = null;
         try
         {
-            f = atomosRuntime.newFramework(
-                Map.of(Constants.FRAMEWORK_STORAGE, storage2.getAbsolutePath()));
+            f = AtomosLauncher.newFramework(
+                Map.of(Constants.FRAMEWORK_STORAGE, storage2.getAbsolutePath()),
+                atomosRuntime);
             f.start();
             fail();
         }
@@ -546,7 +551,7 @@ public class ModulepathLaunchTest
     {
         ModulepathLaunch.main(new String[] {
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(),
-                AtomosRuntime.ATOMOS_MODULES_DIR + "=target/modules" });
+                AtomosLauncher.ATOMOS_MODULES_DIR + "=target/modules" });
         testFramework = ModulepathLaunch.getFramework();
         final BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
@@ -593,7 +598,7 @@ public class ModulepathLaunchTest
     {
         ModulepathLaunch.main(new String[] {
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(),
-                AtomosRuntime.ATOMOS_MODULES_DIR + "=target/modules" });
+                AtomosLauncher.ATOMOS_MODULES_DIR + "=target/modules" });
         testFramework = ModulepathLaunch.getFramework();
         final BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
@@ -686,7 +691,8 @@ public class ModulepathLaunchTest
 
         // uninstall service.impl.a bundle from the first child
         children.iterator().next().getAtomosContents().stream().map(
-            (a) -> atomosRuntime2.getBundle(a)).filter(Objects::nonNull).filter(
+            (a) -> a.getBundle()).filter(
+                Objects::nonNull).filter(
                 (b) -> b.getSymbolicName().equals(
                     TESTBUNDLES_SERVICE_IMPL_A)).findFirst().orElseThrow().uninstall();
         checkServices(bc, 7);
@@ -722,7 +728,7 @@ public class ModulepathLaunchTest
         checkServices(bc, 4);
         final AtomosContent ab = child.findAtomosContent(
             TESTBUNDLES_SERVICE_USER).get();
-        final Bundle b = atomosRuntime.getBundle(ab);
+        final Bundle b = ab.getBundle();
         assertNotNull(b, "No bundle found.");
 
         final ServiceReference<?>[] refs = b.getRegisteredServices();
@@ -807,4 +813,147 @@ public class ModulepathLaunchTest
         }
     }
 
+    private static String BSN_CONTRACT = "org.apache.felix.atomos.tests.testbundles.service.contract";
+    private static String BSN_SERVICE_IMPL = "org.apache.felix.atomos.tests.testbundles.service.impl";
+    @Test
+    void testConnectLocation(@TempDir Path storage)
+        throws BundleException, InvalidSyntaxException, InterruptedException
+    {
+        String[] args = new String[] {
+                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(),
+                AtomosRuntime.ATOMOS_CONTENT_INSTALL + "=false" };
+        ModulepathLaunch.main(args);
+        testFramework = ModulepathLaunch.getFramework();
+        BundleContext bc = testFramework.getBundleContext();
+
+        assertNotNull(bc, "No context found.");
+        assertEquals(1, bc.getBundles().length, "Wrong number of bundles.");
+
+        AtomosRuntime runtime = bc.getService(
+            bc.getServiceReference(AtomosRuntime.class));
+
+        AtomosContent systemContent = runtime.getConnectedContent(
+            Constants.SYSTEM_BUNDLE_LOCATION);
+        assertNotNull(systemContent, "Did not find system content");
+        try
+        {
+            systemContent.connect("should fail");
+            fail("Expected failure.");
+        }
+        catch (IllegalStateException e)
+        {
+            // expected
+        }
+
+        String switchLocation = "switch.location";
+        AtomosContent contractContent = runtime.getBootLayer().findAtomosContent(BSN_CONTRACT).get();
+        AtomosContent implContent = runtime.getBootLayer().findAtomosContent(BSN_SERVICE_IMPL).get();
+        assertNotNull(contractContent, "no contract content found.");
+        assertNotNull(implContent, "no impl content found.");
+
+        contractContent.connect(switchLocation);
+        assertEquals(switchLocation,
+            contractContent.getConnectLocation(),
+            "Wrong connect location.");
+
+        // stop and start same framework instance after connecting to make sure the connection stays
+        testFramework.stop();
+        testFramework.waitForStop(5000);
+        testFramework.start();
+        bc = testFramework.getBundleContext();
+        assertNotNull(bc, "No context found.");
+        assertEquals(1, bc.getBundles().length, "Wrong number of bundles.");
+
+        // install the location connected.
+        Bundle switchBundle = bc.installBundle(switchLocation);
+        assertEquals(contractContent.getSymbolicName(),
+            switchBundle.getSymbolicName(),
+            "Wrong BSN");
+        assertEquals(switchBundle, contractContent.getBundle(), "Wrong bundle.");
+        assertEquals(contractContent, runtime.getConnectedContent(switchLocation));
+
+        // disconnect while bundle is installed
+        contractContent.disconnect();
+        assertNull(runtime.getConnectedContent(switchLocation),
+            "Expected no connected content.");
+        assertNull(contractContent.getBundle(), "Expected no bundle.");
+
+        try
+        {
+            // should fail update if not connected
+            switchBundle.update();
+            fail("Expected failure to update: " + switchBundle);
+        }
+        catch (BundleException e)
+        {
+            // expected
+        }
+
+        // bundle should still be the same as before failed update attempt
+        assertEquals(contractContent.getSymbolicName(),
+            switchBundle.getSymbolicName(),
+            "Wrong BSN");
+
+        // connect the location to a different content
+        implContent.connect(switchLocation);
+        // still should not give a bundle because the bundle is really using the other content
+        assertNull(runtime.getConnectedContent(switchLocation),
+            "Expected no connected content.");
+        assertNull(implContent.getBundle(), "Expected no bundle.");
+
+        switchBundle.update();
+        assertEquals(implContent.getSymbolicName(),
+            switchBundle.getSymbolicName(),
+            "Wrong BSN");
+        assertEquals(switchBundle, implContent.getBundle(), "Wrong bundle.");
+        assertEquals(implContent, runtime.getConnectedContent(switchLocation));
+
+
+        testFramework.stop();
+        testFramework.waitForStop(5000);
+
+        // start over from persistence
+        runtime = AtomosRuntime.newAtomosRuntime();
+        implContent = runtime.getBootLayer().findAtomosContent(BSN_SERVICE_IMPL).get();
+
+        testFramework = AtomosLauncher.newFramework(AtomosLauncher.getConfiguration(args),
+            runtime);
+        testFramework.start();
+        bc = testFramework.getBundleContext();
+
+        assertEquals(2, bc.getBundles().length, "Wrong number of bundles.");
+        switchBundle = bc.getBundle(switchLocation);
+        assertNotNull(switchBundle, "Found no bundle: " + switchLocation);
+        assertEquals(implContent.getSymbolicName(), switchBundle.getSymbolicName(),
+            "Wrong BSN");
+
+
+
+        assertEquals(switchBundle, implContent.getBundle(), "Wrong bundle.");
+
+        switchBundle.uninstall();
+        assertEquals(switchLocation,
+            implContent.getConnectLocation(),
+            "Wrong connect location");
+        assertNull(runtime.getConnectedContent(implContent.getConnectLocation()),
+            "Unexpected connected content.");
+
+        implContent.disconnect();
+        assertNull(runtime.getConnectedContent(switchLocation),
+            "Expected no connected content.");
+        assertNull(implContent.getBundle(), "Expected no bundle.");
+        try
+        {
+            Bundle fail = bc.installBundle(switchLocation);
+            fail("Expected failure to install: " + fail);
+        }
+        catch (BundleException e)
+        {
+            // expected
+        }
+
+        testFramework.stop();
+        testFramework.waitForStop(5000);
+
+    }
 }

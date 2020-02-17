@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -33,10 +34,10 @@ public class GogoConsole
         long start = System.nanoTime();
 
         AtomosRuntime atomosRuntime = AtomosRuntime.newAtomosRuntime();
-        Map<String, String> config = AtomosRuntime.getConfiguration(args);
+        Map<String, String> config = AtomosLauncher.getConfiguration(args);
         config.putIfAbsent(LoggerContext.LOGGER_CONTEXT_DEFAULT_LOGLEVEL,
             LogLevel.AUDIT.name());
-        Framework framework = atomosRuntime.newFramework(config);
+        Framework framework = AtomosLauncher.newFramework(config, atomosRuntime);
         framework.init();
         BundleContext bc = framework.getBundleContext();
         LogReaderService logReader = bc.getService(

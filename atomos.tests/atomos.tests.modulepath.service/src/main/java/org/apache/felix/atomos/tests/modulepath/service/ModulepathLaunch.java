@@ -15,7 +15,7 @@ package org.apache.felix.atomos.tests.modulepath.service;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.felix.atomos.runtime.AtomosRuntime;
+import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.launch.Framework;
 
@@ -26,7 +26,7 @@ public class ModulepathLaunch
     public static void main(String[] args) throws BundleException
     {
         long start = System.nanoTime();
-        framework = AtomosRuntime.launch(AtomosRuntime.getConfiguration(args));
+        framework = AtomosLauncher.launch(AtomosLauncher.getConfiguration(args));
         long total = System.nanoTime() - start;
         System.out.println("Total time: " + TimeUnit.NANOSECONDS.toMillis(total));
     }

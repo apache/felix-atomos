@@ -203,7 +203,7 @@
                     <buildArgs>
                         --allow-incomplete-classpath
                         --no-fallback
-                        --initialize-at-build-time=org.apache.felix.atomos.runtime,org.apache.felix.atomos.impl,javax.servlet,org.apache.felix.service.command.Converter
+                        --initialize-at-build-time=org.apache.felix.atomos.runtime,org.apache.felix.atomos.runtime.launch,org.apache.felix.atomos.impl,javax.servlet,org.apache.felix.service.command.Converter
                         -H:ReflectionConfigurationFiles=${project.basedir}/graal_class_config.json
                         -H:ResourceConfigurationFiles=${project.basedir}/graal_resource_config.json
                         -H:DynamicProxyConfigurationFiles=${project.basedir}/graal_proxy_config.json

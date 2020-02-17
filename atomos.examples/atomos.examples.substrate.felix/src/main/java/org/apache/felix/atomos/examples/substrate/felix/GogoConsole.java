@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.launch.Framework;
@@ -28,8 +29,8 @@ public class GogoConsole
         long start = System.nanoTime();
 
         AtomosRuntime atomosRuntime = AtomosRuntime.newAtomosRuntime();
-        Map<String, String> config = AtomosRuntime.getConfiguration(args);
-        Framework framework = atomosRuntime.newFramework(config);
+        Map<String, String> config = AtomosLauncher.getConfiguration(args);
+        Framework framework = AtomosLauncher.newFramework(config, atomosRuntime);
         framework.init();
         framework.start();
 

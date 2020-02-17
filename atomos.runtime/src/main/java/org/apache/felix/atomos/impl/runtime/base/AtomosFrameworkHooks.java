@@ -42,8 +42,8 @@ public class AtomosFrameworkHooks implements ResolverHookFactory, CollisionHook
         public void filterSingletonCollisions(BundleCapability singleton,
             Collection<BundleCapability> collisionCandidates)
         {
-            AtomosContent atomosBundle = atomosRuntime.getByOSGiLocation(
-                singleton.getRevision().getBundle().getLocation());
+            AtomosContent atomosBundle = atomosRuntime.getByConnectLocation(
+                singleton.getRevision().getBundle().getLocation(), true);
             atomosRuntime.filterNotVisible(atomosBundle, collisionCandidates);
         }
 
@@ -51,8 +51,8 @@ public class AtomosFrameworkHooks implements ResolverHookFactory, CollisionHook
         public void filterMatches(BundleRequirement requirement,
             Collection<BundleCapability> candidates)
         {
-            AtomosContent atomosBundle = atomosRuntime.getByOSGiLocation(
-                requirement.getRevision().getBundle().getLocation());
+            AtomosContent atomosBundle = atomosRuntime.getByConnectLocation(
+                requirement.getRevision().getBundle().getLocation(), true);
             switch (requirement.getNamespace())
             {
                 case PackageNamespace.PACKAGE_NAMESPACE:
@@ -91,19 +91,19 @@ public class AtomosFrameworkHooks implements ResolverHookFactory, CollisionHook
     public void filterCollisions(int operationType, Bundle target,
         Collection<Bundle> collisionCandidates)
     {
-        AtomosContent currentlyInstalling = atomosRuntime.currentlyInstalling();
-        if (currentlyInstalling != null)
+        AtomosContent currentlyManaging = atomosRuntime.currentlyManagingConnected();
+        if (currentlyManaging != null)
         {
             for (Iterator<Bundle> iCands = collisionCandidates.iterator(); iCands.hasNext();)
             {
                 Bundle b = iCands.next();
-                AtomosContent candidate = atomosRuntime.getAtomosContent(
+                AtomosContent candidate = atomosRuntime.getConnectedContent(
                     b.getLocation());
                 if (candidate != null)
                 {
                     // Only other atomos connected contents can be filtered out
                     if (!atomosRuntime.isInLayerHierarchy(
-                        currentlyInstalling.getAtomosLayer(), candidate.getAtomosLayer()))
+                        currentlyManaging.getAtomosLayer(), candidate.getAtomosLayer()))
                     {
                         iCands.remove();
                     }

@@ -156,9 +156,8 @@ public class ClasspathLaunchTest
         assertNotNull(bc, "No context found.");
 
         AtomosRuntime runtime = getRuntime(bc);
-        Bundle b = runtime.getBundle(
-            assertFindBundle(TESTBUNDLES_SERVICE_IMPL_A,
-                runtime.getBootLayer(), runtime.getBootLayer(), true));
+        Bundle b = assertFindBundle(TESTBUNDLES_SERVICE_IMPL_A, runtime.getBootLayer(),
+            runtime.getBootLayer(), true).getBundle();
         assertNotNull(b, "No bundle found.");
         URL mf = b.getEntry("/META-INF/MANIFEST.MF");
         assertNotNull(mf, "No manifest found.");

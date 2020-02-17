@@ -16,6 +16,7 @@ package org.apache.felix.atomos.runtime;
 import java.util.Optional;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
@@ -36,7 +37,7 @@ public interface AtomosContent extends Comparable<AtomosContent>
      * @return the location of the Atomos content.
      * @see AtomosContent#install(String)
      */
-    public String getLocation();
+    public String getAtomosLocation();
 
     /**
      * The symbolic name of the Atomos content.
@@ -70,11 +71,58 @@ public interface AtomosContent extends Comparable<AtomosContent>
     public AtomosLayer getAtomosLayer();
 
     /**
-     * Installs this Atomos content as a connected bundle using the specified prefix.
-     * If the Atomos content is already installed then the existing bundle is returned.
-     * @param prefix
+     * Installs this Atomos content as a connected bundle using the specified location prefix.
+     * If the Atomos content is already installed then the existing bundle is returned if
+     * the existing bundle location is equal to the location this method calculates to
+     * install the bundle; otherwise a {@code BundleException} is thrown.
+     * This is a convenience method that is equivalent to the following:
+     * <pre>
+     * AtomosContent atomosContent = getAtomosContent();
+     * BundleContext bc = getBundleContext();
+     *
+     * String osgiLocation = prefix + ":" + atomosContent.getAtomosLocation();
+     * atomosBundle.connect(osgiLocation);
+     * Bundle b = bc.installBundle(osgiLocation);
+     * </pre>
+     * @param prefix the prefix to use, if {@code null} then the prefix "atomos" will be used
      * @return the installed connected bundle.
      * @throws BundleException if an error occurs installing the Atomos content
      */
     public Bundle install(String prefix) throws BundleException;
+
+    /**
+     * Returns the connected bundle location for this Atomos content or {@code null} if 
+     * no bundle location is connected for this content. A {@code non-null} value is
+     * only an indication that this content {@code #connect(String)} has been called
+     * to set the bundle location. A connected bundle may still need to be installed
+     * into the framework using this bundle location.
+     * @return the bundle location or {@code null}
+     */
+    public String getConnectLocation();
+
+    /**
+     * Connects the specified bundle location to this Atomos content. Unlike
+     * the {@link #install(String)} method, this method does not install this
+     * content as a connected {@link Bundle}. If the specified location
+     * is used with the {@link BundleContext#installBundle(String)} method then the
+     * installed {@link Bundle} will be connected to this content.
+     * @param bundleLocation the bundle location
+     * @throws BundleException if the bundle location is already set
+     */
+    public void connect(String bundleLocation) throws BundleException;
+
+    /**
+     * Disconnects this Atomos content from the bundle location, if the bundle location 
+     * is set.  This method does nothing if this content is not connected.
+     */
+    public void disconnect();
+
+    /**
+     * Returns the OSGi bundle installed which is connected with this Atomos content.
+     * 
+     * @return the OSGi bundle or {@code null} if there is no bundle connected
+     *         with this content or if there is no OSGi Framework initialized
+     *         with the Atomos Runtime.
+     */
+    Bundle getBundle();
 }

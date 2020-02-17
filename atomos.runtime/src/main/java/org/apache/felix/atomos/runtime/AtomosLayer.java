@@ -109,7 +109,7 @@ public interface AtomosLayer
      * The name of the Atomos Layer.  By default the Atomos Layer
      * name is the empty string.  Atomos Layer names are not
      * required to be unique.  All Atomos contents contained in a
-     * layer will have {@link AtomosContent#getLocation() locations}
+     * layer will have {@link AtomosBundleInfo#getAtomosLocation() locations}
      * that use the layer name as a prefix.  If the layer
      * name is not the empty string then the location prefix will be
      * the layer name followed by a colon ({@code :}).

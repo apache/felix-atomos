@@ -202,7 +202,7 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase
     }
 
     @Override
-    protected ConnectFrameworkFactory findFrameworkFactory()
+    public ConnectFrameworkFactory findFrameworkFactory()
     {
         Iterator<ConnectFrameworkFactory> itr = ServiceLoader.load(
             ConnectFrameworkFactory.class, getClass().getClassLoader()).iterator();
@@ -364,7 +364,7 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase
 
         void addPackages(Bundle b)
         {
-            AtomosContentBase atomosContent = (AtomosContentBase) getAtomosContent(
+            AtomosContentBase atomosContent = (AtomosContentBase) getConnectedContent(
                 b.getLocation());
             if (atomosContent != null)
             {

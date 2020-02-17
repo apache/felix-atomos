@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -60,17 +61,15 @@ import org.osgi.framework.connect.FrameworkUtilHelper;
 import org.osgi.framework.connect.ModuleConnector;
 import org.osgi.framework.hooks.bundle.CollisionHook;
 import org.osgi.framework.hooks.resolver.ResolverHookFactory;
-import org.osgi.framework.launch.Framework;
-import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.FrameworkWiring;
 
 public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBundleListener, FrameworkUtilHelper
 {
-    static final boolean DEBUG = false;
     static final String JAR_PROTOCOL = "jar";
     static final String FILE_PROTOCOL = "file";
+    public static final String ATOMOS_DEBUG_PROP = "atomos.enable.debug";
     public static final String ATOMOS_BUNDLES = "/atomos/";
     public static final String ATOMOS_BUNDLES_INDEX = ATOMOS_BUNDLES + "bundles.index";
     public static final String ATOMOS_SUBSTRATE = "atomos.substrate";
@@ -79,6 +78,8 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     public static final String SUBSTRATE_LIB_DIR = "substrate_lib";
     public static final String GRAAL_NATIVE_IMAGE_KIND = "org.graalvm.nativeimage.kind";
 
+    private final boolean DEBUG;
+
     private final AtomicReference<BundleContext> context = new AtomicReference<>();
     private final AtomicReference<File> storeRoot = new AtomicReference<>();
 
@@ -86,19 +87,20 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 
     // The following area all protected by the read/write lock
 
-    // A map of Atomos contents that are installed as OSGi bundles; the key is the OSGi bundle location
-    private final Map<String, AtomosContentBase> osgiLocationToAtomosContent = new HashMap<>();
+    // A map of Atomos contents that have a connect location; the key is the connect location
+    private final Map<String, AtomosContentBase> connectLocationToAtomosContent = new HashMap<>();
     // A map of all Atomos contents discovered (may not be installed as OSGi bundles); the key is the Atomos location
     private final Map<String, AtomosContentBase> atomosLocationToAtomosContent = new HashMap<>();
-    // A map of Atomos bundle OSGi bundle locations that are installed as OSGi bundles for an AtomosLayer; value is the OSGi bundle locations
-    final Map<AtomosLayer, Collection<String>> atomosLayerToOSGiLocations = new HashMap<>();
-    // A map of OSGi bundle locations for installed Atomos contents; key is the AtomosContentBase.getKey()
+    // A map of connect locations for Atomos contents; key is the AtomosContentBase.getKey()
     // Used to lookup an OSGi bundle location for a Class<?> in getBundleLocation(Class<?>)
-    protected final Map<Object, String> atomosKeyToOSGiLocation = new HashMap<>();
+    protected final Map<Object, String> atomosKeyToConnectLocation = new HashMap<>();
     // A map of Layers keyed by layer ID
     final Map<Long, AtomosLayerBase> idToLayer = new HashMap<>();
-    // A map of OSGi bundle locations for installed Atomos contents; key is Atomos content
-    private final Map<AtomosContent, String> atomosContentToOSGiLocation = new HashMap<>();
+    // A map of connect locations for Atomos contents; key is Atomos content
+    private final Map<AtomosContent, String> atomosContentToConnectLocation = new HashMap<>();
+    // A set of connect locations that the framework has connected using the AtomosModuleConnector
+    private final Map<String, AtomosContentBase> connectedLocations = new HashMap<>();
+
     protected final AtomicLong nextLayerId = new AtomicLong(0);
 
     public static AtomosRuntime newAtomosRuntime()
@@ -162,6 +164,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 
     protected AtomosRuntimeBase()
     {
+        DEBUG = Boolean.getBoolean(ATOMOS_DEBUG_PROP);
     }
 
     protected final void lockWrite()
@@ -184,12 +187,22 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         lock.readLock().unlock();
     }
 
-    protected final AtomosContentBase getByOSGiLocation(String location)
+    protected final AtomosContentBase getByConnectLocation(String location, boolean isManaged)
     {
         lockRead();
         try
         {
-            return osgiLocationToAtomosContent.get(location);
+            AtomosContentBase result = null;
+            if (isManaged && !Constants.SYSTEM_BUNDLE_LOCATION.equals(location))
+            {
+                result = connectedLocations.get(location);
+            }
+            else
+            {
+                result = connectLocationToAtomosContent.get(location);
+            }
+            debug("Found content %s for location: %s %s", result, location, isManaged);
+            return result;
         }
         finally
         {
@@ -197,18 +210,35 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         }
     }
 
-    final void connectAtomosContent(String osgiLocation,
+    final void connectAtomosContent(
+        String connectLocation,
         AtomosContentBase atomosContent)
     {
+        debug("Connecting content: %s %s", atomosContent, connectLocation);
+        if (connectLocation == null)
+        {
+            throw new IllegalArgumentException("A null connect loation is not allowed.");
+        }
         lockWrite();
         try
         {
-            osgiLocationToAtomosContent.put(osgiLocation, atomosContent);
-            atomosContentToOSGiLocation.put(atomosContent, osgiLocation);
-            AtomosLayer layer = atomosContent.getAtomosLayer();
-            atomosLayerToOSGiLocations.computeIfAbsent(layer,
-                (l) -> new ArrayList<>()).add(osgiLocation);
-            atomosKeyToOSGiLocation.put(atomosContent.getKey(), osgiLocation);
+            AtomosContent existing = connectLocationToAtomosContent.get(connectLocation);
+            if (existing != null)
+            {
+                throw new IllegalStateException(
+                    "The bundle location is already used by the AtomosContent "
+                        + existing);
+            }
+            String computeLocation = atomosContentToConnectLocation.compute(atomosContent,
+                (c, l) -> l == null ? connectLocation : l);
+
+            if (!Objects.equals(connectLocation, computeLocation))
+            {
+                throw new IllegalStateException(
+                    "Atomos content location is already set: " + computeLocation);
+            }
+            connectLocationToAtomosContent.put(connectLocation, atomosContent);
+            atomosKeyToConnectLocation.put(atomosContent.getKey(), connectLocation);
         }
         finally
         {
@@ -216,17 +246,30 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         }
     }
 
-    private void disconnectAtomosContent(String osgiLocation)
+    void disconnectAtomosContent(AtomosContentBase atomosContent)
     {
+        debug("Disconnecting connent: %s", atomosContent);
         lockWrite();
         try
         {
-            AtomosContentBase removed = osgiLocationToAtomosContent.remove(
-                osgiLocation);
-            atomosContentToOSGiLocation.remove(removed);
-            atomosLayerToOSGiLocations.computeIfAbsent(removed.getAtomosLayer(),
-                (l) -> new ArrayList<>()).remove(osgiLocation);
-            atomosKeyToOSGiLocation.remove(removed.getKey());
+            if (Constants.SYSTEM_BUNDLE_LOCATION.equals(
+                atomosContent.getAtomosLocation()))
+            {
+                throw new UnsupportedOperationException(
+                    "Cannot disconnect the system bundle content");
+            }
+            String removedLocation = atomosContentToConnectLocation.remove(atomosContent);
+            if (removedLocation != null)
+            {
+                debug("Disconnecting location: %s %s", removedLocation, atomosContent);
+                connectLocationToAtomosContent.remove(removedLocation);
+                atomosKeyToConnectLocation.remove(atomosContent.getKey());
+                connectedLocations.remove(removedLocation);
+            }
+            else
+            {
+                debug("No connected location found for content: %s", atomosContent);
+            }
         }
         finally
         {
@@ -265,21 +308,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         lockRead();
         try
         {
-            return atomosContentToOSGiLocation.get(atomosContent);
-        }
-        finally
-        {
-            unlockRead();
-        }
-    }
-
-    final Collection<String> getInstalledLocations(AtomosLayer layer)
-    {
-        lockRead();
-        try
-        {
-            return new ArrayList<>(atomosLayerToOSGiLocations.computeIfAbsent(layer,
-                (l) -> new ArrayList<>()));
+            return atomosContentToConnectLocation.get(atomosContent);
         }
         finally
         {
@@ -288,21 +317,23 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     }
 
     @Override
-    public final AtomosContent getAtomosContent(String bundleLocation)
+    public final AtomosContent getConnectedContent(String bundleLocation)
     {
-        return getByOSGiLocation(bundleLocation);
+        return getByConnectLocation(bundleLocation, true);
     }
 
-    @Override
-    public final Bundle getBundle(AtomosContent atomosContent)
+    final Bundle getBundle(AtomosContent atomosContent)
     {
         String location = getByAtomosContent(atomosContent);
         if (location != null)
         {
-            BundleContext bc = context.get();
-            if (bc != null)
+            if (atomosContent == getByConnectLocation(location, true))
             {
-                return bc.getBundle(location);
+                BundleContext bc = context.get();
+                if (bc != null)
+                {
+                    return bc.getBundle(location);
+                }
             }
         }
         return null;
@@ -311,44 +342,31 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     abstract protected AtomosLayer addLayer(List<AtomosLayer> parents, String name,
         long id, LoaderType loaderType, Path... paths);
 
-    @Override
-    public Framework newFramework(Map<String, String> frameworkConfig)
-    {
-        frameworkConfig = frameworkConfig == null ? new HashMap<>()
-            : new HashMap<>(frameworkConfig);
-
-        if (getBootLayer().isAddLayerSupported()
-            && frameworkConfig.get(Constants.FRAMEWORK_SYSTEMPACKAGES) == null)
-        {
-            // this is to prevent the framework from exporting all the packages provided
-            // by the module path.
-            frameworkConfig.put(Constants.FRAMEWORK_SYSTEMPACKAGES, "");
-        }
-        if (frameworkConfig.get("osgi.console") == null)
-        {
-            // Always allow the console to work
-            frameworkConfig.put("osgi.console", "");
-        }
-        return findFrameworkFactory().newFramework(frameworkConfig,
-            newModuleConnector());
-    }
 
     @Override
-    public ModuleConnector newModuleConnector()
+    public ModuleConnector getModuleConnector()
     {
         return new AtomosModuleConnector(this);
     }
 
-    abstract protected ConnectFrameworkFactory findFrameworkFactory();
+    abstract public ConnectFrameworkFactory findFrameworkFactory();
 
     protected final BundleContext getBundleContext()
     {
         return context.get();
     }
 
-    final ThreadLocal<AtomosContent> installingInfo = new ThreadLocal<>();
+    final ThreadLocal<Deque<AtomosContent>> managingConnected = new ThreadLocal<Deque<AtomosContent>>()
+    {
+        @Override
+        protected Deque<AtomosContent> initialValue()
+        {
+            return new ArrayDeque<>();
+        }
+    };
 
-    final Bundle installAtomosContent(String prefix, AtomosContent atomosContent)
+    final Bundle installAtomosContent(String prefix,
+        AtomosContentBase atomosContent)
         throws BundleException
     {
         if (prefix == null)
@@ -360,16 +378,26 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             throw new IllegalArgumentException("The prefix cannot contain ':'");
         }
         prefix = prefix + ':';
-        if (AtomosRuntimeBase.DEBUG)
-        {
-            System.out.println(
-                "Installing atomos content: " + prefix + atomosContent.getLocation());
-        }
+        debug("Installing atomos content: %s%s", prefix,
+            atomosContent.getAtomosLocation());
 
         BundleContext bc = context.get();
         if (bc == null)
         {
             throw new IllegalStateException("Framework has not been initialized.");
+        }
+
+        String location = atomosContent.getAtomosLocation();
+        if (!Constants.SYSTEM_BUNDLE_LOCATION.equals(location))
+        {
+            location = prefix + location;
+        }
+
+        AtomosLayerBase atomosLayer = (AtomosLayerBase) atomosContent.getAtomosLayer();
+        if (!atomosLayer.isValid())
+        {
+            throw new BundleException("Atomos layer has been uninstalled.",
+                BundleException.INVALID_OPERATION);
         }
 
         String existingLoc = getByAtomosContent(atomosContent);
@@ -379,30 +407,21 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             if (existing != null)
             {
                 if (Constants.SYSTEM_BUNDLE_LOCATION.equals(existingLoc)
-                    || existingLoc.startsWith(prefix))
+                    || (existingLoc.equals(location)
+                        && atomosContent.getBundle() == existing))
                 {
                     return existing;
                 }
                 throw new BundleException(
-                    "Atomos bundle is already installed with bundle: " + existing,
+                    "Atomos content is already connected with bundle: "
+                        + existing,
                     BundleException.DUPLICATE_BUNDLE_ERROR);
             }
         }
 
-        String location = atomosContent.getLocation();
-        if (!Constants.SYSTEM_BUNDLE_LOCATION.equals(location))
-        {
-            location = prefix + atomosContent.getLocation();
-        }
-        AtomosLayerBase atomosLayer = (AtomosLayerBase) atomosContent.getAtomosLayer();
-        if (!atomosLayer.isValid())
-        {
-            throw new BundleException("Atomos layer has been uninstalled.",
-                BundleException.INVALID_OPERATION);
-        }
+        atomosContent.disconnect();
+        atomosContent.connect(location);
 
-        connectAtomosContent(location, (AtomosContentBase) atomosContent);
-        installingInfo.set(atomosContent);
         Bundle result = null;
         try
         {
@@ -410,7 +429,6 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         }
         finally
         {
-            installingInfo.set(null);
             // check if the layer is still valid
             if (!atomosLayer.isValid())
             {
@@ -421,25 +439,79 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
                     result = null;
                 }
             }
-            else if (result == null)
-            {
-                disconnectAtomosContent(location);
-            }
         }
         return result;
     }
 
-    final AtomosContent currentlyInstalling()
+    final AtomosContent currentlyManagingConnected()
     {
-        return installingInfo.get();
+        return managingConnected.get().peekLast();
+    }
+
+    final void addManagingConnected(AtomosContentBase atomosBundle, String location)
+    {
+        lockWrite();
+        try
+        {
+            connectedLocations.compute(location, (l, a) -> {
+                if (a == null || a == atomosBundle)
+                {
+                    return atomosBundle;
+                }
+                throw new IllegalStateException(
+                    "Atomos connect location is already managed by: " + a);
+            });
+        }
+        finally
+        {
+            unlockWrite();
+        }
+        if (context.get() != null)
+        {
+            managingConnected.get().addLast(atomosBundle);
+        }
     }
 
     @Override
     public final void bundleChanged(BundleEvent event)
     {
-        if (event.getType() == BundleEvent.UNINSTALLED)
+        boolean connectionManaged = true;
+        String location = event.getBundle().getLocation();
+        switch (event.getType())
         {
-            disconnectAtomosContent(event.getBundle().getLocation());
+            case BundleEvent.INSTALLED:
+            case BundleEvent.UPDATED :
+                AtomosContent content = getByConnectLocation(location, true);
+                if (content != null)
+                {
+                    debug("Bundle successfullly connected %s", content);
+                    connectionManaged = managingConnected.get().removeLastOccurrence(
+                        content);
+                }
+                else 
+                {
+                    connectionManaged = false;
+                }
+                break;
+            case BundleEvent.UNINSTALLED :
+                connectionManaged = false;
+                break;
+            default:
+                break;
+        }
+
+        if (!connectionManaged)
+        {
+            lockWrite();
+            try
+            {
+                debug("Removing location %s as a connected location.", location);
+                connectedLocations.remove(location);
+            }
+            finally
+            {
+                unlockWrite();
+            }
         }
     }
 
@@ -455,14 +527,15 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         for (AtomosContent atomosContent : atomosLayer.getAtomosContents())
         {
             if (atomosLocationToAtomosContent.putIfAbsent(
-                atomosContent.getLocation(), (AtomosContentBase) atomosContent) != null)
+                atomosContent.getAtomosLocation(), (AtomosContentBase) atomosContent) != null)
             {
                 throw new IllegalStateException("Atomos content location already exists: "
-                    + atomosContent.getLocation());
+                    + atomosContent.getAtomosLocation());
             }
-            if (Constants.SYSTEM_BUNDLE_LOCATION.equals(atomosContent.getLocation()))
+
+            if (Constants.SYSTEM_BUNDLE_LOCATION.equals(atomosContent.getAtomosLocation()))
             {
-                // system bundle location is always marked as installed
+                // system bundle location is always marked as connected
                 connectAtomosContent(Constants.SYSTEM_BUNDLE_LOCATION,
                     (AtomosContentBase) atomosContent);
             }
@@ -749,7 +822,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             {
                 ((AtomosLayerBase) child).removeLayerFromRuntime();
             }
-            atomosLayerToOSGiLocations.remove(this);
+            getAtomosContents().forEach(c -> c.disconnect());
             idToLayer.remove(getId());
             removedLayer(this);
         }
@@ -780,9 +853,9 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         private void uninstallBundles(List<Bundle> uninstalled, BundleContext bc)
             throws BundleException
         {
-            for (String installLoc : getInstalledLocations(this))
+            for (AtomosContent content : getAtomosContents())
             {
-                Bundle b = bc.getBundle(installLoc);
+                Bundle b = content.getBundle();
                 if (b != null)
                 {
                     uninstalled.add(b);
@@ -905,7 +978,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             }
 
             @Override
-            public final String getLocation()
+            public final String getAtomosLocation()
             {
                 return location;
             }
@@ -966,13 +1039,14 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
                 {
                     return vCompare;
                 }
-                return getLocation().compareTo(o.getLocation());
+                return getAtomosLocation().compareTo(o.getAtomosLocation());
             }
 
             protected abstract Object getKey();
 
             ConnectContent getConnectContent()
             {
+                debug("Getting connect content for %s", this);
                 return content;
             }
 
@@ -985,6 +1059,30 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             public final Bundle install(String prefix) throws BundleException
             {
                 return installAtomosContent(prefix, this);
+            }
+
+            @Override
+            public Bundle getBundle()
+            {
+                return AtomosRuntimeBase.this.getBundle(this);
+            }
+
+            @Override
+            public String getConnectLocation()
+            {
+                return AtomosRuntimeBase.this.getByAtomosContent(this);
+            }
+
+            @Override
+            public void connect(String bundleLocation) throws BundleException
+            {
+                AtomosRuntimeBase.this.connectAtomosContent(bundleLocation, this);
+            }
+
+            @Override
+            public void disconnect()
+            {
+                AtomosRuntimeBase.this.disconnectAtomosContent(this);
             }
         }
 
@@ -1015,7 +1113,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     @Override
     public final Optional<Bundle> getBundle(Class<?> classFromBundle)
     {
-        String location = getBundleLocation(classFromBundle);
+        String location = getConnectLocation(classFromBundle);
         if (location != null)
         {
             BundleContext bc = context.get();
@@ -1027,12 +1125,12 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         return Optional.empty();
     }
 
-    protected final String getBundleLocation(Class<?> classFromBundle)
+    protected final String getConnectLocation(Class<?> classFromBundle)
     {
         lockRead();
         try
         {
-            return atomosKeyToOSGiLocation.get(getAtomosKey(classFromBundle));
+            return atomosKeyToConnectLocation.get(getAtomosKey(classFromBundle));
         }
         finally
         {
@@ -1070,8 +1168,8 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         AtomosContent atomosContent,
         BundleCapability candidate)
     {
-        AtomosContent candidateAtomos = getByOSGiLocation(
-            candidate.getRevision().getBundle().getLocation());
+        AtomosContent candidateAtomos = getByConnectLocation(
+            candidate.getRevision().getBundle().getLocation(), true);
         if (candidateAtomos == null)
         {
             // atomos connected content cannot see normal bundles
@@ -1123,6 +1221,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 
     protected void start(BundleContext bc) throws BundleException
     {
+        debug("Activating Atomos runtime");
         this.context.set(bc);
         Runtime.getRuntime().addShutdownHook(saveOnVMExit);
         AtomosFrameworkUtilHelper.addHelper(this);
@@ -1133,16 +1232,6 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         bc.registerService(ResolverHookFactory.class, hooks, null);
         bc.registerService(CollisionHook.class, hooks, null);
 
-        String initialBundleStartLevel = bc.getProperty(
-            AtomosRuntime.ATOMOS_INITIAL_BUNDLE_START_LEVEL);
-        if (initialBundleStartLevel != null)
-        {
-            // set the default initial bundle startlevel before installing the atomos contents
-            FrameworkStartLevel fwkStartLevel = bc.getBundle().adapt(
-                FrameworkStartLevel.class);
-            fwkStartLevel.setInitialBundleStartLevel(
-                Integer.parseInt(initialBundleStartLevel));
-        }
         boolean installBundles = Boolean.valueOf(
             getProperty(bc, AtomosRuntime.ATOMOS_CONTENT_INSTALL, "true"));
         boolean startBundles = Boolean.valueOf(
@@ -1154,6 +1243,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 
     protected void stop(BundleContext bc) throws BundleException
     {
+        debug("Stopping Atomos runtime");
         this.context.compareAndSet(bc, null);
         try
         {
@@ -1231,6 +1321,21 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         catch (IOException e)
         {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    public void debug(String message, Object... args)
+    {
+        if (DEBUG)
+        {
+            try
+            {
+                System.out.println("ATOMOS DEBUG: " + String.format(message, args));
+            }
+            catch (Throwable t)
+            {
+                t.printStackTrace();
+            }
         }
     }
 }

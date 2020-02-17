@@ -13,14 +13,11 @@
  */
 package org.apache.felix.atomos.runtime;
 
-import java.io.File;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleException;
+import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.osgi.framework.Constants;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.connect.ModuleConnector;
@@ -119,11 +116,12 @@ import org.osgi.framework.launch.FrameworkFactory;
  *
  * // The Atomos runtime must be used to create the framework in order
  * // use the additional children layers added
- * Framework framework = atomosRuntime.newFramework(frameworkConfig);
+ * Framework framework = AtomosLauncher.newFramework(frameworkConfig, atomosRuntime);
  * framework.start();
  * </pre>
  * 
- * When using the AtomosRuntime to create a new Framework the {@link Constants#FRAMEWORK_SYSTEMPACKAGES}
+ * When using the {@link AtomosLauncher#newFramework(Map, AtomosRuntime)} to create a 
+ * new Framework the {@link Constants#FRAMEWORK_SYSTEMPACKAGES}
  * is set to the empty value automatically.
  * 
  * By default all Atomos contents will be installed and started in the OSGi
@@ -148,29 +146,20 @@ public interface AtomosRuntime
     }
 
     /**
-     * If set to false then the Atomos contents will not be automatically installed.
-     * Default is true.
+     * Framework launching property specifying if the Atomos contents
+     * will not be automatically installed as bundles. Default is true, which
+     * will install all discovered Atomos content as bundles.
      */
     String ATOMOS_CONTENT_INSTALL = "atomos.content.install";
     /**
-     * If set to false then the Atomos contents installed as connected bundles will
-     * not be marked for start. Default is true.
+     * Framework launching property specifying if the Atomos contents installed
+     * as connected bundles will not be marked for start. Default is true, which
+     * will start all discovered Atomos content that are installed as bundles.
      */
     String ATOMOS_CONTENT_START = "atomos.content.start";
-    /**
-     * The initial bundle start level to set before installing the Atomos contents at
-     * {@link Framework#init() initialization}.
-     */
-    String ATOMOS_INITIAL_BUNDLE_START_LEVEL = "atomos.initial.bundle.startlevel";
 
     /**
-     * A configuration option used by {@link #launch(Map)} which can be used to
-     * configuration a modules folder to load additional Atomos contentss from.
-     */
-    String ATOMOS_MODULES_DIR = "atomos.modules";
-
-    /**
-     * Returns the Atomos content that is installed at the specified location.
+     * Returns the Atomos content that is connected with the specified bundle location.
      * The Atomos content returned is used by the connected bundle installed
      * in the framework with the specified bundle location.
      * 
@@ -178,17 +167,7 @@ public interface AtomosRuntime
      * @return the Atomos content with the specified location or {@code null} if no
      *         Atomos content is installed at the location.
      */
-    AtomosContent getAtomosContent(String bundleLocation);
-
-    /**
-     * Returns the OSGi bundle installed which is connected with the specified
-     * Atomos content.
-     * 
-     * @return the OSGi bundle or {@code null} if there is no bundle connected
-     *         with the specified content or if there is no OSGi Framework initialized
-     *         with the Atomos Runtime.
-     */
-    Bundle getBundle(AtomosContent atomosBundle);
+    AtomosContent getConnectedContent(String bundleLocation);
 
     /**
      * The initial Atomos boot layer. Depending on the mode Atomos is running
@@ -200,98 +179,15 @@ public interface AtomosRuntime
     AtomosLayer getBootLayer();
 
     /**
-     * Creates a new module connector for this {@code AtomosRuntime}.
+     * Returns the module connector for this runtime instance.
      * The module connector can be used to create a new framework
      * by using a {@link ConnectFrameworkFactory} directly by calling
      * the {@link ConnectFrameworkFactory#newFramework(Map, ModuleConnector)}
      * method.
-     * @return a new module connector
+     * @return the module connector for this runtime
      */
-    ModuleConnector newModuleConnector();
+    ModuleConnector getModuleConnector();
 
-    /**
-     * Creates a new {@link Framework} with the specified framework configuration
-     * using this AtomosRuntime to provide the AtomosContent for installation
-     * into the new Framework.
-     * 
-     * @see FrameworkFactory#newFramework(Map, ConnectFactory)
-     * @param frameworkConfig the framework configuration
-     * @return A new, configured {@link Framework} instance. The framework instance
-     *         must be in the {@link Bundle#INSTALLED} state.
-     */
-    Framework newFramework(Map<String, String> frameworkConfig);
-
-    /**
-     * A main method that can be used by executable jars to initialize and start an
-     * Atomos Runtime. Each string in the arguments array may contain a key=value
-     * pair that will be used for the framework configuration.
-     * 
-     * @param args the args will be converted into a {@code Map<String, String>} to
-     *             use as configuration parameters for the OSGi Framework.
-     * @throws BundleException when an error occurs
-     */
-    static void main(String[] args) throws BundleException
-    {
-        launch(getConfiguration(args));
-    }
-
-    /**
-     * Convenience method that creates an AtomosRuntime in order to load the Atomos
-     * contents contained in the module path in the boot layer. It will also look for
-     * additional modules to load into a child layer in a modules folder. The path
-     * to the modules folder can be configured by using the
-     * {@link #ATOMOS_MODULES_DIR} launch option. If the {@link #ATOMOS_MODULES_DIR}
-     * option is not specified in the frameworkConfig then the default will try to
-     * determine the location on disk of the atomos.framework module and look for a
-     * folder called "modules". If the location of the Atomos Runtime module
-     * cannot be determined then no additional modules folder will be searched.
-     * 
-     * @param frameworkConfig the framework configuration
-     * @return a new Atomos framework instance which has been started.
-     * @throws BundleException if an error occurred creating and starting the Atomos
-     *                         framework
-     */
-    static Framework launch(Map<String, String> frameworkConfig) throws BundleException
-    {
-        AtomosRuntime atomosRuntime = newAtomosRuntime();
-        if (atomosRuntime.getBootLayer().isAddLayerSupported())
-        {
-            String modulesDirPath = frameworkConfig.get(ATOMOS_MODULES_DIR);
-            Path modulesPath = modulesDirPath == null ? null
-                : new File(modulesDirPath).toPath();
-            atomosRuntime.getBootLayer().addModules("modules", modulesPath);
-        }
-
-        Framework framework = atomosRuntime.newFramework(frameworkConfig);
-        framework.start();
-        return framework;
-    }
-
-    /**
-     * Converts a string array into a {@code  Map<String,String>}
-     * 
-     * @param args the arguments where each element has key=string value, the key
-     *             cannot contain an '=' (equals) character.
-     * @return a map of the configuration specified by the args
-     */
-    static Map<String, String> getConfiguration(String[] args)
-    {
-        Map<String, String> config = new HashMap<>();
-        if (args != null)
-        {
-            for (String arg : args)
-            {
-                int equals = arg.indexOf('=');
-                if (equals != -1)
-                {
-                    String key = arg.substring(0, equals);
-                    String value = arg.substring(equals + 1);
-                    config.put(key, value);
-                }
-            }
-        }
-        return config;
-    }
 
     /**
      * Creates a new AtomosRuntime that can be used to create a new OSGi framework

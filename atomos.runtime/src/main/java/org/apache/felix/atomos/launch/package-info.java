@@ -11,20 +11,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.felix.atomos.examples.jlink;
-
-import java.util.concurrent.TimeUnit;
-
-import org.apache.felix.atomos.launch.AtomosLauncher;
-import org.osgi.framework.BundleException;
-
-public class GogoConsole
-{
-    public static void main(String[] args) throws BundleException
-    {
-        long start = System.nanoTime();
-        AtomosLauncher.main(args);
-        long total = System.nanoTime() - start;
-        System.out.println("Total time: " + TimeUnit.NANOSECONDS.toMillis(total));
-    }
-}
+@org.osgi.annotation.versioning.Version("1.0.0")
+package org.apache.felix.atomos.launch;

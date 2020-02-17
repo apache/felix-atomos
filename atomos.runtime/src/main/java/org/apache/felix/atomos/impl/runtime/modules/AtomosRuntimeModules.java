@@ -107,7 +107,7 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
     }
 
     @Override
-    protected ConnectFrameworkFactory findFrameworkFactory()
+    public ConnectFrameworkFactory findFrameworkFactory()
     {
         ServiceLoader<ConnectFrameworkFactory> loader;
         if (AtomosRuntime.class.getModule().getLayer() == null)
@@ -316,6 +316,8 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
         String bsn = result.get(Constants.BUNDLE_SYMBOLICNAME);
         if (bsn == null)
         {
+            // cannot use bundle manifest version 2 because we want to allow java.* exports
+            //result.put(Constants.BUNDLE_MANIFESTVERSION, "2");
             // set the symbolic name for the module; don't allow fragments to attach
             result.put(Constants.BUNDLE_SYMBOLICNAME,
                 desc.name() + "; " + Constants.FRAGMENT_ATTACHMENT_DIRECTIVE + ":="
@@ -457,8 +459,8 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
             for (Iterator<BundleCapability> iCands = candidates.iterator(); iCands.hasNext();)
             {
                 BundleCapability candidate = iCands.next();
-                AtomosContent candidateAtomos = getByOSGiLocation(
-                    candidate.getRevision().getBundle().getLocation());
+                AtomosContent candidateAtomos = getByConnectLocation(
+                    candidate.getRevision().getBundle().getLocation(), true);
                 if (candidateAtomos == null
                     || candidateAtomos.adapt(Module.class).isEmpty())
                 {
@@ -662,7 +664,7 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
         lockRead();
         try
         {
-            location = atomosKeyToOSGiLocation.get(module);
+            location = atomosKeyToConnectLocation.get(module);
             if (location == null)
             {
                 return null;

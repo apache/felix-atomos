@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
-import org.apache.felix.atomos.runtime.AtomosRuntime;
+import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -69,7 +69,7 @@ public class AtomosFrameworkFactoryTest
         Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE,
             storage.toFile().getAbsolutePath());
         testFramework = factory.newFramework(config,
-            AtomosRuntime.newAtomosRuntime().newModuleConnector());
+            AtomosRuntime.newAtomosRuntime().getModuleConnector());
         doTestFramework(testFramework);
     }
 
@@ -79,7 +79,7 @@ public class AtomosFrameworkFactoryTest
         AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
         Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE,
             storage.toFile().getAbsolutePath());
-        testFramework = runtime.newFramework(config);
+        testFramework = AtomosLauncher.newFramework(config, runtime);
         doTestFramework(testFramework);
     }
 
@@ -106,6 +106,10 @@ public class AtomosFrameworkFactoryTest
             else
             {
                 expected = Bundle.ACTIVE;
+                if (b.getState() != expected)
+                {
+                    b.start();
+                }
             }
             assertEquals(expected, b.getState(), "Wrong bundle state for bundle: " + msg);
         }

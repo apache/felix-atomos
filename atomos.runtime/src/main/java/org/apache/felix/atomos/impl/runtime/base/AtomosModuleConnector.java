@@ -46,6 +46,7 @@ public class AtomosModuleConnector implements ModuleConnector
     @Override
     public Optional<BundleActivator> createBundleActivator()
     {
+        atomosRuntime.debug("Creating Atomos activator");
         return Optional.of(new BundleActivator()
         {
             @Override
@@ -65,12 +66,15 @@ public class AtomosModuleConnector implements ModuleConnector
     @Override
     public Optional<ConnectModule> connect(String location)
     {
-        final AtomosContentBase atomosBundle = atomosRuntime.getByOSGiLocation(
-            location);
+        atomosRuntime.debug("Framework is attempting to connect location: %s", location);
+
+        final AtomosContentBase atomosBundle = atomosRuntime.getByConnectLocation(
+            location, false);
         if (atomosBundle == null)
         {
             return Optional.empty();
         }
+        atomosRuntime.addManagingConnected(atomosBundle, location);
         return Optional.ofNullable(() -> atomosBundle.getConnectContent());
 
     }

@@ -26,7 +26,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,11 +36,12 @@ import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.apache.felix.atomos.runtime.AtomosRuntime.LoaderType;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
 
 public class AtomosStorage
 {
     private final static int VERSION = 1;
-    private final String ATOMOS_STORE = "atomosStore.data";
+    private final static String ATOMOS_STORE = "atomosStore.data";
     private final AtomosRuntimeBase atomosRuntime;
 
     public AtomosStorage(AtomosRuntimeBase atomosRuntime)
@@ -55,6 +55,7 @@ public class AtomosStorage
         try (DataInputStream in = new DataInputStream(
             new BufferedInputStream(new FileInputStream(new File(root, ATOMOS_STORE)))))
         {
+            atomosRuntime.debug("Found %s in %s", ATOMOS_STORE, root);
             int persistentVersion = in.readInt();
             if (persistentVersion > VERSION)
             {
@@ -73,6 +74,7 @@ public class AtomosStorage
         catch (FileNotFoundException e)
         {
             // ignore no file
+            atomosRuntime.debug("No %s found in %s", ATOMOS_STORE, root);
         }
         finally
         {
@@ -96,24 +98,6 @@ public class AtomosStorage
             for (AtomosLayerBase layer : writeOrder)
             {
                 writeLayer(layer, out);
-            }
-
-            out.writeInt(bundles.length);
-            for (Bundle b : bundles)
-            {
-                String osgiLocation = b.getLocation();
-                AtomosContent atomosBundle = atomosRuntime.getByOSGiLocation(
-                    osgiLocation);
-                if (atomosBundle != null)
-                {
-                    out.writeBoolean(true);
-                    out.writeUTF(osgiLocation);
-                    out.writeUTF(atomosBundle.getLocation());
-                }
-                else
-                {
-                    out.writeBoolean(false);
-                }
             }
         }
         finally
@@ -152,6 +136,8 @@ public class AtomosStorage
         String name = in.readUTF();
         long id = in.readLong();
         LoaderType loaderType = LoaderType.valueOf(in.readUTF());
+        atomosRuntime.debug("Loading layer %s %s %s", name, id, loaderType);
+
         int numPaths = in.readInt();
         Path[] paths = new Path[numPaths];
         for (int i = 0; i < numPaths; i++)
@@ -196,14 +182,30 @@ public class AtomosStorage
         int numBundles = in.readInt();
         for (int i = 0; i < numBundles; i++)
         {
-            String osgiLocation = in.readUTF();
             String atomosLocation = in.readUTF();
-            AtomosContentBase atomosBundle = atomosRuntime.getByAtomosLocation(
-                atomosLocation);
-            if (atomosBundle != null)
+            atomosRuntime.debug("Found Atomos location %s", atomosLocation);
+            if (in.readBoolean())
             {
-                atomosRuntime.connectAtomosContent(osgiLocation, atomosBundle);
+                String connectLocation = in.readUTF();
+                atomosRuntime.debug("Found connected location %s", connectLocation);
+                if (Constants.SYSTEM_BUNDLE_LOCATION.equals(connectLocation))
+                {
+                    // don't do anything for the system bundle, it is already connected
+                    continue;
+                }
+                AtomosContentBase atomosContent = atomosRuntime.getByAtomosLocation(
+                    atomosLocation);
+                if (atomosContent != null)
+                {
+                    atomosRuntime.connectAtomosContent(connectLocation, atomosContent);
+                }
+                else
+                {
+                    atomosRuntime.debug("Unable to find atomos content for location %s",
+                        atomosLocation);
+                }
             }
+
         }
     }
 
@@ -225,16 +227,19 @@ public class AtomosStorage
         {
             out.writeLong(((AtomosLayerBase) parent).getId());
         }
-        Collection<String> installedLocations = atomosRuntime.getInstalledLocations(
-            layer);
-        out.writeInt(installedLocations.size());
-        for (String osgiLocation : installedLocations)
+
+        Set<AtomosContent> contents = layer.getAtomosContents();
+        out.writeInt(contents.size());
+        for (AtomosContent content : contents)
         {
-            AtomosContentBase atomosBundle = atomosRuntime.getByOSGiLocation(
-                osgiLocation);
-            String atomosLocation = atomosBundle.getLocation();
-            out.writeUTF(osgiLocation);
+            String atomosLocation = content.getAtomosLocation();
             out.writeUTF(atomosLocation);
+            String connectLocation = content.getConnectLocation();
+            out.writeBoolean(connectLocation != null);
+            if (connectLocation != null)
+            {
+                out.writeUTF(connectLocation);
+            }
         }
     }
 

@@ -57,7 +57,7 @@ public class AtomosRuntimeClassPath extends AtomosRuntimeBase
     }
 
     @Override
-    protected ConnectFrameworkFactory findFrameworkFactory()
+    public ConnectFrameworkFactory findFrameworkFactory()
     {
         Iterator<ConnectFrameworkFactory> itr = ServiceLoader.load(
             ConnectFrameworkFactory.class, getClass().getClassLoader()).iterator();

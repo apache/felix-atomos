@@ -19,6 +19,7 @@ import org.osgi.framework.connect.FrameworkUtilHelper;
 open module org.apache.felix.atomos.runtime
 {
     exports org.apache.felix.atomos.runtime;
+    exports org.apache.felix.atomos.launch;
 
     requires transitive atomos.osgi.framework;
     requires static osgi.annotation;
