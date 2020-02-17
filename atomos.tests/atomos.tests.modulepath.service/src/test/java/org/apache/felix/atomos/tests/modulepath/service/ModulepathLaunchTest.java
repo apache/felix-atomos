@@ -37,7 +37,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.felix.atomos.runtime.AtomosBundleInfo;
+import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
 import org.apache.felix.atomos.runtime.AtomosRuntime.LoaderType;
@@ -85,10 +85,10 @@ public class ModulepathLaunchTest
 
     }
 
-    private AtomosBundleInfo assertFindBundle(String name, AtomosLayer layer,
+    private AtomosContent assertFindBundle(String name, AtomosLayer layer,
         AtomosLayer expectedLayer, boolean expectedToFind)
     {
-        final Optional<AtomosBundleInfo> result = layer.findAtomosBundle(name);
+        final Optional<AtomosContent> result = layer.findAtomosContent(name);
         if (expectedToFind)
         {
             assertTrue(result.isPresent(), "Could not find bundle: " + name);
@@ -156,9 +156,9 @@ public class ModulepathLaunchTest
     private void checkLoader(AtomosRuntime runtime, AtomosLayer layer,
         LoaderType loaderType) throws ClassNotFoundException
     {
-        final Set<AtomosBundleInfo> atomosBundles = layer.getAtomosBundles();
+        final Set<AtomosContent> atomosBundles = layer.getAtomosContents();
         final List<Class<?>> classes = new ArrayList<>();
-        for (final AtomosBundleInfo atomosBundle : atomosBundles)
+        for (final AtomosContent atomosBundle : atomosBundles)
         {
             final Bundle b = runtime.getBundle(atomosBundle);
             assertNotNull(b, "No bundle found: " + atomosBundle.getSymbolicName());
@@ -235,9 +235,9 @@ public class ModulepathLaunchTest
         assertEquals(1, children.size(), "Wrong number of children.");
 
         final AtomosLayer child = children.iterator().next();
-        assertEquals(1, child.getAtomosBundles().size(), "Wrong number of bundles.");
+        assertEquals(1, child.getAtomosContents().size(), "Wrong number of bundles.");
         Module serviceLibModule = null;
-        for (final AtomosBundleInfo atomosBundle : child.getAtomosBundles())
+        for (final AtomosContent atomosBundle : child.getAtomosContents())
         {
             if (atomosBundle.getSymbolicName().equals(
                 TESTBUNDLES_RESOURCE_A))
@@ -298,7 +298,7 @@ public class ModulepathLaunchTest
         final AtomosLayer child = parent.addLayer(name, loaderType, modules.toPath());
 
         final List<Bundle> bundles = new ArrayList<>();
-        for (final AtomosBundleInfo atomosBundle : child.getAtomosBundles())
+        for (final AtomosContent atomosBundle : child.getAtomosContents())
         {
             bundles.add(atomosBundle.install("child"));
         }
@@ -340,12 +340,12 @@ public class ModulepathLaunchTest
         checkBundleStates(bc.getBundles());
 
         final List<Bundle> allChildBundles = layers.stream().flatMap(
-            (l) -> l.getAtomosBundles().stream()).map(
+            (l) -> l.getAtomosContents().stream()).map(
                 (a) -> atomosRuntime.getBundle(a)).filter(Objects::nonNull).collect(
                     Collectors.toList());
 
         final AtomosLayer firstChild = layers.iterator().next();
-        final Set<AtomosBundleInfo> firstChildInfos = firstChild.getAtomosBundles();
+        final Set<AtomosContent> firstChildInfos = firstChild.getAtomosContents();
 
         List<Bundle> firstChildBundles = firstChildInfos.stream().map(
             (a) -> atomosRuntime.getBundle(a)).filter(Objects::nonNull).collect(
@@ -365,7 +365,7 @@ public class ModulepathLaunchTest
         });
 
         firstChildBundles.forEach((b) -> {
-            assertNull(atomosRuntime.getAtomosBundle(b.getLocation()),
+            assertNull(atomosRuntime.getAtomosContent(b.getLocation()),
                 "No AtomsBundle expected.");
         });
 
@@ -388,7 +388,7 @@ public class ModulepathLaunchTest
         checkServices(bc, 4);
 
         allChildBundles.forEach((b) -> {
-            assertNull(atomosRuntime.getAtomosBundle(b.getLocation()),
+            assertNull(atomosRuntime.getAtomosContent(b.getLocation()),
                 "No AtomsBundle expected.");
         });
 
@@ -431,7 +431,7 @@ public class ModulepathLaunchTest
         final AtomosLayer child = installChild(atomosRuntime.getBootLayer(), "SINGLE",
             atomosRuntime, LoaderType.SINGLE);
         final Bundle b = atomosRuntime.getBundle(
-            child.findAtomosBundle(TESTBUNDLES_SERVICE_IMPL_A).get());
+            child.findAtomosContent(TESTBUNDLES_SERVICE_IMPL_A).get());
         assertNotNull(b, "No bundle found.");
         URL mf = b.getEntry("/META-INF/MANIFEST.MF");
         assertNotNull(mf, "No manifest found.");
@@ -452,7 +452,7 @@ public class ModulepathLaunchTest
             bc.getServiceReference(AtomosRuntime.class));
         final AtomosLayer child = installChild(atomosRuntime.getBootLayer(), "SINGLE",
             atomosRuntime, LoaderType.SINGLE);
-        final AtomosBundleInfo ab = child.findAtomosBundle(
+        final AtomosContent ab = child.findAtomosContent(
             TESTBUNDLES_SERVICE_IMPL_A).get();
         Bundle b = atomosRuntime.getBundle(ab);
         assertNotNull(b, "No bundle found.");
@@ -565,9 +565,9 @@ public class ModulepathLaunchTest
         assertEquals(1, children.size(), "Wrong number of children.");
 
         final AtomosLayer child = children.iterator().next();
-        assertEquals(5, child.getAtomosBundles().size(), "Wrong number of bundles.");
+        assertEquals(5, child.getAtomosContents().size(), "Wrong number of bundles.");
         Module serviceLibModule = null;
-        for (final AtomosBundleInfo atomosBundle : child.getAtomosBundles())
+        for (final AtomosContent atomosBundle : child.getAtomosContents())
         {
             if (atomosBundle.getSymbolicName().equals(
                 TESTBUNDLES_SERVICE_LIBRARY))
@@ -685,7 +685,7 @@ public class ModulepathLaunchTest
         checkLayer(children.get(2), LoaderType.OSGI, 4);
 
         // uninstall service.impl.a bundle from the first child
-        children.iterator().next().getAtomosBundles().stream().map(
+        children.iterator().next().getAtomosContents().stream().map(
             (a) -> atomosRuntime2.getBundle(a)).filter(Objects::nonNull).filter(
                 (b) -> b.getSymbolicName().equals(
                     TESTBUNDLES_SERVICE_IMPL_A)).findFirst().orElseThrow().uninstall();
@@ -694,10 +694,10 @@ public class ModulepathLaunchTest
         testFramework.stop();
         testFramework.waitForStop(10000);
 
-        // startup with the option not to force install all atomos bundles
+        // startup with the option not to force install all atomos contents
         ModulepathLaunch.main(new String[] {
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(),
-                AtomosRuntime.ATOMOS_BUNDLE_INSTALL + "=false" });
+                AtomosRuntime.ATOMOS_CONTENT_INSTALL + "=false" });
         testFramework = ModulepathLaunch.getFramework();
         bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
@@ -720,7 +720,7 @@ public class ModulepathLaunchTest
         final AtomosLayer child = installChild(atomosRuntime.getBootLayer(), "testRef",
             atomosRuntime, LoaderType.MANY);
         checkServices(bc, 4);
-        final AtomosBundleInfo ab = child.findAtomosBundle(
+        final AtomosContent ab = child.findAtomosContent(
             TESTBUNDLES_SERVICE_USER).get();
         final Bundle b = atomosRuntime.getBundle(ab);
         assertNotNull(b, "No bundle found.");

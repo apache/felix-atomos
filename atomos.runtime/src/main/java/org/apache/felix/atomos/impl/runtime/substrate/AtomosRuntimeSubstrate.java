@@ -34,7 +34,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
-import org.apache.felix.atomos.runtime.AtomosBundleInfo;
+import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -214,48 +214,48 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase
     }
 
     @Override
-    protected void filterBasedOnReadEdges(AtomosBundleInfo atomosBundle,
+    protected void filterBasedOnReadEdges(AtomosContent atomosContent,
         Collection<BundleCapability> candidates)
     {
-        filterNotVisible(atomosBundle, candidates);
+        filterNotVisible(atomosContent, candidates);
     }
 
     public class AtomosLayerSubstrate extends AtomosLayerBase implements SynchronousBundleListener
     {
-        private final Set<AtomosBundleInfoBase> atomosBundles;
-        private final Map<String, AtomosBundleInfoBase> packageToAtomos = new ConcurrentHashMap<>();
+        private final Set<AtomosContentBase> atomosContents;
+        private final Map<String, AtomosContentBase> packageToAtomosContent = new ConcurrentHashMap<>();
 
         protected AtomosLayerSubstrate(List<AtomosLayer> parents, long id, String name, LoaderType loaderType, Path... paths)
         {
             super(parents, id, name, loaderType, paths);
-            Set<AtomosBundleInfoBase> foundBundles = new HashSet<>();
+            Set<AtomosContentBase> foundBundles = new HashSet<>();
             findSubstrateAtomosBundles(foundBundles);
-            atomosBundles = Collections.unmodifiableSet(foundBundles);
+            atomosContents = Collections.unmodifiableSet(foundBundles);
         }
 
-        AtomosBundleInfoBase getBundleByPackage(Class<?> clazz)
+        AtomosContentBase getContentByPackage(Class<?> clazz)
         {
             Package pkg = clazz.getPackage();
             if (pkg != null)
             {
-                return packageToAtomos.get(pkg.getName());
+                return packageToAtomosContent.get(pkg.getName());
             }
             return null;
         }
 
         @Override
-        public final Set<AtomosBundleInfo> getAtomosBundles()
+        public final Set<AtomosContent> getAtomosContents()
         {
-            return asSet(atomosBundles);
+            return asSet(atomosContents);
         }
 
         @Override
-        protected void findBootLayerAtomosBundles(Set<AtomosBundleInfoBase> result)
+        protected void findBootLayerAtomosContents(Set<AtomosContentBase> result)
         {
             // do nothing for class path runtime case
         }
 
-        void findSubstrateAtomosBundles(Set<AtomosBundleInfoBase> bundles)
+        void findSubstrateAtomosBundles(Set<AtomosContentBase> bundles)
         {
             if (!indexBundles.isEmpty())
             {
@@ -276,7 +276,7 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase
                             location = getName() + ":" + location;
                         }
                     }
-                    bundles.add(new AtomosBundleInfoSubstrate(location, b.bsn, b.version,
+                    bundles.add(new AtomosContentSubstrate(location, b.bsn, b.version,
                         connectContent));
                 });
             }
@@ -319,7 +319,7 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase
                                 }
                                 Version version = Version.parseVersion(
                                     headers.getValue(Constants.BUNDLE_VERSION));
-                                AtomosBundleInfoBase bundle = new AtomosBundleInfoSubstrate(
+                                AtomosContentBase bundle = new AtomosContentSubstrate(
                                     location, symbolicName, version, connectContent);
                                 bundles.add(bundle);
                             }
@@ -333,10 +333,14 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase
             }
         }
 
-        public class AtomosBundleInfoSubstrate extends AtomosBundleInfoBase
+        /**
+         * Atomos content discovered in a substrate image.  The key is this content itself
+         * which is used to lookup the content based on package name.
+         */
+        public class AtomosContentSubstrate extends AtomosContentBase
         {
 
-            public AtomosBundleInfoSubstrate(String location, String symbolicName, Version version, ConnectContent content)
+            public AtomosContentSubstrate(String location, String symbolicName, Version version, ConnectContent content)
             {
                 super(location, symbolicName, version, content);
             }
@@ -360,21 +364,21 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase
 
         void addPackages(Bundle b)
         {
-            AtomosBundleInfoBase atomosBundle = (AtomosBundleInfoBase) getAtomosBundle(
+            AtomosContentBase atomosContent = (AtomosContentBase) getAtomosContent(
                 b.getLocation());
-            if (atomosBundle != null)
+            if (atomosContent != null)
             {
                 BundleRevision r = b.adapt(BundleRevision.class);
                 r.getDeclaredCapabilities(PackageNamespace.PACKAGE_NAMESPACE).forEach(
-                    (p) -> packageToAtomos.putIfAbsent((String) p.getAttributes().get(
-                        PackageNamespace.PACKAGE_NAMESPACE), atomosBundle));
+                    (p) -> packageToAtomosContent.putIfAbsent((String) p.getAttributes().get(
+                        PackageNamespace.PACKAGE_NAMESPACE), atomosContent));
                 String privatePackages = b.getHeaders("").get("Private-Package");
                 if (privatePackages != null)
                 {
                     for (String pkgName : privatePackages.split(","))
                     {
                         pkgName = pkgName.trim();
-                        packageToAtomos.put(pkgName, atomosBundle);
+                        packageToAtomosContent.put(pkgName, atomosContent);
                     }
                 }
             }
@@ -402,7 +406,7 @@ public class AtomosRuntimeSubstrate extends AtomosRuntimeBase
     @Override
     protected Object getAtomosKey(Class<?> classFromBundle)
     {
-        return bootLayer.getBundleByPackage(classFromBundle);
+        return bootLayer.getContentByPackage(classFromBundle);
     }
 
     @Override

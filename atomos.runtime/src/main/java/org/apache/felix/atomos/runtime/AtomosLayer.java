@@ -25,8 +25,8 @@ import org.osgi.framework.BundleException;
  * An Atomos Layer may represents a {@link ModuleLayer} that was added to
  * a {@link AtomosRuntime} using the {@link AtomosRuntime#addLayer(Configuration) addLayer}
  * method or the Atomos Layer could represent the {@link AtomosRuntime#getBootLayer() boot layer}.
- * An Atomos Layer will contain one or more {@link AtomosBundleInfo atomos bundles} which can
- * then be used to {@link AtomosBundleInfo#install(String) install } them as OSGi bundles into the
+ * An Atomos Layer will contain one or more {@link AtomosContent Atomos contents} which can
+ * then be used to {@link AtomosContent#install(String) install } them as OSGi connected bundles into the
  * {@link AtomosRuntime#newFramework(java.util.Map) framework}.
  */
 public interface AtomosLayer
@@ -35,11 +35,11 @@ public interface AtomosLayer
      * Adapt this Atomos layer to the specified type. For example,
      * if running in a module layer then the layer can be adapted
      * to a ModuleLayer associated with this Atomos Layer.
-     * @param <A> The type to which this Atomos bundle is to be adapted.
-     * @param type Class object for the type to which this Atomos bundle is to be
+     * @param <A> The type to which this Atomos layer is to be adapted.
+     * @param type Class object for the type to which this Atomos layer is to be
      *        adapted.
-     * @return The object, of the specified type, to which this Atomos bundle has been
-     *         adapted or {@code null} if this bundle cannot be adapted to the
+     * @return The object, of the specified type, to which this Atomos layer has been
+     *         adapted or {@code null} if this layer cannot be adapted to the
      *         specified type.
      */
     public <T> Optional<T> adapt(Class<T> type);
@@ -86,34 +86,34 @@ public interface AtomosLayer
     List<AtomosLayer> getParents();
 
     /**
-     * The Atomos bundles contained in this layer
-     * @return the Atomos Bundles
+     * The Atomos contents contained in this layer
+     * @return the Atomos contents
      */
-    Set<AtomosBundleInfo> getAtomosBundles();
+    Set<AtomosContent> getAtomosContents();
 
     /**
-     * Returns the Atomos bundle with the given name in this layer, or if not in this
-     * layer, the {@linkplain #getParents() parent} layers. Finding a bundle in
-     * parent layers is equivalent to invoking {@code findAtomosBundle} on each
-     * parent, in search order, until the bundle is found or all parents have
+     * Returns the Atomos content with the given name in this layer, or if not in this
+     * layer, the {@linkplain #getParents() parent} layers. Finding content in
+     * parent layers is equivalent to invoking {@code findAtomosContent} on each
+     * parent, in search order, until the content is found or all parents have
      * been searched. In a <em>tree of layers</em>  then this is equivalent to
      * a depth-first search.
-     * @param symbolicName the name of the bundle to find
-     * @return The bundle with the given name or an empty {@code Optional}
-     *         if there isn't a bundle with this name in this layer or any
+     * @param symbolicName the name of the content to find
+     * @return The content with the given name or an empty {@code Optional}
+     *         if there isn't a content with this name in this layer or any
      *         parent layer
      */
-    Optional<AtomosBundleInfo> findAtomosBundle(String symbolicName);
+    Optional<AtomosContent> findAtomosContent(String symbolicName);
 
     /**
      * The name of the Atomos Layer.  By default the Atomos Layer
      * name is the empty string.  Atomos Layer names are not
-     * required to be unique.  All Atomos bundles contained in a
-     * layer will have {@link AtomosBundleInfo#getLocation() locations}
+     * required to be unique.  All Atomos contents contained in a
+     * layer will have {@link AtomosContent#getLocation() locations}
      * that use the layer name as a prefix.  If the layer
      * name is not the empty string then the location prefix will be
      * the layer name followed by a colon ({@code :}).
-     * This allows two different layers to load the same module in
+     * This allows two different layers to load the same content in
      * different layers.
      * @return the name of the layer
      */

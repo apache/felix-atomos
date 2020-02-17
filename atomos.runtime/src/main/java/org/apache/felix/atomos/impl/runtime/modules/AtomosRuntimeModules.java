@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
 import org.apache.felix.atomos.impl.runtime.base.JavaServiceNamespace;
-import org.apache.felix.atomos.runtime.AtomosBundleInfo;
+import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
 import org.osgi.framework.Bundle;
@@ -439,25 +439,25 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
     }
 
     @Override
-    protected void filterBasedOnReadEdges(AtomosBundleInfo atomosBundle,
+    protected void filterBasedOnReadEdges(AtomosContent atomosContent,
         Collection<BundleCapability> candidates)
     {
-        if (atomosBundle == null)
+        if (atomosContent == null)
         {
-            // only do this for atomos bundles
+            // only do this for atomos contents
             return;
         }
-        Module m = atomosBundle.adapt(Module.class).orElse(null);
+        Module m = atomosContent.adapt(Module.class).orElse(null);
         if (m == null)
         {
-            filterNotVisible(atomosBundle, candidates);
+            filterNotVisible(atomosContent, candidates);
         }
         else
         {
             for (Iterator<BundleCapability> iCands = candidates.iterator(); iCands.hasNext();)
             {
                 BundleCapability candidate = iCands.next();
-                AtomosBundleInfo candidateAtomos = getByOSGiLocation(
+                AtomosContent candidateAtomos = getByOSGiLocation(
                     candidate.getRevision().getBundle().getLocation());
                 if (candidateAtomos == null
                     || candidateAtomos.adapt(Module.class).isEmpty())
@@ -478,7 +478,7 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
     public class AtomosLayerModules extends AtomosLayerBase
     {
         private final ModuleLayer moduleLayer;
-        private final Set<AtomosBundleInfoBase> atomosBundles;
+        private final Set<AtomosContentBase> atomosBundles;
 
         AtomosLayerModules(Configuration config, List<AtomosLayer> parents, long id, String name, LoaderType loaderType, Path... paths)
         {
@@ -526,18 +526,18 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
             }
         }
 
-        private Set<AtomosBundleInfoBase> findAtomosBundles()
+        private Set<AtomosContentBase> findAtomosBundles()
         {
-            return moduleLayer == null ? findClassPathAtomosBundles()
+            return moduleLayer == null ? findClassPathAtomosContents()
                 : findModuleLayerAtomosBundles(moduleLayer);
         }
 
-        private Set<AtomosBundleInfoBase> findModuleLayerAtomosBundles(
+        private Set<AtomosContentBase> findModuleLayerAtomosBundles(
             ModuleLayer searchLayer)
         {
             Map<ModuleDescriptor, Module> descriptorMap = searchLayer.modules().stream().collect(
                 Collectors.toMap(Module::getDescriptor, m -> (m)));
-            Set<AtomosBundleInfoBase> found = new LinkedHashSet<>();
+            Set<AtomosContentBase> found = new LinkedHashSet<>();
             for (ResolvedModule resolved : searchLayer.configuration().modules())
             {
                 // include only if it is not excluded
@@ -582,7 +582,7 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
                     }
                 }).orElse(Version.emptyVersion);
 
-                found.add(new AtomosBundleInfoModule(resolved, m, location,
+                found.add(new AtomosContentModule(resolved, m, location,
                     resolved.name(), version));
 
             }
@@ -601,15 +601,20 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
             return super.adapt(type);
         }
 
-        public class AtomosBundleInfoModule extends AtomosBundleInfoBase
+        /**
+         * Atomos content discovered on the module path.  The key is the module
+         * of this Atomos content.
+         *
+         */
+        public class AtomosContentModule extends AtomosContentBase
         {
 
             /**
-             * The module for this atomos bundle.
+             * The module for this atomos content.
              */
             private final Module module;
 
-            public AtomosBundleInfoModule(ResolvedModule resolvedModule, Module module, String location, String symbolicName, Version version)
+            public AtomosContentModule(ResolvedModule resolvedModule, Module module, String location, String symbolicName, Version version)
             {
                 super(location, symbolicName, version, new ModuleConnectContent(module,
                     resolvedModule.reference(), AtomosRuntimeModules.this));
@@ -635,13 +640,13 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
         }
 
         @Override
-        public Set<AtomosBundleInfo> getAtomosBundles()
+        public Set<AtomosContent> getAtomosContents()
         {
             return asSet(atomosBundles);
         }
 
         @Override
-        protected void findBootLayerAtomosBundles(Set<AtomosBundleInfoBase> result)
+        protected void findBootLayerAtomosContents(Set<AtomosContentBase> result)
         {
             result.addAll(findModuleLayerAtomosBundles(ModuleLayer.boot()));
         }

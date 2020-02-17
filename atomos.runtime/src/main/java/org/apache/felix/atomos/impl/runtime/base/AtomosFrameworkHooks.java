@@ -16,7 +16,7 @@ package org.apache.felix.atomos.impl.runtime.base;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.apache.felix.atomos.runtime.AtomosBundleInfo;
+import org.apache.felix.atomos.runtime.AtomosContent;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.hooks.bundle.CollisionHook;
 import org.osgi.framework.hooks.resolver.ResolverHook;
@@ -42,7 +42,7 @@ public class AtomosFrameworkHooks implements ResolverHookFactory, CollisionHook
         public void filterSingletonCollisions(BundleCapability singleton,
             Collection<BundleCapability> collisionCandidates)
         {
-            AtomosBundleInfo atomosBundle = atomosRuntime.getByOSGiLocation(
+            AtomosContent atomosBundle = atomosRuntime.getByOSGiLocation(
                 singleton.getRevision().getBundle().getLocation());
             atomosRuntime.filterNotVisible(atomosBundle, collisionCandidates);
         }
@@ -51,7 +51,7 @@ public class AtomosFrameworkHooks implements ResolverHookFactory, CollisionHook
         public void filterMatches(BundleRequirement requirement,
             Collection<BundleCapability> candidates)
         {
-            AtomosBundleInfo atomosBundle = atomosRuntime.getByOSGiLocation(
+            AtomosContent atomosBundle = atomosRuntime.getByOSGiLocation(
                 requirement.getRevision().getBundle().getLocation());
             switch (requirement.getNamespace())
             {
@@ -91,17 +91,17 @@ public class AtomosFrameworkHooks implements ResolverHookFactory, CollisionHook
     public void filterCollisions(int operationType, Bundle target,
         Collection<Bundle> collisionCandidates)
     {
-        AtomosBundleInfo currentlyInstalling = atomosRuntime.currentlyInstalling();
+        AtomosContent currentlyInstalling = atomosRuntime.currentlyInstalling();
         if (currentlyInstalling != null)
         {
             for (Iterator<Bundle> iCands = collisionCandidates.iterator(); iCands.hasNext();)
             {
                 Bundle b = iCands.next();
-                AtomosBundleInfo candidate = atomosRuntime.getAtomosBundle(
+                AtomosContent candidate = atomosRuntime.getAtomosContent(
                     b.getLocation());
                 if (candidate != null)
                 {
-                    // Only other atomos bundles can be filtered out
+                    // Only other atomos connected contents can be filtered out
                     if (!atomosRuntime.isInLayerHierarchy(
                         currentlyInstalling.getAtomosLayer(), candidate.getAtomosLayer()))
                     {

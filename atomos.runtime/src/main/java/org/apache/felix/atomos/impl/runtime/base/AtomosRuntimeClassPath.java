@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Set;
 
-import org.apache.felix.atomos.runtime.AtomosBundleInfo;
+import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.wiring.BundleCapability;
@@ -69,30 +69,30 @@ public class AtomosRuntimeClassPath extends AtomosRuntimeBase
     }
 
     @Override
-    protected void filterBasedOnReadEdges(AtomosBundleInfo atomosBundle,
+    protected void filterBasedOnReadEdges(AtomosContent atomosContent,
         Collection<BundleCapability> candidates)
     {
-        filterNotVisible(atomosBundle, candidates);
+        filterNotVisible(atomosContent, candidates);
     }
 
     public class AtomosLayerClassPath extends AtomosLayerBase
     {
-        private final Set<AtomosBundleInfoBase> atomosBundles;
+        private final Set<AtomosContentBase> atomosContents;
 
         protected AtomosLayerClassPath(List<AtomosLayer> parents, long id, String name, LoaderType loaderType, Path... paths)
         {
             super(parents, id, name, loaderType, paths);
-            atomosBundles = findClassPathAtomosBundles();
+            atomosContents = findClassPathAtomosContents();
         }
 
         @Override
-        public final Set<AtomosBundleInfo> getAtomosBundles()
+        public final Set<AtomosContent> getAtomosContents()
         {
-            return asSet(atomosBundles);
+            return asSet(atomosContents);
         }
 
         @Override
-        protected void findBootLayerAtomosBundles(Set<AtomosBundleInfoBase> result)
+        protected void findBootLayerAtomosContents(Set<AtomosContentBase> result)
         {
             // do nothing for class path runtime case
         }

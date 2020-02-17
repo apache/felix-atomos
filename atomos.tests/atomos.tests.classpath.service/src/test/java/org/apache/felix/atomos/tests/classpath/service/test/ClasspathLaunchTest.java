@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosCommands;
-import org.apache.felix.atomos.runtime.AtomosBundleInfo;
+import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
 import org.apache.felix.atomos.runtime.AtomosRuntime.LoaderType;
@@ -166,10 +166,10 @@ public class ClasspathLaunchTest
         assertNotNull(mf, "No manifest found.");
     }
 
-    private AtomosBundleInfo assertFindBundle(String name, AtomosLayer layer,
+    private AtomosContent assertFindBundle(String name, AtomosLayer layer,
         AtomosLayer expectedLayer, boolean expectedToFind)
     {
-        Optional<AtomosBundleInfo> result = layer.findAtomosBundle(name);
+        Optional<AtomosContent> result = layer.findAtomosContent(name);
         if (expectedToFind)
         {
             assertTrue(result.isPresent(), "Could not find bundle: " + name);

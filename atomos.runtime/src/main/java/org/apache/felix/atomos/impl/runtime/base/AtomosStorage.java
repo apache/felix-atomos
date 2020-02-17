@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase.AtomosLayerBase;
-import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase.AtomosLayerBase.AtomosBundleInfoBase;
-import org.apache.felix.atomos.runtime.AtomosBundleInfo;
+import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase.AtomosLayerBase.AtomosContentBase;
+import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.apache.felix.atomos.runtime.AtomosRuntime.LoaderType;
 import org.osgi.framework.Bundle;
@@ -102,7 +102,7 @@ public class AtomosStorage
             for (Bundle b : bundles)
             {
                 String osgiLocation = b.getLocation();
-                AtomosBundleInfo atomosBundle = atomosRuntime.getByOSGiLocation(
+                AtomosContent atomosBundle = atomosRuntime.getByOSGiLocation(
                     osgiLocation);
                 if (atomosBundle != null)
                 {
@@ -198,11 +198,11 @@ public class AtomosStorage
         {
             String osgiLocation = in.readUTF();
             String atomosLocation = in.readUTF();
-            AtomosBundleInfoBase atomosBundle = atomosRuntime.getByAtomosLocation(
+            AtomosContentBase atomosBundle = atomosRuntime.getByAtomosLocation(
                 atomosLocation);
             if (atomosBundle != null)
             {
-                atomosRuntime.addToInstalledBundles(osgiLocation, atomosBundle);
+                atomosRuntime.connectAtomosContent(osgiLocation, atomosBundle);
             }
         }
     }
@@ -230,7 +230,7 @@ public class AtomosStorage
         out.writeInt(installedLocations.size());
         for (String osgiLocation : installedLocations)
         {
-            AtomosBundleInfoBase atomosBundle = atomosRuntime.getByOSGiLocation(
+            AtomosContentBase atomosBundle = atomosRuntime.getByOSGiLocation(
                 osgiLocation);
             String atomosLocation = atomosBundle.getLocation();
             out.writeUTF(osgiLocation);

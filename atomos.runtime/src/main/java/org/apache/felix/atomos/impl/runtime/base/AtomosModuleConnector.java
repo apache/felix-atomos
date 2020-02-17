@@ -18,7 +18,7 @@ import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase.AtomosLayerBase.AtomosBundleInfoBase;
+import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase.AtomosLayerBase.AtomosContentBase;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -65,7 +65,7 @@ public class AtomosModuleConnector implements ModuleConnector
     @Override
     public Optional<ConnectModule> connect(String location)
     {
-        final AtomosBundleInfoBase atomosBundle = atomosRuntime.getByOSGiLocation(
+        final AtomosContentBase atomosBundle = atomosRuntime.getByOSGiLocation(
             location);
         if (atomosBundle == null)
         {

@@ -42,9 +42,9 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase.AtomosLayerBase.AtomosBundleInfoBase;
+import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase.AtomosLayerBase.AtomosContentBase;
 import org.apache.felix.atomos.impl.runtime.substrate.AtomosRuntimeSubstrate;
-import org.apache.felix.atomos.runtime.AtomosBundleInfo;
+import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
 import org.osgi.framework.Bundle;
@@ -86,19 +86,19 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 
     // The following area all protected by the read/write lock
 
-    // A map of Atomos bundles that are installed as OSGi bundles; the key is the OSGi bundle location
-    private final Map<String, AtomosBundleInfoBase> osgiLocationToAtomosBundle = new HashMap<>();
-    // A map of all Atomos bundles discovered (may not be installed as OSGi bundles); the key is the Atomos location
-    private final Map<String, AtomosBundleInfoBase> atomosLocationToAtomosBundle = new HashMap<>();
+    // A map of Atomos contents that are installed as OSGi bundles; the key is the OSGi bundle location
+    private final Map<String, AtomosContentBase> osgiLocationToAtomosContent = new HashMap<>();
+    // A map of all Atomos contents discovered (may not be installed as OSGi bundles); the key is the Atomos location
+    private final Map<String, AtomosContentBase> atomosLocationToAtomosContent = new HashMap<>();
     // A map of Atomos bundle OSGi bundle locations that are installed as OSGi bundles for an AtomosLayer; value is the OSGi bundle locations
     final Map<AtomosLayer, Collection<String>> atomosLayerToOSGiLocations = new HashMap<>();
-    // A map of OSGi bundle locations for installed Atomos bundles; key is the AtomosBundleInfoBase.getKey()
+    // A map of OSGi bundle locations for installed Atomos contents; key is the AtomosContentBase.getKey()
     // Used to lookup an OSGi bundle location for a Class<?> in getBundleLocation(Class<?>)
     protected final Map<Object, String> atomosKeyToOSGiLocation = new HashMap<>();
     // A map of Layers keyed by layer ID
     final Map<Long, AtomosLayerBase> idToLayer = new HashMap<>();
-    // A map of OSGi bundle locations for installed Atomos bundles; key is Atomos bundle
-    private final Map<AtomosBundleInfo, String> atomosBundleToOSGiLocation = new HashMap<>();
+    // A map of OSGi bundle locations for installed Atomos contents; key is Atomos content
+    private final Map<AtomosContent, String> atomosContentToOSGiLocation = new HashMap<>();
     protected final AtomicLong nextLayerId = new AtomicLong(0);
 
     public static AtomosRuntime newAtomosRuntime()
@@ -184,12 +184,12 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         lock.readLock().unlock();
     }
 
-    protected final AtomosBundleInfoBase getByOSGiLocation(String location)
+    protected final AtomosContentBase getByOSGiLocation(String location)
     {
         lockRead();
         try
         {
-            return osgiLocationToAtomosBundle.get(location);
+            return osgiLocationToAtomosContent.get(location);
         }
         finally
         {
@@ -197,18 +197,18 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         }
     }
 
-    final void addToInstalledBundles(String osgiLocation,
-        AtomosBundleInfoBase atomosBundle)
+    final void connectAtomosContent(String osgiLocation,
+        AtomosContentBase atomosContent)
     {
         lockWrite();
         try
         {
-            osgiLocationToAtomosBundle.put(osgiLocation, atomosBundle);
-            atomosBundleToOSGiLocation.put(atomosBundle, osgiLocation);
-            AtomosLayer layer = atomosBundle.getAtomosLayer();
+            osgiLocationToAtomosContent.put(osgiLocation, atomosContent);
+            atomosContentToOSGiLocation.put(atomosContent, osgiLocation);
+            AtomosLayer layer = atomosContent.getAtomosLayer();
             atomosLayerToOSGiLocations.computeIfAbsent(layer,
                 (l) -> new ArrayList<>()).add(osgiLocation);
-            atomosKeyToOSGiLocation.put(atomosBundle.getKey(), osgiLocation);
+            atomosKeyToOSGiLocation.put(atomosContent.getKey(), osgiLocation);
         }
         finally
         {
@@ -216,14 +216,14 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         }
     }
 
-    private void removeFromInstalledBundles(String osgiLocation)
+    private void disconnectAtomosContent(String osgiLocation)
     {
         lockWrite();
         try
         {
-            AtomosBundleInfoBase removed = osgiLocationToAtomosBundle.remove(
+            AtomosContentBase removed = osgiLocationToAtomosContent.remove(
                 osgiLocation);
-            atomosBundleToOSGiLocation.remove(removed);
+            atomosContentToOSGiLocation.remove(removed);
             atomosLayerToOSGiLocations.computeIfAbsent(removed.getAtomosLayer(),
                 (l) -> new ArrayList<>()).remove(osgiLocation);
             atomosKeyToOSGiLocation.remove(removed.getKey());
@@ -234,12 +234,12 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         }
     }
 
-    final AtomosBundleInfoBase getByAtomosLocation(String location)
+    final AtomosContentBase getByAtomosLocation(String location)
     {
         lockRead();
         try
         {
-            return atomosLocationToAtomosBundle.get(location);
+            return atomosLocationToAtomosContent.get(location);
         }
         finally
         {
@@ -260,12 +260,12 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         }
     }
 
-    final String getByAtomosBundleInfo(AtomosBundleInfo atomosBundle)
+    final String getByAtomosContent(AtomosContent atomosContent)
     {
         lockRead();
         try
         {
-            return atomosBundleToOSGiLocation.get(atomosBundle);
+            return atomosContentToOSGiLocation.get(atomosContent);
         }
         finally
         {
@@ -288,15 +288,15 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     }
 
     @Override
-    public final AtomosBundleInfo getAtomosBundle(String bundleLocation)
+    public final AtomosContent getAtomosContent(String bundleLocation)
     {
         return getByOSGiLocation(bundleLocation);
     }
 
     @Override
-    public final Bundle getBundle(AtomosBundleInfo atomosBundle)
+    public final Bundle getBundle(AtomosContent atomosContent)
     {
-        String location = getByAtomosBundleInfo(atomosBundle);
+        String location = getByAtomosContent(atomosContent);
         if (location != null)
         {
             BundleContext bc = context.get();
@@ -346,9 +346,9 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         return context.get();
     }
 
-    final ThreadLocal<AtomosBundleInfo> installingInfo = new ThreadLocal<>();
+    final ThreadLocal<AtomosContent> installingInfo = new ThreadLocal<>();
 
-    final Bundle installAtomosBundle(String prefix, AtomosBundleInfo atomosBundle)
+    final Bundle installAtomosContent(String prefix, AtomosContent atomosContent)
         throws BundleException
     {
         if (prefix == null)
@@ -363,7 +363,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         if (AtomosRuntimeBase.DEBUG)
         {
             System.out.println(
-                "Installing atomos bundle: " + prefix + atomosBundle.getLocation()); //$NON-NLS-1$
+                "Installing atomos content: " + prefix + atomosContent.getLocation());
         }
 
         BundleContext bc = context.get();
@@ -372,7 +372,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             throw new IllegalStateException("Framework has not been initialized.");
         }
 
-        String existingLoc = getByAtomosBundleInfo(atomosBundle);
+        String existingLoc = getByAtomosContent(atomosContent);
         if (existingLoc != null)
         {
             Bundle existing = bc.getBundle(existingLoc);
@@ -389,20 +389,20 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             }
         }
 
-        String location = atomosBundle.getLocation();
+        String location = atomosContent.getLocation();
         if (!Constants.SYSTEM_BUNDLE_LOCATION.equals(location))
         {
-            location = prefix + atomosBundle.getLocation();
+            location = prefix + atomosContent.getLocation();
         }
-        AtomosLayerBase atomosLayer = (AtomosLayerBase) atomosBundle.getAtomosLayer();
+        AtomosLayerBase atomosLayer = (AtomosLayerBase) atomosContent.getAtomosLayer();
         if (!atomosLayer.isValid())
         {
             throw new BundleException("Atomos layer has been uninstalled.",
                 BundleException.INVALID_OPERATION);
         }
 
-        addToInstalledBundles(location, (AtomosBundleInfoBase) atomosBundle);
-        installingInfo.set(atomosBundle);
+        connectAtomosContent(location, (AtomosContentBase) atomosContent);
+        installingInfo.set(atomosContent);
         Bundle result = null;
         try
         {
@@ -423,13 +423,13 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             }
             else if (result == null)
             {
-                removeFromInstalledBundles(location);
+                disconnectAtomosContent(location);
             }
         }
         return result;
     }
 
-    final AtomosBundleInfo currentlyInstalling()
+    final AtomosContent currentlyInstalling()
     {
         return installingInfo.get();
     }
@@ -439,7 +439,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     {
         if (event.getType() == BundleEvent.UNINSTALLED)
         {
-            removeFromInstalledBundles(event.getBundle().getLocation());
+            disconnectAtomosContent(event.getBundle().getLocation());
         }
     }
 
@@ -452,19 +452,19 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
                 "AtomosLayer already exists for id: " + atomosLayer.getId());
         }
 
-        for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomosBundles())
+        for (AtomosContent atomosContent : atomosLayer.getAtomosContents())
         {
-            if (atomosLocationToAtomosBundle.putIfAbsent(atomosBundle.getLocation(),
-                (AtomosBundleInfoBase) atomosBundle) != null)
+            if (atomosLocationToAtomosContent.putIfAbsent(
+                atomosContent.getLocation(), (AtomosContentBase) atomosContent) != null)
             {
-                throw new IllegalStateException("Atomos bundle location already exists: "
-                    + atomosBundle.getLocation());
+                throw new IllegalStateException("Atomos content location already exists: "
+                    + atomosContent.getLocation());
             }
-            if (Constants.SYSTEM_BUNDLE_LOCATION.equals(atomosBundle.getLocation()))
+            if (Constants.SYSTEM_BUNDLE_LOCATION.equals(atomosContent.getLocation()))
             {
                 // system bundle location is always marked as installed
-                addToInstalledBundles(Constants.SYSTEM_BUNDLE_LOCATION,
-                    (AtomosBundleInfoBase) atomosBundle);
+                connectAtomosContent(Constants.SYSTEM_BUNDLE_LOCATION,
+                    (AtomosContentBase) atomosContent);
             }
         }
         for (AtomosLayer parent : atomosLayer.getParents())
@@ -486,7 +486,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         private final Set<AtomosLayer> children = new HashSet<>();
         private final List<Path> paths;
         private volatile boolean valid = true;
-        private volatile Map<String, AtomosBundleInfo> nameToBundle;
+        private volatile Map<String, AtomosContent> nameToBundle;
 
         public AtomosLayerBase(List<AtomosLayer> parents, long id, String name, LoaderType loaderType, Path... paths)
         {
@@ -528,11 +528,11 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             children.remove(child);
         }
 
-        protected Set<AtomosBundleInfoBase> findClassPathAtomosBundles()
+        protected Set<AtomosContentBase> findClassPathAtomosContents()
         {
             // first get the boot modules
-            Set<AtomosBundleInfoBase> bootBundles = new HashSet<>();
-            findBootLayerAtomosBundles(bootBundles);
+            Set<AtomosContentBase> bootBundles = new HashSet<>();
+            findBootLayerAtomosContents(bootBundles);
             try
             {
                 ClassLoader cl = getClass().getClassLoader();
@@ -605,7 +605,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
                             Version version = Version.parseVersion(
                                 headers.getValue(Constants.BUNDLE_VERSION));
 
-                            bootBundles.add(new AtomosBundleInfoClassPath(location,
+                            bootBundles.add(new AtomosContentClassPath(location,
                                 symbolicName, version, connectContent, url));
                         }
                     }
@@ -618,8 +618,8 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             return Collections.unmodifiableSet(bootBundles);
         }
 
-        protected abstract void findBootLayerAtomosBundles(
-            Set<AtomosBundleInfoBase> result);
+        protected abstract void findBootLayerAtomosContents(
+            Set<AtomosContentBase> result);
 
         /**
          * Returns the bundle content that contains the specified manifest URL.
@@ -833,14 +833,14 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         }
 
         @Override
-        public Optional<AtomosBundleInfo> findAtomosBundle(String symbolicName)
+        public Optional<AtomosContent> findAtomosContent(String symbolicName)
         {
-            Map<String, AtomosBundleInfo> nameToBundle = this.nameToBundle;
+            Map<String, AtomosContent> nameToBundle = this.nameToBundle;
             if (nameToBundle == null)
             {
                 nameToBundle = new HashMap<>();
-                final Map<String, AtomosBundleInfo> populate = nameToBundle;
-                getAtomosBundles().forEach(
+                final Map<String, AtomosContent> populate = nameToBundle;
+                getAtomosContents().forEach(
                     (a) -> populate.putIfAbsent(a.getSymbolicName(), a));
 
                 Set<AtomosLayer> visited = new HashSet<>();
@@ -851,7 +851,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
                 while (!stack.isEmpty())
                 {
                     AtomosLayer layer = stack.pop();
-                    layer.getAtomosBundles().forEach(
+                    layer.getAtomosContents().forEach(
                         (a) -> populate.putIfAbsent(a.getSymbolicName(), a));
                     List<AtomosLayer> parents = layer.getParents();
                     for (int i = parents.size() - 1; i >= 0; i--)
@@ -871,9 +871,9 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         }
 
         /**
-         * Information about an atomos bundle.
+         * The base Atomos content implementation that all AtomosContent implementations extend
          */
-        public abstract class AtomosBundleInfoBase implements AtomosBundleInfo, Comparable<AtomosBundleInfo>
+        public abstract class AtomosContentBase implements AtomosContent, Comparable<AtomosContent>
         {
 
             /**
@@ -896,7 +896,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
              */
             private final ConnectContent content;
 
-            public AtomosBundleInfoBase(String location, String symbolicName, Version version, ConnectContent content)
+            public AtomosContentBase(String location, String symbolicName, Version version, ConnectContent content)
             {
                 this.location = location;
                 this.symbolicName = symbolicName;
@@ -937,11 +937,11 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             @Override
             public final boolean equals(Object o)
             {
-                if (!(o instanceof AtomosBundleInfoBase))
+                if (!(o instanceof AtomosContentBase))
                 {
                     return false;
                 }
-                AtomosBundleInfoBase info = (AtomosBundleInfoBase) o;
+                AtomosContentBase info = (AtomosContentBase) o;
                 return getSymbolicName().equals(info.getSymbolicName())
                     && getVersion().equals(info.getVersion())
                     && getAtomosLayer() == info.getAtomosLayer();
@@ -954,7 +954,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             }
 
             @Override
-            public final int compareTo(AtomosBundleInfo o)
+            public final int compareTo(AtomosContent o)
             {
                 int bsnCompare = getSymbolicName().compareTo(o.getSymbolicName());
                 if (bsnCompare != 0)
@@ -984,16 +984,21 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             @Override
             public final Bundle install(String prefix) throws BundleException
             {
-                return installAtomosBundle(prefix, this);
+                return installAtomosContent(prefix, this);
             }
         }
 
-        public class AtomosBundleInfoClassPath extends AtomosBundleInfoBase
+        /**
+         * Atomos content discovered on the class path.  The key is the a file URL
+         * to the file on disk which is on the class path.
+         *
+         */
+        public class AtomosContentClassPath extends AtomosContentBase
         {
 
             private final URL contentURL;
 
-            public AtomosBundleInfoClassPath(String location, String symbolicName, Version version, ConnectContent connectContent, URL url)
+            public AtomosContentClassPath(String location, String symbolicName, Version version, ConnectContent connectContent, URL url)
             {
                 super(location, symbolicName, version, connectContent);
                 this.contentURL = url;
@@ -1040,18 +1045,20 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         return classFromBundle.getProtectionDomain().getCodeSource().getLocation();
     }
 
-    protected abstract void filterBasedOnReadEdges(AtomosBundleInfo atomosBundle,
+    protected abstract void filterBasedOnReadEdges(
+        AtomosContent atomosContent,
         Collection<BundleCapability> candidates);
 
-    protected final void filterNotVisible(AtomosBundleInfo atomosBundle,
+    protected final void filterNotVisible(
+        AtomosContent atomosContent,
         Collection<BundleCapability> candidates)
     {
-        if (atomosBundle != null)
+        if (atomosContent != null)
         {
             for (Iterator<BundleCapability> iCands = candidates.iterator(); iCands.hasNext();)
             {
                 BundleCapability candidate = iCands.next();
-                if (!isVisible(atomosBundle, candidate))
+                if (!isVisible(atomosContent, candidate))
                 {
                     iCands.remove();
                 }
@@ -1059,19 +1066,20 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         }
     }
 
-    private final boolean isVisible(AtomosBundleInfo atomosBundle,
+    private final boolean isVisible(
+        AtomosContent atomosContent,
         BundleCapability candidate)
     {
-        AtomosBundleInfo candidateAtomos = getByOSGiLocation(
+        AtomosContent candidateAtomos = getByOSGiLocation(
             candidate.getRevision().getBundle().getLocation());
         if (candidateAtomos == null)
         {
-            // atomos bundles cannot see normal bundles
+            // atomos connected content cannot see normal bundles
             return false;
         }
         else
         {
-            AtomosLayer thisLayer = atomosBundle.getAtomosLayer();
+            AtomosLayer thisLayer = atomosContent.getAtomosLayer();
             return isInLayerHierarchy(thisLayer, candidateAtomos.getAtomosLayer());
         }
     }
@@ -1129,17 +1137,17 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             AtomosRuntime.ATOMOS_INITIAL_BUNDLE_START_LEVEL);
         if (initialBundleStartLevel != null)
         {
-            // set the default initial bundle startlevel before installing the atomos bundles
+            // set the default initial bundle startlevel before installing the atomos contents
             FrameworkStartLevel fwkStartLevel = bc.getBundle().adapt(
                 FrameworkStartLevel.class);
             fwkStartLevel.setInitialBundleStartLevel(
                 Integer.parseInt(initialBundleStartLevel));
         }
         boolean installBundles = Boolean.valueOf(
-            getProperty(bc, AtomosRuntime.ATOMOS_BUNDLE_INSTALL, "true"));
+            getProperty(bc, AtomosRuntime.ATOMOS_CONTENT_INSTALL, "true"));
         boolean startBundles = Boolean.valueOf(
-            getProperty(bc, AtomosRuntime.ATOMOS_BUNDLE_START, "true"));
-        installAtomosBundles(getBootLayer(), installBundles, startBundles);
+            getProperty(bc, AtomosRuntime.ATOMOS_CONTENT_START, "true"));
+        installAtomosContents(getBootLayer(), installBundles, startBundles);
         bc.registerService(AtomosRuntime.class, this, null);
         new AtomosCommands(this).register(bc);
     }
@@ -1173,17 +1181,18 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         return result == null ? defaultValue : result;
     }
 
-    private void installAtomosBundles(AtomosLayer atomosLayer, boolean installBundles,
+    private void installAtomosContents(AtomosLayer atomosLayer,
+        boolean installBundles,
         boolean startBundles) throws BundleException
     {
         if (installBundles)
         {
             List<Bundle> bundles = new ArrayList<>();
-            for (AtomosBundleInfo atomosBundle : atomosLayer.getAtomosBundles())
+            for (AtomosContent atomosContent : atomosLayer.getAtomosContents())
             {
-                if (getBundle(atomosBundle) == null)
+                if (getBundle(atomosContent) == null)
                 {
-                    Bundle b = atomosBundle.install("atomos");
+                    Bundle b = atomosContent.install("atomos");
                     if (b != null && b.getBundleId() != 0)
                     {
                         bundles.add(b);
@@ -1202,7 +1211,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
                 }
                 for (AtomosLayer child : atomosLayer.getChildren())
                 {
-                    installAtomosBundles(child, installBundles, startBundles);
+                    installAtomosContents(child, installBundles, startBundles);
                 }
             }
         }

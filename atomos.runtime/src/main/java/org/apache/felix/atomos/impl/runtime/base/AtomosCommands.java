@@ -23,7 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.felix.atomos.runtime.AtomosBundleInfo;
+import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.apache.felix.atomos.runtime.AtomosRuntime.LoaderType;
 import org.apache.felix.service.command.Descriptor;
@@ -63,14 +63,14 @@ public class AtomosCommands
         if (visited.add(layer))
         {
             System.out.println(layer.toString());
-            Set<AtomosBundleInfo> bundles = layer.getAtomosBundles();
-            if (!bundles.isEmpty())
+            Set<AtomosContent> contents = layer.getAtomosContents();
+            if (!contents.isEmpty())
             {
                 System.out.println(" BUNDLES:");
-                for (AtomosBundleInfo bundle : bundles)
+                for (AtomosContent content : contents)
                 {
-                    Bundle b = runtime.getBundle(bundle);
-                    System.out.println("  " + bundle.getSymbolicName() + getState(b));
+                    Bundle b = runtime.getBundle(content);
+                    System.out.println("  " + content.getSymbolicName() + getState(b));
                 }
             }
             for (AtomosLayer child : layer.getChildren())
@@ -133,7 +133,7 @@ public class AtomosCommands
             moduleDir.toPath());
 
         List<Bundle> bundles = new ArrayList<>();
-        for (final AtomosBundleInfo atomosBundle : layer.getAtomosBundles())
+        for (final AtomosContent atomosBundle : layer.getAtomosContents())
         {
             bundles.add(atomosBundle.install(null));
         }
