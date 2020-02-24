@@ -81,8 +81,17 @@ public interface AtomosContent extends Comparable<AtomosContent>
      * BundleContext bc = getBundleContext();
      *
      * String osgiLocation = prefix + ":" + atomosContent.getAtomosLocation();
+     * Bundle b = bc.getBundle(osgiLocation);
+     * if (b != null)
+     * {
+     *   if (!b.getLocation().equals(osgiLocation))
+     *   {
+     *     throw new BundleException();
+     *   }
+     * }
+     * atomosBundle.disconnect();
      * atomosBundle.connect(osgiLocation);
-     * Bundle b = bc.installBundle(osgiLocation);
+     * b = bc.installBundle(osgiLocation);
      * </pre>
      * @param prefix the prefix to use, if {@code null} then the prefix "atomos" will be used
      * @return the installed connected bundle.
@@ -94,7 +103,7 @@ public interface AtomosContent extends Comparable<AtomosContent>
      * Returns the connected bundle location for this Atomos content or {@code null} if 
      * no bundle location is connected for this content. A {@code non-null} value is
      * only an indication that this content {@code #connect(String)} has been called
-     * to set the bundle location. A connected bundle may still need to be installed
+     * to set the connect bundle location. A connected bundle may still need to be installed
      * into the framework using this bundle location.
      * @return the bundle location or {@code null}
      */
@@ -105,11 +114,14 @@ public interface AtomosContent extends Comparable<AtomosContent>
      * the {@link #install(String)} method, this method does not install this
      * content as a connected {@link Bundle}. If the specified location
      * is used with the {@link BundleContext#installBundle(String)} method then the
-     * installed {@link Bundle} will be connected to this content.
+     * installed {@link Bundle} will be connected to this content. This method does
+     * nothing if this content is already using the specified location as its
+     * connect location.
      * @param bundleLocation the bundle location
-     * @throws BundleException if the bundle location is already set
+     * @throws IllegalStateException if the connect location is already being used as a connect location
+     * or if this content already has a different connect location set
      */
-    public void connect(String bundleLocation) throws BundleException;
+    public void connect(String bundleLocation);
 
     /**
      * Disconnects this Atomos content from the bundle location, if the bundle location 

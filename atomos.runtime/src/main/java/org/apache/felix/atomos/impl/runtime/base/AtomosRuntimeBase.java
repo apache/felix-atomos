@@ -223,7 +223,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         try
         {
             AtomosContent existing = connectLocationToAtomosContent.get(connectLocation);
-            if (existing != null)
+            if (existing != null && !atomosContent.equals(existing))
             {
                 throw new IllegalStateException(
                     "The bundle location is already used by the AtomosContent "
@@ -1070,19 +1070,19 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             @Override
             public String getConnectLocation()
             {
-                return AtomosRuntimeBase.this.getByAtomosContent(this);
+                return getByAtomosContent(this);
             }
 
             @Override
-            public void connect(String bundleLocation) throws BundleException
+            public void connect(String bundleLocation)
             {
-                AtomosRuntimeBase.this.connectAtomosContent(bundleLocation, this);
+                connectAtomosContent(bundleLocation, this);
             }
 
             @Override
             public void disconnect()
             {
-                AtomosRuntimeBase.this.disconnectAtomosContent(this);
+                disconnectAtomosContent(this);
             }
         }
 
