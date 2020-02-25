@@ -39,7 +39,7 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.launch.Framework;
 
-public class AtomosFrameworkFactoryTest
+public class AtomosRuntimeTest
 {
 
     private Framework testFramework;
