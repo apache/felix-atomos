@@ -1,0 +1,5 @@
+Import-Package: \
+ org.osgi.framework; version=1.9,\
+ org.apache.felix.service.command; resolution:=optional,\
+ sun.misc; resolution:=optional,\
+ *

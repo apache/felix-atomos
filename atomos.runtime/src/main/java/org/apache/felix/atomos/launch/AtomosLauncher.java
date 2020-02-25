@@ -33,6 +33,7 @@ import org.osgi.framework.launch.Framework;
  */
 public class AtomosLauncher
 {
+    static final String ATOMOS_LAUNCHER = "org.apache.felix.atomos.launch.AtomosLauncher";
     /**
      * A main method that can be used by executable jars to initialize and start an
      * Atomos Runtime with an available OSGi {@link Framework} implementation.

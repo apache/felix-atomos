@@ -11,5 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@org.osgi.annotation.bundle.Export
 @org.osgi.annotation.versioning.Version("1.0.0")
+@org.osgi.annotation.bundle.Requirement(namespace = "osgi.ee", filter = "(&(osgi.ee=JavaSE)(version=1.8))")
 package org.apache.felix.atomos.runtime;

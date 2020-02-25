@@ -115,14 +115,16 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>bnd-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
                 <!-- Build an executable JAR -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <archive>
-                        <manifest>
-                            <mainClass>org.apache.felix.atomos.runtime.AtomosRuntime</mainClass>
-                        </manifest>
+                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
                     </archive>
                 </configuration>
             </plugin>
@@ -137,7 +139,7 @@
                             <target>
                                 <exec executable="${java.home}/bin/jar" failonerror="true">
                                     <arg value="--main-class"/>
-                                    <arg value="org.apache.felix.atomos.runtime.AtomosRuntime"/>
+                                    <arg value="org.apache.felix.atomos.launch.AtomosLauncher"/>
                                     <arg value="--module-version"/>
                                     <arg value="0.0.1"/>
                                     <arg value="--update"/>
