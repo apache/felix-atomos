@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
+import org.apache.felix.atomos.impl.runtime.base.AtomosFrameworkUtilHelper;
+import org.apache.felix.atomos.impl.runtime.base.JavaServiceNamespace;
 import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +39,12 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
+import org.osgi.framework.connect.FrameworkUtilHelper;
 import org.osgi.framework.launch.Framework;
+import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.resource.Capability;
+import org.osgi.resource.Namespace;
+import org.osgi.resource.Requirement;
 
 public class AtomosRuntimeTest
 {
@@ -47,7 +54,8 @@ public class AtomosRuntimeTest
     @AfterEach
     void afterTest() throws BundleException, InterruptedException, IOException
     {
-        if (testFramework != null && testFramework.getState() == Bundle.ACTIVE)
+        if (testFramework != null && testFramework.getState() == Bundle.ACTIVE
+            || testFramework.getState() == Bundle.STARTING)
         {
             testFramework.stop();
             testFramework.waitForStop(10000);
@@ -136,8 +144,8 @@ public class AtomosRuntimeTest
 
         assertEquals(1, bc.getBundles().length, "Wrong number of bundles.");
 
-        AtomosContent systemContent = runtime.getBootLayer().findAtomosContent(
-            bc.getBundle().getSymbolicName()).get();
+        AtomosContent systemContent = runtime.getConnectedContent(
+            Constants.SYSTEM_BUNDLE_LOCATION);
         try
         {
             systemContent.disconnect();
@@ -300,4 +308,40 @@ public class AtomosRuntimeTest
         }
     }
 
+    @Test
+    void testJavaServiceNamespace(@TempDir Path storage) throws BundleException
+    {
+        AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
+        Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE,
+            storage.toFile().getAbsolutePath());
+        testFramework = AtomosLauncher.newFramework(config, runtime);
+        testFramework.init();
+        AtomosContent runtimeContent = runtime.getBootLayer().findAtomosContent("org.apache.felix.atomos.runtime").get();
+        Bundle b = runtimeContent.getBundle();
+        assertNotNull(b, "No atomos runtime bundle.");
+        BundleRevision r = b.adapt(BundleRevision.class);
+
+        List<Capability> javaServiceCaps = r.getCapabilities(
+            JavaServiceNamespace.JAVA_SERVICE_NAMESPACE);
+        assertEquals(1, javaServiceCaps.size(), "No Java service capabilities.");
+        Capability javaServiceCap = javaServiceCaps.iterator().next();
+        assertEquals(FrameworkUtilHelper.class.getName(),
+            javaServiceCap.getAttributes().get(
+                JavaServiceNamespace.JAVA_SERVICE_NAMESPACE));
+        assertEquals(AtomosFrameworkUtilHelper.class.getName(),
+            javaServiceCap.getAttributes().get(
+                JavaServiceNamespace.CAPABILITY_PROVIDES_WITH_ATTRIBUTE));
+
+        List<Requirement> javaServiceReqs = r.getRequirements(
+            JavaServiceNamespace.JAVA_SERVICE_NAMESPACE);
+        assertEquals(1, javaServiceReqs.size(), "No Java service requirements.");
+        Requirement javaServiceReq = javaServiceReqs.iterator().next();
+        assertEquals(
+            "(" + JavaServiceNamespace.JAVA_SERVICE_NAMESPACE + "="
+                + ConnectFrameworkFactory.class.getName() + ")",
+            javaServiceReq.getDirectives().get(
+                Namespace.REQUIREMENT_FILTER_DIRECTIVE));
+        assertEquals(Namespace.RESOLUTION_OPTIONAL, javaServiceReq.getDirectives().get(
+            Namespace.REQUIREMENT_RESOLUTION_DIRECTIVE));
+    }
 }
