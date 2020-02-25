@@ -407,7 +407,8 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
             capabilities.append(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE).append("; ");
             capabilities.append(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE).append(
                 "=").append(provides.service()).append("; ");
-            capabilities.append(JavaServiceNamespace.CAPABILITY_PROVIDES_WITH).append(
+            capabilities.append(
+                JavaServiceNamespace.CAPABILITY_PROVIDES_WITH_ATTRIBUTE).append(
                 "=\"").append(
                     provides.providers().stream().collect(
                         Collectors.joining(","))).append("\"");
