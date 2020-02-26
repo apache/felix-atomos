@@ -30,7 +30,6 @@ import java.util.Deque;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -47,14 +46,9 @@ import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase.AtomosLayerBa
 import org.apache.felix.atomos.impl.runtime.substrate.AtomosRuntimeSubstrate;
 import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
+import org.apache.felix.atomos.runtime.AtomosLayer.LoaderType;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Constants;
-import org.osgi.framework.SynchronousBundleListener;
-import org.osgi.framework.Version;
+import org.osgi.framework.*;
 import org.osgi.framework.connect.ConnectContent;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.connect.FrameworkUtilHelper;
@@ -102,6 +96,8 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     private final Map<String, AtomosContentBase> connectedLocations = new HashMap<>();
 
     protected final AtomicLong nextLayerId = new AtomicLong(0);
+
+    ServiceRegistration<?> atomosCommandsReg = null;
 
     public static AtomosRuntime newAtomosRuntime()
     {
@@ -158,8 +154,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     public static File findSubstrateLibDir()
     {
         String substrateProp = System.getProperty(ATOMOS_SUBSTRATE);
-        File result = new File(substrateProp, SUBSTRATE_LIB_DIR);
-        return result;
+        return new File(substrateProp, SUBSTRATE_LIB_DIR);
     }
 
     protected AtomosRuntimeBase()
@@ -356,14 +351,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         return context.get();
     }
 
-    final ThreadLocal<Deque<AtomosContent>> managingConnected = new ThreadLocal<Deque<AtomosContent>>()
-    {
-        @Override
-        protected Deque<AtomosContent> initialValue()
-        {
-            return new ArrayDeque<>();
-        }
-    };
+    final ThreadLocal<Deque<AtomosContent>> managingConnected = ThreadLocal.withInitial(ArrayDeque::new);
 
     final Bundle installAtomosContent(String prefix,
         AtomosContentBase atomosContent)
@@ -394,7 +382,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         }
 
         AtomosLayerBase atomosLayer = (AtomosLayerBase) atomosContent.getAtomosLayer();
-        if (!atomosLayer.isValid())
+        if (atomosLayer.isNotValid())
         {
             throw new BundleException("Atomos layer has been uninstalled.",
                 BundleException.INVALID_OPERATION);
@@ -430,7 +418,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         finally
         {
             // check if the layer is still valid
-            if (!atomosLayer.isValid())
+            if (atomosLayer.isNotValid())
             {
                 // The atomosLayer became invalid while installing
                 if (result != null)
@@ -790,7 +778,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             BundleContext bc = getBundleContext();
             if (bc != null)
             {
-                uninstallLayer(uninstalledBundles, bc);
+                uninstallLayer(uninstalledBundles);
             }
 
             lockWrite();
@@ -822,12 +810,12 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             {
                 ((AtomosLayerBase) child).removeLayerFromRuntime();
             }
-            getAtomosContents().forEach(c -> c.disconnect());
+            getAtomosContents().forEach(AtomosContent::disconnect);
             idToLayer.remove(getId());
             removedLayer(this);
         }
 
-        final void uninstallLayer(List<Bundle> uninstalledBundles, BundleContext bc)
+        final void uninstallLayer(List<Bundle> uninstalledBundles)
             throws BundleException
         {
             // mark as invalid first to prevent installs
@@ -840,17 +828,17 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             // first uninstall all children
             for (AtomosLayer child : getChildren())
             {
-                ((AtomosLayerBase) child).uninstallLayer(uninstalledBundles, bc);
+                ((AtomosLayerBase) child).uninstallLayer(uninstalledBundles);
             }
-            uninstallBundles(uninstalledBundles, bc);
+            uninstallBundles(uninstalledBundles);
         }
 
-        final boolean isValid()
+        final boolean isNotValid()
         {
-            return valid;
+            return !valid;
         }
 
-        private void uninstallBundles(List<Bundle> uninstalled, BundleContext bc)
+        private void uninstallBundles(List<Bundle> uninstalled)
             throws BundleException
         {
             for (AtomosContent content : getAtomosContents())
@@ -1153,18 +1141,11 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     {
         if (atomosContent != null)
         {
-            for (Iterator<BundleCapability> iCands = candidates.iterator(); iCands.hasNext();)
-            {
-                BundleCapability candidate = iCands.next();
-                if (!isVisible(atomosContent, candidate))
-                {
-                    iCands.remove();
-                }
-            }
+            candidates.removeIf(candidate -> !isVisible(atomosContent, candidate));
         }
     }
 
-    private final boolean isVisible(
+    private boolean isVisible(
         AtomosContent atomosContent,
         BundleCapability candidate)
     {
@@ -1205,17 +1186,13 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     }
 
     Thread saveOnVMExit = new Thread(() -> {
-        BundleContext bc = context.get();
-        if (bc != null)
+        try
         {
-            try
-            {
-                new AtomosStorage(this).saveLayers(storeRoot.get(), bc.getBundles());
-            }
-            catch (IOException e)
-            {
-                throw new RuntimeException("Failed to save atomos runtime.", e);
-            }
+            new AtomosStorage(this).saveLayers(storeRoot.get());
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException("Failed to save atomos runtime.", e);
         }
     });
 
@@ -1232,13 +1209,13 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         bc.registerService(ResolverHookFactory.class, hooks, null);
         bc.registerService(CollisionHook.class, hooks, null);
 
-        boolean installBundles = Boolean.valueOf(
+        boolean installBundles = Boolean.parseBoolean(
             getProperty(bc, AtomosRuntime.ATOMOS_CONTENT_INSTALL, "true"));
-        boolean startBundles = Boolean.valueOf(
+        boolean startBundles = Boolean.parseBoolean(
             getProperty(bc, AtomosRuntime.ATOMOS_CONTENT_START, "true"));
         installAtomosContents(getBootLayer(), installBundles, startBundles);
         bc.registerService(AtomosRuntime.class, this, null);
-        new AtomosCommands(this).register(bc);
+        atomosCommandsReg = new AtomosCommands(this).register(bc);
     }
 
     protected void stop(BundleContext bc) throws BundleException
@@ -1248,7 +1225,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         try
         {
             Runtime.getRuntime().removeShutdownHook(saveOnVMExit);
-            new AtomosStorage(this).saveLayers(storeRoot.get(), bc.getBundles());
+            new AtomosStorage(this).saveLayers(storeRoot.get());
         }
         catch (IllegalStateException e)
         {
@@ -1263,6 +1240,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         bc.removeBundleListener(this);
 
         AtomosFrameworkUtilHelper.removeHelper(this);
+        atomosCommandsReg.unregister();
     }
 
     private String getProperty(BundleContext bc, String key, String defaultValue)

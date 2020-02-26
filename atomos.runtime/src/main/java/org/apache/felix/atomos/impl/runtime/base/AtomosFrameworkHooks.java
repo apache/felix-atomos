@@ -61,7 +61,6 @@ public class AtomosFrameworkHooks implements ResolverHookFactory, CollisionHook
                     return;
                 default:
                     atomosRuntime.filterNotVisible(atomosBundle, candidates);
-                    return;
             }
 
         }

@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 
 import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
-import org.apache.felix.atomos.runtime.AtomosRuntime.LoaderType;
+import org.apache.felix.atomos.runtime.AtomosLayer.LoaderType;
 import org.apache.felix.service.command.Descriptor;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -55,7 +55,7 @@ public class AtomosCommands
     public void list()
     {
         AtomosLayer bl = runtime.getBootLayer();
-        layers(bl.getParents().stream().findFirst().orElseGet(() -> bl), new HashSet<>());
+        layers(bl.getParents().stream().findFirst().orElse(bl), new HashSet<>());
     }
 
     private void layers(AtomosLayer layer, Set<AtomosLayer> visited)
@@ -121,9 +121,10 @@ public class AtomosCommands
         Optional<LoaderType> oLoaderType = Stream.of(LoaderType.values()).filter(
             e -> e.name().equalsIgnoreCase(loaderType)).findAny();
 
-        if (!oLoaderType.isPresent())
+        if (oLoaderType.isEmpty())
         {
-            String v = Stream.of(LoaderType.values()).map(LoaderType::name).collect(
+            String v = Stream.of(LoaderType.values()).map(
+                LoaderType::name).collect(
                 Collectors.joining(", "));
             System.out.printf("The specified loaderType is not valid. Use one of %s", v);
             return;

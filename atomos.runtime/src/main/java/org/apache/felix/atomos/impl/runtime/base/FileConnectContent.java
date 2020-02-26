@@ -27,7 +27,7 @@ import org.osgi.framework.connect.ConnectContent;
 
 public class FileConnectContent implements ConnectContent
 {
-    public class FileConnectEntry implements ConnectEntry
+    public static class FileConnectEntry implements ConnectEntry
     {
         private final File entry;
         private final String name;
@@ -132,9 +132,7 @@ public class FileConnectContent implements ConnectContent
         {
             return Optional.empty();
         }
-        final boolean checkInFile = path != null
-            && path.indexOf(POINTER_UPPER_DIRECTORY) >= 0;
-        if (checkInFile)
+        if (path.contains(POINTER_UPPER_DIRECTORY))
         {
             try
             {

@@ -34,8 +34,7 @@ import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase.AtomosLayerBa
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase.AtomosLayerBase.AtomosContentBase;
 import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
-import org.apache.felix.atomos.runtime.AtomosRuntime.LoaderType;
-import org.osgi.framework.Bundle;
+import org.apache.felix.atomos.runtime.AtomosLayer.LoaderType;
 import org.osgi.framework.Constants;
 
 public class AtomosStorage
@@ -82,7 +81,7 @@ public class AtomosStorage
         }
     }
 
-    void saveLayers(File root, Bundle[] bundles) throws IOException
+    void saveLayers(File root) throws IOException
     {
         File atomosStore = new File(root, ATOMOS_STORE);
         atomosRuntime.lockRead();
@@ -92,7 +91,7 @@ public class AtomosStorage
             out.writeInt(VERSION);
             out.writeLong(atomosRuntime.nextLayerId.get());
             List<AtomosLayerBase> writeOrder = getLayerWriteOrder(
-                (AtomosLayerBase) atomosRuntime.getBootLayer(), new HashSet<>(),
+                atomosRuntime.getBootLayer(), new HashSet<>(),
                 new ArrayList<>());
             out.writeInt(writeOrder.size());
             for (AtomosLayerBase layer : writeOrder)
@@ -225,7 +224,7 @@ public class AtomosStorage
         out.writeInt(parents.size());
         for (AtomosLayer parent : parents)
         {
-            out.writeLong(((AtomosLayerBase) parent).getId());
+            out.writeLong(parent.getId());
         }
 
         Set<AtomosContent> contents = layer.getAtomosContents();
