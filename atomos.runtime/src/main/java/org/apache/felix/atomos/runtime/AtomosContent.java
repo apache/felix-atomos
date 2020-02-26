@@ -37,38 +37,38 @@ public interface AtomosContent extends Comparable<AtomosContent>
      * @return the location of the Atomos content.
      * @see AtomosContent#install(String)
      */
-    public String getAtomosLocation();
+    String getAtomosLocation();
 
     /**
      * The symbolic name of the Atomos content.
      * @return the symbolic name.
      */
-    public String getSymbolicName();
+    String getSymbolicName();
 
     /**
      * The version of the Atomos content.
      * @return the version
      */
-    public Version getVersion();
+    Version getVersion();
 
     /**
      * Adapt this Atomos content to the specified type. For example,
      * if running in a module layer then the module of the Atomos
      * content is returned in the optional value.
-     * @param <A> The type to which this Atomos content is to be adapted.
+     * @param <T> The type to which this Atomos content is to be adapted.
      * @param type Class object for the type to which this Atomos content is to be
      *        adapted.
      * @return The object, of the specified type, to which this Atomos content has been
      *         adapted or {@code null} if this content cannot be adapted to the
      *         specified type.
      */
-    public <T> Optional<T> adapt(Class<T> type);
+    <T> Optional<T> adapt(Class<T> type);
 
     /**
      * The Atomos layer this Atomos content is in.
      * @return the Atomos layer
      */
-    public AtomosLayer getAtomosLayer();
+    AtomosLayer getAtomosLayer();
 
     /**
      * Installs this Atomos content as a connected bundle using the specified location prefix.
@@ -97,7 +97,7 @@ public interface AtomosContent extends Comparable<AtomosContent>
      * @return the installed connected bundle.
      * @throws BundleException if an error occurs installing the Atomos content
      */
-    public Bundle install(String prefix) throws BundleException;
+    Bundle install(String prefix) throws BundleException;
 
     /**
      * Returns the connected bundle location for this Atomos content or {@code null} if 
@@ -107,7 +107,7 @@ public interface AtomosContent extends Comparable<AtomosContent>
      * into the framework using this bundle location.
      * @return the bundle location or {@code null}
      */
-    public String getConnectLocation();
+    String getConnectLocation();
 
     /**
      * Connects the specified bundle location to this Atomos content. Unlike
@@ -121,13 +121,13 @@ public interface AtomosContent extends Comparable<AtomosContent>
      * @throws IllegalStateException if the connect location is already being used as a connect location
      * or if this content already has a different connect location set
      */
-    public void connect(String bundleLocation);
+    void connect(String bundleLocation);
 
     /**
      * Disconnects this Atomos content from the bundle location, if the bundle location 
      * is set.  This method does nothing if this content is not connected.
      */
-    public void disconnect();
+    void disconnect();
 
     /**
      * Returns the OSGi bundle installed which is connected with this Atomos content.

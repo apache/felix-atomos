@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
+import org.apache.felix.atomos.runtime.AtomosLayer.LoaderType;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.wiring.BundleCapability;
 
