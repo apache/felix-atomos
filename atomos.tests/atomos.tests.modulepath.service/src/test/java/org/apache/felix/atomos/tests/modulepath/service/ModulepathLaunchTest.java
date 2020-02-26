@@ -507,7 +507,8 @@ public class ModulepathLaunchTest
         try
         {
             f = AtomosLauncher.newFramework(
-                Map.of(Constants.FRAMEWORK_STORAGE, storage2.getAbsolutePath()),
+                Map.of(Constants.FRAMEWORK_STORAGE, storage2.getAbsolutePath(),
+                        "felix.cache.locking", "false"),
                 atomosRuntime);
             f.start();
             fail();
@@ -521,6 +522,7 @@ public class ModulepathLaunchTest
             if (f != null)
             {
                 f.stop();
+                f.waitForStop(5000);
             }
         }
     }
