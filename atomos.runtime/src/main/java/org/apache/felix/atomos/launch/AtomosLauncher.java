@@ -148,11 +148,8 @@ public class AtomosLauncher
             frameworkConfig.put(Constants.FRAMEWORK_SYSTEMPACKAGES, "");
         }
 
-        if (frameworkConfig.get("osgi.console") == null)
-        {
-            // Always allow the console to work
-            frameworkConfig.put("osgi.console", "");
-        }
+        // Always allow the console to work
+        frameworkConfig.putIfAbsent("osgi.console", "");
 
         return ((AtomosRuntimeBase) atomosRuntime).findFrameworkFactory().newFramework(
             frameworkConfig, atomosRuntime.getModuleConnector());

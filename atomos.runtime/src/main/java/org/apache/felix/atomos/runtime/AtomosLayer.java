@@ -15,34 +15,58 @@ package org.apache.felix.atomos.runtime;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.felix.atomos.runtime.AtomosRuntime.LoaderType;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.connect.ConnectFrameworkFactory;
+import org.osgi.framework.connect.ModuleConnector;
 
 /**
  * An Atomos Layer may represents a {@link ModuleLayer} that was added to
- * a {@link AtomosRuntime} using the {@link AtomosRuntime#addLayer(Configuration) addLayer}
+ * a {@link AtomosRuntime} using the {@link AtomosLayer#addLayer(String, LoaderType, Path...)}  addLayer}
  * method or the Atomos Layer could represent the {@link AtomosRuntime#getBootLayer() boot layer}.
  * An Atomos Layer will contain one or more {@link AtomosContent Atomos contents} which can
  * then be used to {@link AtomosContent#install(String) install } them as OSGi connected bundles into the
- * {@link AtomosRuntime#newFramework(java.util.Map) framework}.
+ * {@link ConnectFrameworkFactory#newFramework(Map, ModuleConnector)}  framework}.
  */
 public interface AtomosLayer
 {
     /**
+     * The loader type used for the class loaders of an Atomos layer.
+     */
+    enum LoaderType
+    {
+        /**
+         * Loader type that will use a unique loader for each connected bundle in the
+         * layer and the loader will implement the {@link org.osgi.framework.BundleReference}
+         * interface.
+         */
+        OSGI,
+        /**
+         * Loader type that will use a single loader for each connected bundle in the
+         * layer.
+         */
+        SINGLE,
+        /**
+         * Loader type that will use a unique loader for each connected bundle in the
+         * layer.
+         */
+        MANY
+    }
+    /**
      * Adapt this Atomos layer to the specified type. For example,
      * if running in a module layer then the layer can be adapted
      * to a ModuleLayer associated with this Atomos Layer.
-     * @param <A> The type to which this Atomos layer is to be adapted.
+     * @param <T> The type to which this Atomos layer is to be adapted.
      * @param type Class object for the type to which this Atomos layer is to be
      *        adapted.
      * @return The object, of the specified type, to which this Atomos layer has been
      *         adapted or {@code null} if this layer cannot be adapted to the
      *         specified type.
      */
-    public <T> Optional<T> adapt(Class<T> type);
+    <T> Optional<T> adapt(Class<T> type);
 
     /**
      * Adds a layer as a child of this layer and loads modules from the specified
@@ -65,7 +89,7 @@ public interface AtomosLayer
      * folder with the same name as the specified name of the layer.
      * @throws UnsupportedOperationException if {@link #isAddLayerSupported()} returns false.
      */
-    public AtomosLayer addModules(String name, Path path);
+    AtomosLayer addModules(String name, Path path);
 
     /**
      * Returns {@code true} if additional layers are supported.
@@ -109,7 +133,7 @@ public interface AtomosLayer
      * The name of the Atomos Layer.  By default the Atomos Layer
      * name is the empty string.  Atomos Layer names are not
      * required to be unique.  All Atomos contents contained in a
-     * layer will have {@link AtomosBundleInfo#getAtomosLocation() locations}
+     * layer will have {@link AtomosContent#getAtomosLocation() locations}
      * that use the layer name as a prefix.  If the layer
      * name is not the empty string then the location prefix will be
      * the layer name followed by a colon ({@code :}).
@@ -146,7 +170,8 @@ public interface AtomosLayer
     /**
      * Uninstalls this Atomos Layer along with any {@link #getChildren() children}
      * layers.
-     * @throws BundleException 
+     * @throws BundleException If an error happened while uninstalling any connected
+     * bundles in the layer
      */
     void uninstall() throws BundleException;
 }

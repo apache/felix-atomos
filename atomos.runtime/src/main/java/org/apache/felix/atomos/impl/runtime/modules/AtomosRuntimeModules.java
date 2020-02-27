@@ -47,6 +47,7 @@ import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
 import org.apache.felix.atomos.impl.runtime.base.JavaServiceNamespace;
 import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
+import org.apache.felix.atomos.runtime.AtomosLayer.LoaderType;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -121,10 +122,9 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
                 getClass().getModule().getLayer(), //
                 ConnectFrameworkFactory.class);
         }
-        ConnectFrameworkFactory factory = loader.findFirst() //
+        return loader.findFirst() //
             .orElseThrow(
                 () -> new RuntimeException("No Framework implementation found."));
-        return factory;
     }
 
     AtomosLayerBase createAtomosLayer(Configuration config, String name, long id,
@@ -190,7 +190,7 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
     protected void addingLayer(AtomosLayerBase atomosLayer)
     {
         Configuration config = atomosLayer.adapt(ModuleLayer.class).map(
-            (m) -> m.configuration()).orElse(null);
+            ModuleLayer::configuration).orElse(null);
         if (byConfig.putIfAbsent(config, atomosLayer) != null)
         {
             throw new IllegalStateException(
@@ -202,7 +202,7 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
     protected void removedLayer(AtomosLayerBase atomosLayer)
     {
         byConfig.remove(
-            atomosLayer.adapt(ModuleLayer.class).map((l) -> l.configuration()).orElse(
+            atomosLayer.adapt(ModuleLayer.class).map(ModuleLayer::configuration).orElse(
                 null));
     }
 
@@ -410,8 +410,7 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
             capabilities.append(
                 JavaServiceNamespace.CAPABILITY_PROVIDES_WITH_ATTRIBUTE).append(
                 "=\"").append(
-                    provides.providers().stream().collect(
-                        Collectors.joining(","))).append("\"");
+                String.join(",", provides.providers())).append("\"");
         }
 
         // map uses to a made up namespace only to give proper resolution errors

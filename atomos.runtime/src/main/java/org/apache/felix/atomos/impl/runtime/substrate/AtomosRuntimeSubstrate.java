@@ -36,6 +36,7 @@ import java.util.jar.JarFile;
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
 import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
+import org.apache.felix.atomos.runtime.AtomosLayer.LoaderType;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -62,15 +63,10 @@ import sun.misc.Signal;
  */
 public class AtomosRuntimeSubstrate extends AtomosRuntimeBase
 {
-    private final String ATOMOS_BUNDLE = "ATOMOS_BUNDLE";
+    private static final String ATOMOS_BUNDLE = "ATOMOS_BUNDLE";
     private final File substrateLibDir;
     private final AtomosLayerSubstrate bootLayer;
     private final List<SubstrateBundleIndexInfo> indexBundles;
-
-    public AtomosRuntimeSubstrate()
-    {
-        this(null);
-    }
 
     static class SubstrateBundleIndexInfo
     {

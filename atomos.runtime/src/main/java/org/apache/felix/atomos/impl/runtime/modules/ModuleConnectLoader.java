@@ -45,12 +45,11 @@ public final class ModuleConnectLoader extends SecureClassLoader implements Bund
     }
 
     private final ResolvedModule resolvedModule;
-    private final ModuleReference reference;
     private final ModuleReader reader;
     private final AtomosRuntimeModules atomosRuntime;
     private final AtomicReference<Module> module = new AtomicReference<>();
 
-    private final HashMap<String, ClassLoader> edges = new HashMap<String, ClassLoader>();
+    private final HashMap<String, ClassLoader> edges = new HashMap<>();
 
     public ModuleConnectLoader(ResolvedModule resolvedModule, AtomosRuntimeModules atomosRuntimeModules) throws IOException
     {
@@ -58,7 +57,7 @@ public final class ModuleConnectLoader extends SecureClassLoader implements Bund
 
         this.resolvedModule = resolvedModule;
         //TODO remove reference and reader? Or Reader needs to be closed?
-        this.reference = resolvedModule.reference();
+        ModuleReference reference = resolvedModule.reference();
         this.reader = reference.open();
         this.atomosRuntime = atomosRuntimeModules;
     }
@@ -75,7 +74,6 @@ public final class ModuleConnectLoader extends SecureClassLoader implements Bund
      *
      * @param module module associated with this class loader
      * @param loaderConfig configuration containing
-     * @param parentLayers
      * @param loaders
      */
     void initEdges(Module module, Configuration loaderConfig,
@@ -128,11 +126,7 @@ public final class ModuleConnectLoader extends SecureClassLoader implements Bund
     protected URL findResource(String moduleName, String name) throws IOException
     {
         URL resource = null;
-        if (!this.resolvedModule.name().equals(moduleName))
-        {
-            resource = null;
-        }
-        else
+        if (this.resolvedModule.name().equals(moduleName))
         {
             try
             {
@@ -192,8 +186,7 @@ public final class ModuleConnectLoader extends SecureClassLoader implements Bund
     @Override
     public URL getResource(String name)
     {
-        URL retVal = null;
-        retVal = findResource(name);
+        URL retVal = findResource(name);
         if (retVal == null)
         {
             retVal = ClassLoader.getSystemResource(name);

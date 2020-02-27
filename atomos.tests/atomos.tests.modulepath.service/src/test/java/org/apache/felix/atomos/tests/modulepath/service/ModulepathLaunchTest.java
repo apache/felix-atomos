@@ -26,22 +26,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
+import org.apache.felix.atomos.runtime.AtomosLayer.LoaderType;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
-import org.apache.felix.atomos.runtime.AtomosRuntime.LoaderType;
 import org.apache.felix.atomos.tests.testbundles.service.contract.Echo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -343,14 +335,14 @@ public class ModulepathLaunchTest
 
         final List<Bundle> allChildBundles = layers.stream().flatMap(
             (l) -> l.getAtomosContents().stream()).map(
-                (a) -> a.getBundle()).filter(
+                AtomosContent::getBundle).filter(
                     Objects::nonNull).collect(Collectors.toList());
 
         final AtomosLayer firstChild = layers.iterator().next();
         final Set<AtomosContent> firstChildContents = firstChild.getAtomosContents();
 
         List<Bundle> firstChildBundles = firstChildContents.stream().map(
-            (a) -> a.getBundle()).filter(
+            AtomosContent::getBundle).filter(
                 Objects::nonNull).collect(Collectors.toList());
 
         assertEquals(5, firstChildBundles.size(),
@@ -373,7 +365,7 @@ public class ModulepathLaunchTest
         });
 
         firstChildBundles = firstChildContents.stream().map(
-            (a) -> a.getBundle()).filter(
+            AtomosContent::getBundle).filter(
                 Objects::nonNull).collect(Collectors.toList());
         assertEquals(0, firstChildBundles.size(),
             "Wrong number of bundles in first child.");
@@ -391,10 +383,8 @@ public class ModulepathLaunchTest
         checkServices(bc, 4);
 
         // uninstalling the layer forces all of its content to get disconnected
-        allChildBundles.forEach((b) -> {
-            assertNull(atomosRuntime.getConnectedContent(b.getLocation()),
-                "Atomos content not expected.");
-        });
+        allChildBundles.forEach((b) -> assertNull(atomosRuntime.getConnectedContent(b.getLocation()),
+            "Atomos content not expected."));
 
         assertEquals(originalNum, bc.getBundles().length,
             "Wrong number of final bundles.");
@@ -529,7 +519,7 @@ public class ModulepathLaunchTest
 
     @Test
     void testLoaderType(@TempDir Path storage) throws BundleException,
-    InvalidSyntaxException, InterruptedException, ClassNotFoundException
+        ClassNotFoundException
     {
         ModulepathLaunch.main(new String[] {
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
@@ -549,7 +539,7 @@ public class ModulepathLaunchTest
 
     @Test
     void testLoadFromModule(@TempDir Path storage)
-        throws BundleException, InvalidSyntaxException, InterruptedException
+        throws BundleException
     {
         ModulepathLaunch.main(new String[] {
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(),
@@ -596,7 +586,7 @@ public class ModulepathLaunchTest
 
     @Test
     void testModuleDirServices(@TempDir Path storage)
-        throws BundleException, InvalidSyntaxException, InterruptedException
+        throws BundleException, InvalidSyntaxException
     {
         ModulepathLaunch.main(new String[] {
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(),
@@ -685,7 +675,7 @@ public class ModulepathLaunchTest
         assertEquals(3, bootLayer.getChildren().size(), "Wrong number of children.");
 
         final List<AtomosLayer> children = bootLayer.getChildren().stream().sorted(
-            (l1, l2) -> Long.compare(l1.getId(), l2.getId())).collect(
+            Comparator.comparingLong(AtomosLayer::getId)).collect(
                 Collectors.toList());
         checkLayer(children.get(0), LoaderType.SINGLE, 2);
         checkLayer(children.get(1), LoaderType.MANY, 3);
@@ -693,7 +683,7 @@ public class ModulepathLaunchTest
 
         // uninstall service.impl.a bundle from the first child
         children.iterator().next().getAtomosContents().stream().map(
-            (a) -> a.getBundle()).filter(
+            AtomosContent::getBundle).filter(
                 Objects::nonNull).filter(
                 (b) -> b.getSymbolicName().equals(
                     TESTBUNDLES_SERVICE_IMPL_A)).findFirst().orElseThrow().uninstall();
@@ -742,7 +732,7 @@ public class ModulepathLaunchTest
 
     @Test
     void testResourceGetMissingResource(@TempDir Path storage)
-        throws ClassNotFoundException, BundleException
+        throws BundleException
     {
         try
         {
@@ -759,15 +749,15 @@ public class ModulepathLaunchTest
 
     @Test
     void testResourceLoadResource(@TempDir Path storage)
-        throws ClassNotFoundException, BundleException
+        throws BundleException
     {
         try
         {
             final Class<?> clazz = getCLForResourceTests(storage).loadClass(
                 RESSOURCE_A_CLAZZ_NAME);
             final URL resc = clazz.getResource("/META-TEXT/file.txt");
-            assertTrue(resc != null, "Expected URL, got null ");
-            assertTrue(resc.getFile() != null, "Could not get resource from URL");
+            assertNotNull(resc, "Expected URL, got null ");
+            assertNotNull(resc.getFile(), "Could not get resource from URL");
         }
         catch (final ClassNotFoundException e)
         {
@@ -777,7 +767,7 @@ public class ModulepathLaunchTest
 
     @Test
     void testResourcePackagedResource(@TempDir Path storage)
-        throws ClassNotFoundException, BundleException, IOException
+        throws BundleException, IOException
     {
         try
         {
@@ -797,16 +787,16 @@ public class ModulepathLaunchTest
 
     @Test
     void testResourceRootResource(@TempDir Path storage)
-        throws ClassNotFoundException, BundleException, IOException
+        throws BundleException, IOException
     {
         try
         {
             final Class<?> clazz = getCLForResourceTests(storage).loadClass(
                 RESSOURCE_A_CLAZZ_NAME);
             final URL resc = clazz.getResource("/file.txt");
-            assertTrue(resc != null, "Expected URL, got null ");
-            assertTrue(new BufferedReader(
-                new InputStreamReader(resc.openStream())).readLine().equals("/file.txt"),
+            assertNotNull(resc, "Expected URL, got null ");
+            assertEquals("/file.txt", new BufferedReader(
+                    new InputStreamReader(resc.openStream())).readLine(),
                 "Incorrect contents from URL");
         }
         catch (final ClassNotFoundException e)
@@ -819,7 +809,7 @@ public class ModulepathLaunchTest
     private static String BSN_SERVICE_IMPL = "org.apache.felix.atomos.tests.testbundles.service.impl";
     @Test
     void testConnectLocation(@TempDir Path storage)
-        throws BundleException, InvalidSyntaxException, InterruptedException
+        throws BundleException, InterruptedException
     {
         String[] args = new String[] {
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(),

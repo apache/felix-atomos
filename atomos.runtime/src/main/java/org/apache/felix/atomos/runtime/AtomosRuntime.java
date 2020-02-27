@@ -138,14 +138,6 @@ import org.osgi.framework.launch.FrameworkFactory;
 public interface AtomosRuntime
 {
     /**
-     * The loader type used for the class loaders of an Atomos layer.
-     */
-    public enum LoaderType
-    {
-        OSGI, SINGLE, MANY
-    }
-
-    /**
      * Framework launching property specifying if the Atomos contents
      * will not be automatically installed as bundles. Default is true, which
      * will install all discovered Atomos content as bundles.
@@ -193,15 +185,15 @@ public interface AtomosRuntime
      * Creates a new AtomosRuntime that can be used to create a new OSGi framework
      * instance. If Atomos is running as a Java Module then this AtomosRuntime can
      * be used to create additional layers by using the
-     * {@link AtomosLayer#addLayer(String, LoaderType, Path...)} method. If the additional layers are added
-     * before {@link #newFramework(Map) creating} and {@link Framework#init()
+     * {@link AtomosLayer#addLayer(String, AtomosLayer.LoaderType, Path...)} method. If the additional layers are added
+     * before {@link ConnectFrameworkFactory#newFramework(Map, ModuleConnector)}  creating} and {@link Framework#init()
      * initializing} the framework then the Atomos contents found in the added layers
      * will be automatically installed and started according to the
      * {@link #ATOMOS_CONTENT_INSTALL} and {@link #ATOMOS_CONTENT_START} options.
      * <p>
-     * Note that this AtomosRuntime {@link #newFramework(Map)} must be used for a
-     * new {@link Framework framework} instance to use the layers added to this
-     * AtomosRuntime.
+     * Note that this {@code AtomosRuntime} must be used for creating a new
+     * {@link ConnectFrameworkFactory#newFramework(Map, ModuleConnector)} instance to use
+     * the layers added to this {@code AtomosRuntime}.
      * 
      * @return a new AtomosRuntime.
      */
