@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.felix.atomos.impl.runtime.base;
+package org.apache.felix.atomos.impl.runtime.content;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 import org.osgi.framework.connect.ConnectContent;
 
-public class FileConnectContent implements ConnectContent
+public class ConnectContentFile implements ConnectContent
 {
     public static class FileConnectEntry implements ConnectEntry
     {
@@ -77,7 +77,7 @@ public class FileConnectContent implements ConnectContent
 
     final File root;
 
-    public FileConnectContent(File root)
+    public ConnectContentFile(File root)
     {
         this.root = root;
     }

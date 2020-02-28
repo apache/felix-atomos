@@ -77,7 +77,7 @@ public class AtomosLauncher
     public static Framework launch(Map<String, String> frameworkConfig)
         throws BundleException
     {
-        AtomosRuntime atomosRuntime = AtomosRuntime.newAtomosRuntime();
+        AtomosRuntime atomosRuntime = AtomosRuntime.newAtomosRuntime(frameworkConfig);
         if (atomosRuntime.getBootLayer().isAddLayerSupported())
         {
             String modulesDirPath = frameworkConfig.get(ATOMOS_MODULES_DIR);

@@ -14,5 +14,6 @@
         <module>atomos.tests.testbundles</module>
         <module>atomos.tests.modulepath.service</module>
         <module>atomos.tests.classpath.service</module>
+        <module>atomos.tests.index.bundles</module>
     </modules>
 </project>

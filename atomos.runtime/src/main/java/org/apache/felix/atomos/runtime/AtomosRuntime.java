@@ -14,6 +14,7 @@
 package org.apache.felix.atomos.runtime;
 
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Map;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
@@ -142,13 +143,14 @@ public interface AtomosRuntime
      * will not be automatically installed as bundles. Default is true, which
      * will install all discovered Atomos content as bundles.
      */
-    String ATOMOS_CONTENT_INSTALL = "atomos.content.install";
+    String ATOMOS_CONTENT_INSTALL = AtomosRuntimeBase.ATOMOS_PROP_PREFIX
+        + "content.install";
     /**
      * Framework launching property specifying if the Atomos contents installed
      * as connected bundles will not be marked for start. Default is true, which
      * will start all discovered Atomos content that are installed as bundles.
      */
-    String ATOMOS_CONTENT_START = "atomos.content.start";
+    String ATOMOS_CONTENT_START = AtomosRuntimeBase.ATOMOS_PROP_PREFIX + "content.start";
 
     /**
      * Returns the Atomos content that is connected with the specified bundle location.
@@ -183,6 +185,18 @@ public interface AtomosRuntime
 
     /**
      * Creates a new AtomosRuntime that can be used to create a new OSGi framework
+     * instance. Same as calling {@code newAtomosRuntime(Map)} with a {@code null} 
+     * configuration.
+     * 
+     * @return a new AtomosRuntime.
+     */
+    static AtomosRuntime newAtomosRuntime()
+    {
+        return newAtomosRuntime(Collections.emptyMap());
+    }
+
+    /**
+     * Creates a new AtomosRuntime that can be used to create a new OSGi framework
      * instance. If Atomos is running as a Java Module then this AtomosRuntime can
      * be used to create additional layers by using the
      * {@link AtomosLayer#addLayer(String, AtomosLayer.LoaderType, Path...)} method. If the additional layers are added
@@ -195,10 +209,11 @@ public interface AtomosRuntime
      * {@link ConnectFrameworkFactory#newFramework(Map, ModuleConnector)} instance to use
      * the layers added to this {@code AtomosRuntime}.
      * 
+     * @param configuration the properties to configure the new runtime
      * @return a new AtomosRuntime.
      */
-    static AtomosRuntime newAtomosRuntime()
+    static AtomosRuntime newAtomosRuntime(Map<String, String> configuration)
     {
-        return AtomosRuntimeBase.newAtomosRuntime();
+        return AtomosRuntimeBase.newAtomosRuntime(configuration);
     }
 }

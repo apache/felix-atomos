@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
 
@@ -32,6 +33,11 @@ public class AtomosRuntimeClassPath extends AtomosRuntimeBase
 {
 
     private final AtomosLayer bootLayer = createBootLayer();
+
+    public AtomosRuntimeClassPath(Map<String, String> config)
+    {
+        super(config);
+    }
 
     private AtomosLayer createBootLayer()
     {
@@ -83,7 +89,7 @@ public class AtomosRuntimeClassPath extends AtomosRuntimeBase
         protected AtomosLayerClassPath(List<AtomosLayer> parents, long id, String name, LoaderType loaderType, Path... paths)
         {
             super(parents, id, name, loaderType, paths);
-            atomosContents = findClassPathAtomosContents();
+            atomosContents = findAtomosContents();
         }
 
         @Override
@@ -93,7 +99,7 @@ public class AtomosRuntimeClassPath extends AtomosRuntimeBase
         }
 
         @Override
-        protected void findBootLayerAtomosContents(Set<AtomosContentBase> result)
+        protected void findBootModuleLayerAtomosContents(Set<AtomosContentBase> result)
         {
             // do nothing for class path runtime case
         }

@@ -11,4 +11,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.felix.atomos.impl.runtime.substrate;
+package org.apache.felix.atomos.impl.runtime.content;

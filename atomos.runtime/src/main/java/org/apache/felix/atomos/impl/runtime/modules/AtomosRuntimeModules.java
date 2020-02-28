@@ -69,6 +69,11 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
     private final Map<Configuration, AtomosLayerBase> byConfig = new HashMap<>();
     private final AtomosLayer bootLayer = createBootLayer();
 
+    public AtomosRuntimeModules(Map<String, String> config)
+    {
+        super(config);
+    }
+
     private AtomosLayer createBootLayer()
     {
         return createAtomosLayer(thisConfig, "boot", -1, LoaderType.SINGLE);
@@ -486,7 +491,7 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
         {
             super(parents, id, name, loaderType, paths);
             moduleLayer = findModuleLayer(config, parents, loaderType);
-            atomosBundles = findAtomosBundles();
+            atomosBundles = findAtomosLayerContent();
         }
 
         @Override
@@ -528,9 +533,9 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
             }
         }
 
-        private Set<AtomosContentBase> findAtomosBundles()
+        private Set<AtomosContentBase> findAtomosLayerContent()
         {
-            return moduleLayer == null ? findClassPathAtomosContents()
+            return moduleLayer == null ? findAtomosContents()
                 : findModuleLayerAtomosBundles(moduleLayer);
         }
 
@@ -618,7 +623,7 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
 
             public AtomosContentModule(ResolvedModule resolvedModule, Module module, String location, String symbolicName, Version version)
             {
-                super(location, symbolicName, version, new ModuleConnectContent(module,
+                super(location, symbolicName, version, new ConnectContentModule(module,
                     resolvedModule.reference(), AtomosRuntimeModules.this));
                 this.module = module;
             }
@@ -648,7 +653,7 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
         }
 
         @Override
-        protected void findBootLayerAtomosContents(Set<AtomosContentBase> result)
+        protected void findBootModuleLayerAtomosContents(Set<AtomosContentBase> result)
         {
             result.addAll(findModuleLayerAtomosBundles(ModuleLayer.boot()));
         }

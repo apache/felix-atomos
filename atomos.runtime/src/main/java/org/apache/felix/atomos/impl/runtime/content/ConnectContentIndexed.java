@@ -11,20 +11,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.felix.atomos.impl.runtime.substrate;
+package org.apache.felix.atomos.impl.runtime.content;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
 import org.osgi.framework.connect.ConnectContent;
 
-public class SubstrateIndexConnectContent implements ConnectContent
+public class ConnectContentIndexed implements ConnectContent
 {
     static class URLConnectEntry implements ConnectEntry
     {
@@ -77,13 +79,13 @@ public class SubstrateIndexConnectContent implements ConnectContent
 
     }
 
-    final String index;
-    final List<String> entries;
+    private final String index;
+    private final Set<String> entries;
 
-    SubstrateIndexConnectContent(String index, List<String> entries)
+    public ConnectContentIndexed(String index, List<String> entries)
     {
         this.index = index;
-        this.entries = Collections.unmodifiableList(entries);
+        this.entries = Collections.unmodifiableSet(new LinkedHashSet<>(entries));
     }
 
     @Override

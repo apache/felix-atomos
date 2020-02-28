@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.apache.felix.atomos.tests</groupId>
+        <artifactId>org.apache.felix.atomos.tests</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>org.apache.felix.atomos.tests.index.bundles</artifactId>
+    <name>atomos.tests.index.bundles</name>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.atomos.runtime</artifactId>
+            <version>${atomos.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix.atomos.tests</groupId>
+            <artifactId>org.apache.felix.atomos.tests.testbundles.service.impl</artifactId>
+            <version>${atomos.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

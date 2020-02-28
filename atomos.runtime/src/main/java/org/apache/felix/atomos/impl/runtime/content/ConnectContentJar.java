@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.felix.atomos.impl.runtime.base;
+package org.apache.felix.atomos.impl.runtime.content;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,30 +19,37 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.osgi.framework.connect.ConnectContent;
 
-public class JarConnectContent implements ConnectContent
+public class ConnectContentJar implements ConnectContent
 {
-    final ZipFile zipFile;
+    final Supplier<ZipFile> zipSupplier;
+    final Consumer<Supplier<ZipFile>> closer;
 
-    public JarConnectContent(ZipFile zipFile)
+    public ConnectContentJar(Supplier<ZipFile> zipSupplier, Consumer<Supplier<ZipFile>> closer)
     {
-        this.zipFile = zipFile;
+        this.zipSupplier = zipSupplier;
+        this.closer = closer;
     }
 
     @Override
     public void open() throws IOException
     {
-        // do nothing
+        zipSupplier.get();
     }
 
     @Override
     public void close() throws IOException
     {
-        // do nothing
+        if (closer != null)
+        {
+            closer.accept(zipSupplier);
+        }
     }
 
     @Override
@@ -56,7 +63,7 @@ public class JarConnectContent implements ConnectContent
     {
         return () -> new Iterator<String>()
         {
-            final Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            final Enumeration<? extends ZipEntry> entries = zipSupplier.get().entries();
 
             @Override
             public boolean hasNext()
@@ -75,7 +82,7 @@ public class JarConnectContent implements ConnectContent
     @Override
     public Optional<ConnectEntry> getEntry(String name)
     {
-        ZipEntry entry = zipFile.getEntry(name);
+        ZipEntry entry = zipSupplier.get().getEntry(name);
         if (entry != null)
         {
             return Optional.of(new JarConnectEntry(entry));
@@ -107,7 +114,7 @@ public class JarConnectContent implements ConnectContent
         @Override
         public InputStream getInputStream() throws IOException
         {
-            return zipFile.getInputStream(entry);
+            return zipSupplier.get().getInputStream(entry);
         }
 
         @Override

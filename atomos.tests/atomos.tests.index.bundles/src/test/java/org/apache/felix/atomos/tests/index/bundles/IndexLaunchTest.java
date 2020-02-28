@@ -1,0 +1,183 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.apache.felix.atomos.tests.index.bundles;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Optional;
+
+import org.apache.felix.atomos.runtime.AtomosContent;
+import org.apache.felix.atomos.runtime.AtomosLayer;
+import org.apache.felix.atomos.runtime.AtomosRuntime;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.launch.Framework;
+
+public class IndexLaunchTest
+{
+
+    private static final String TESTBUNDLES_SERVICE_IMPL = "org.apache.felix.atomos.tests.testbundles.service.impl";
+    private static final String INDEX_BSN_PREFIX = "bundle.";
+
+    private Framework testFramework;
+
+    @AfterEach
+    void afterTest() throws BundleException, InterruptedException, IOException
+    {
+        if (testFramework != null && testFramework.getState() == Bundle.ACTIVE)
+        {
+            testFramework.stop();
+            testFramework.waitForStop(10000);
+        }
+    }
+
+    private AtomosRuntime getRuntime(BundleContext bc)
+    {
+        ServiceReference<AtomosRuntime> ref = bc.getServiceReference(AtomosRuntime.class);
+        assertNotNull(ref, "No reference found.");
+        AtomosRuntime runtime = bc.getService(ref);
+        assertNotNull(runtime, "No service found.");
+        return runtime;
+    }
+
+    @Test
+    void testFindBundle(@TempDir Path storage) throws BundleException
+    {
+        IndexLaunch.main(new String[] {
+                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
+        testFramework = IndexLaunch.getFramework();
+        BundleContext bc = testFramework.getBundleContext();
+        assertNotNull(bc, "No context found.");
+
+        AtomosRuntime runtime = getRuntime(bc);
+        assertFindBundle("java.base", runtime.getBootLayer(), runtime.getBootLayer(),
+            true);
+        assertFindBundle(TESTBUNDLES_SERVICE_IMPL, runtime.getBootLayer(),
+            runtime.getBootLayer(), true);
+
+        for (int i = 1; i <= 4; i++)
+        {
+            assertFindBundle(INDEX_BSN_PREFIX + i, runtime.getBootLayer(),
+                runtime.getBootLayer(), true);
+        }
+        assertFindBundle("not.found", runtime.getBootLayer(), null, false);
+    }
+
+    @Test
+    void testActivatorService(@TempDir Path storage)
+        throws BundleException, InvalidSyntaxException
+    {
+        IndexLaunch.main(new String[] {
+                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
+        testFramework = IndexLaunch.getFramework();
+        BundleContext bc = testFramework.getBundleContext();
+        assertNotNull(bc, "No context found.");
+
+        for (int i = 1; i <= 4; i++)
+        {
+            assertFindActivatorService(bc, i);
+        }
+    }
+
+    private void assertFindActivatorService(BundleContext bc, int i)
+        throws InvalidSyntaxException
+    {
+        Collection<ServiceReference<BundleActivator>> activatorRefs = bc.getServiceReferences(
+            BundleActivator.class, "(test.activator=ActivatorBundle" + i + ")");
+        assertEquals(1, activatorRefs.size(), "Wrong number of services for: " + i);
+        ServiceReference<BundleActivator> ref = activatorRefs.iterator().next();
+        assertEquals(ref.getBundle(), ref.getProperty("test.bundle"), "Wrong bundle.");
+    }
+
+    @Test
+    void testGetEntry(@TempDir Path storage) throws BundleException, IOException
+    {
+        IndexLaunch.main(new String[] {
+                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
+        testFramework = IndexLaunch.getFramework();
+        BundleContext bc = testFramework.getBundleContext();
+        assertNotNull(bc, "No context found.");
+
+        AtomosRuntime runtime = getRuntime(bc);
+        Bundle b = assertFindBundle(TESTBUNDLES_SERVICE_IMPL,
+            runtime.getBootLayer(),
+            runtime.getBootLayer(), true).getBundle();
+        assertNotNull(b, "No bundle found.");
+        URL mf = b.getEntry("/META-INF/MANIFEST.MF");
+        assertNotNull(mf, "No manifest found.");
+
+        for (int i = 1; i <= 4; i++)
+        {
+            AtomosContent content = runtime.getBootLayer().findAtomosContent(
+                "bundle." + i).get();
+            Bundle bundle = content.getBundle();
+            URL commonURL = bundle.getEntry("OSGI-INF/common.txt");
+            assertNotNull(commonURL, "No common url found: " + i);
+            assertContent(Integer.toString(i), commonURL);
+            URL bundleResource1 = bundle.getEntry("OSGI-INF/bundle." + i + "-1.txt");
+            assertNotNull(bundleResource1, "No bundle resource 1 found: " + i);
+            assertContent(Integer.toString(i), bundleResource1);
+            URL bundleResource2 = bundle.getEntry("OSGI-INF/bundle." + i + "-2.txt");
+            assertNotNull(bundleResource2, "No bundle resource 2 found: " + i);
+            assertContent(Integer.toString(i), bundleResource2);
+        }
+    }
+
+    private void assertContent(String expected, URL url) throws IOException
+    {
+        try (BufferedReader br = new BufferedReader(
+            new InputStreamReader(url.openStream())))
+        {
+            assertEquals(expected, br.readLine(), "Wrong content for: " + url);
+        }
+    }
+
+    private AtomosContent assertFindBundle(String name, AtomosLayer layer,
+        AtomosLayer expectedLayer, boolean expectedToFind)
+    {
+        Optional<AtomosContent> result = layer.findAtomosContent(name);
+        if (expectedToFind)
+        {
+            assertTrue(result.isPresent(), "Could not find bundle: " + name);
+            assertEquals(name, result.get().getSymbolicName(), "Wrong name");
+            assertEquals(expectedLayer, result.get().getAtomosLayer(),
+                "Wrong layer for bundle: " + name);
+            Bundle b = result.get().getBundle();
+            assertNotNull(b, "No Bundle.");
+            assertEquals(name, b.getSymbolicName(), "Wrong BSN");
+        }
+        else
+        {
+            assertFalse(result.isPresent(), "Found unexpected bundle: " + name);
+        }
+        return result.orElse(null);
+    }
+}

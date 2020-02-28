@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.osgi.framework.connect.ConnectContent;
 
-public class ModuleConnectContent implements ConnectContent
+public class ConnectContentModule implements ConnectContent
 {
     final Module module;
     final ModuleReference reference;
@@ -33,7 +33,7 @@ public class ModuleConnectContent implements ConnectContent
     final AtomicReference<Optional<Map<String, String>>> headers = new AtomicReference<>();
     volatile ModuleReader reader = null;
 
-    public ModuleConnectContent(Module module, ModuleReference reference, AtomosRuntimeModules atomosRuntime)
+    public ConnectContentModule(Module module, ModuleReference reference, AtomosRuntimeModules atomosRuntime)
     {
         this.module = module;
         this.reference = reference;
