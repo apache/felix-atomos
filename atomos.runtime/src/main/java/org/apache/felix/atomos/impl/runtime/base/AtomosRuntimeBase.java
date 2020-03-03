@@ -1032,7 +1032,8 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 
             protected abstract Object getKey();
 
-            ConnectContent getConnectContent()
+            @Override
+            public ConnectContent getConnectContent()
             {
                 debug("Getting connect content for %s", this);
                 return content;

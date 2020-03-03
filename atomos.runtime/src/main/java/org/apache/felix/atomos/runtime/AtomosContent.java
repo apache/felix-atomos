@@ -19,6 +19,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
+import org.osgi.framework.connect.ConnectContent;
 
 /**
  * Atomos Content provides information about content discovered
@@ -99,6 +100,16 @@ public interface AtomosContent extends Comparable<AtomosContent>
      */
     Bundle install(String prefix) throws BundleException;
 
+    /** 
+     * Prefer {@link #getBundle() getBundle()} to this call to  avoid concurrency issues if there is any possibility 
+     * that an OSGI framework is active and managing the associated content. If the ConnectContent is not managed by
+     * a framework, {@link #getBundle() getBundle()} will return null and this method can be called as a way to access
+     * the associated content. The caller is responsible for opening  and closing the ConnectContent as appropriate.
+     * 
+     * @return ConnectContent associated with this Atomos content. 
+     */
+    ConnectContent getConnectContent();
+    
     /**
      * Returns the connected bundle location for this Atomos content or {@code null} if 
      * no bundle location is connected for this content. A {@code non-null} value is
