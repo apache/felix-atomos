@@ -174,6 +174,28 @@ public class AtomosRuntimeTest
         failConnect(javaBase, javaXML, bc, runtime);
     }
 
+    @Test
+    void testGetConnectContent(@TempDir Path storage) throws BundleException, IOException {
+        AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
+        Map<String, String> config = Map.of( //
+            Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath());
+        testFramework = AtomosLauncher.newFramework(config, runtime);
+        testFramework.start();
+
+        AtomosContent atomosContent;
+        atomosContent = runtime.getConnectedContent(Constants.SYSTEM_BUNDLE_LOCATION);
+        assertNotNull(atomosContent, "Could not get AtomosContent for System Bundle");
+        assertEquals(atomosContent.getConnectContent(), 
+        		runtime.getModuleConnector().connect(atomosContent.getConnectLocation()).get().getContent(),
+        		"AtomosContent.getConnectContent did not match ConnectModule.getConnectedContent");
+        
+        atomosContent = runtime.getBootLayer().findAtomosContent("java.base").get();
+        assertNotNull(atomosContent, "Could not get AtomosContent for java.base");
+        assertEquals(atomosContent.getConnectContent(), 
+            runtime.getModuleConnector().connect(atomosContent.getConnectLocation()).get().getContent(),
+        	"AtomosContent.getConnectContent did not match ConnectModule.getConnectedContent");
+    }
+
     private void failConnect(AtomosContent c1, AtomosContent c2, BundleContext bc,
         AtomosRuntime runtime) throws BundleException
     {
