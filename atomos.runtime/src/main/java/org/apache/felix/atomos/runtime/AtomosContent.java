@@ -101,10 +101,15 @@ public interface AtomosContent extends Comparable<AtomosContent>
     Bundle install(String prefix) throws BundleException;
 
     /** 
-     * Prefer {@link #getBundle() getBundle()} to this call to  avoid concurrency issues if there is any possibility 
-     * that an OSGI framework is active and managing the associated content. If the ConnectContent is not managed by
-     * a framework, {@link #getBundle() getBundle()} will return null and this method can be called as a way to access
-     * the associated content. The caller is responsible for opening  and closing the ConnectContent as appropriate.
+     * Returns the connect content for this Atomos content. The returned {@link ConnectContent} can
+     * be used to lookup entries from the content directly. If possible, it is preferred to used the bundle
+     * returned by {@link #getBundle() getBundle()} instead to access entries from the content. Using the
+     * bundle avoids issues with accessing the content
+     * at the same time the OSGi Framework is managing the associated content.
+     * <p>
+     * If the ConnectContent is not managed by
+     * a framework, {@link #getBundle() getBundle()} will return {@code null} and this method can be called as a way to access
+     * the associated content. The caller is responsible for opening and closing the ConnectContent as appropriate.
      * 
      * @return ConnectContent associated with this Atomos content. 
      */
