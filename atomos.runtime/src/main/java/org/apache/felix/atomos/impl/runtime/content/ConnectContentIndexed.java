@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
 import org.osgi.framework.connect.ConnectContent;
 
 public class ConnectContentIndexed implements ConnectContent
@@ -106,7 +105,7 @@ public class ConnectContentIndexed implements ConnectContent
         if (entries.contains(name))
         {
             URL resource = getClass().getResource(
-                AtomosRuntimeBase.ATOMOS_BUNDLES + index + '/' + name);
+                index + '/' + name);
             if (resource != null)
             {
                 return Optional.of(new URLConnectEntry(name, resource));

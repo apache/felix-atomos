@@ -82,9 +82,9 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     static final String FILE_PROTOCOL = "file";
     public static final String ATOMOS_PROP_PREFIX = "atomos.";
     public static final String ATOMOS_DEBUG_PROP = ATOMOS_PROP_PREFIX + "enable.debug";
-    public static final String ATOMOS_LOAD_INDEX_PROP = ATOMOS_PROP_PREFIX + "load.index";
-    public static final String ATOMOS_BUNDLES = "/atomos/";
-    public static final String ATOMOS_BUNDLES_INDEX = ATOMOS_BUNDLES + "bundles.index";
+    public static final String ATOMOS_INDEX_PATH_PROP = ATOMOS_PROP_PREFIX + "index.path";
+    public static final String ATOMOS_IGNORE_INDEX = "IGNORE";
+    public static final String ATOMOS_BUNDLES_INDEX_DEFAULT = "/atomos/bundles.index";
     public static final String ATOMOS_BUNDLE = "ATOMOS_BUNDLE";
     public static final String ATOMOS_LIB_DIR_PROP = ATOMOS_PROP_PREFIX + "lib.dir";
     public static final String ATOMOS_RUNTIME_CLASS_PROP = ATOMOS_PROP_PREFIX
@@ -94,7 +94,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     public static final String GRAAL_NATIVE_IMAGE_KIND = "org.graalvm.nativeimage.kind";
 
     private final boolean DEBUG;
-    private final Index indexType;
+    private final String indexPath;
 
     private final AtomicReference<BundleContext> context = new AtomicReference<>();
     private final AtomicReference<File> storeRoot = new AtomicReference<>();
@@ -181,10 +181,8 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     {
         saveConfig(config);
         DEBUG = Boolean.parseBoolean(this.config.get(ATOMOS_DEBUG_PROP));
-        String sType = config.get(ATOMOS_LOAD_INDEX_PROP);
-        indexType = sType != null ? Index.valueOf(sType)
-            : (System.getProperty(GRAAL_NATIVE_IMAGE_KIND) != null ? Index.FIRST
-                : Index.IGNORE);
+        indexPath = getIndexPath(this.config.get(ATOMOS_INDEX_PATH_PROP));
+
         try
         {
             // substrate native image does not run shutdown hooks on ctrl-c
@@ -195,6 +193,19 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         {
             // do nothing if Signal isn't available
         }
+    }
+
+    private String getIndexPath(String indexPath)
+    {
+        if (indexPath == null)
+        {
+            indexPath = ATOMOS_BUNDLES_INDEX_DEFAULT;
+        }
+        else if (!ATOMOS_IGNORE_INDEX.equals(indexPath) && !indexPath.startsWith("/"))
+        {
+            indexPath = "/" + indexPath;
+        }
+        return indexPath;
     }
 
     protected final void lockWrite()
@@ -731,9 +742,9 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 
         private void findAtomosIndexedContents(Set<AtomosContentBase> bootBundles)
         {
-            URL index = Index.FIRST == indexType
-                ? getClass().getResource(ATOMOS_BUNDLES_INDEX)
-                : null;
+            URL index = ATOMOS_IGNORE_INDEX.equals(indexPath)
+                ? null
+                : getClass().getResource(indexPath);
             debug("Atomos index url: %s", index);
             if (index != null)
             {
@@ -802,10 +813,24 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             }
         }
 
+        private AtomosContentIndexed createIndexedContent(String indexRoot,
+            String currentIndex,
+            String currentBSN, Version currentVersion, List<String> currentPaths)
+        {
+            String bundleIndexPath = indexRoot + currentIndex;
+            ConnectContentIndexed content = new ConnectContentIndexed(bundleIndexPath,
+                currentPaths);
+            debug("Found indexed content: %s %s %s %s", currentIndex, currentBSN,
+                currentVersion, currentPaths);
+            return new AtomosContentIndexed(getIndexedLocation(content, currentBSN),
+                currentBSN, currentVersion, content);
+        }
+
         private void findAtomosIndexedContent(URL index,
             Set<AtomosContentBase> bootBundles)
         {
-
+            final String indexRoot = indexPath.substring(0,
+                indexPath.lastIndexOf('/') + 1);
             try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(index.openStream())))
             {
@@ -814,58 +839,42 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
                 Version currentVersion = null;
                 List<String> currentPaths = null;
                 String line = reader.readLine();
-                if (line != null)
+                while (ATOMOS_BUNDLE.equals(line))
                 {
-                    do
+                    if (currentIndex != null)
                     {
-                        if (ATOMOS_BUNDLE.equals(line))
+                        bootBundles.add(createIndexedContent(indexRoot, currentIndex,
+                            currentBSN, currentVersion, currentPaths));
+                    }
+                    currentIndex = null;
+                    currentBSN = null;
+                    currentVersion = null;
+                    currentPaths = new ArrayList<>();
+                    while ((line = reader.readLine()) != null
+                        && !ATOMOS_BUNDLE.equals(line))
+                    {
+                        if (currentIndex == null)
                         {
-                            if (currentIndex != null)
-                            {
-                                ConnectContentIndexed content = new ConnectContentIndexed(
-                                    currentIndex, currentPaths);
-                                bootBundles.add(new AtomosContentIndexed(
-                                    getIndexedLocation(content, currentBSN), currentBSN,
-                                    currentVersion, content));
-                                debug("Found indexed content: %s %s %s %s", currentIndex,
-                                    currentBSN, currentVersion, currentPaths);
-                            }
-                            currentIndex = null;
-                            currentBSN = null;
-                            currentVersion = null;
-                            currentPaths = new ArrayList<>();
+                            currentIndex = line;
+                        }
+                        else if (currentBSN == null)
+                        {
+                            currentBSN = line;
+                        }
+                        else if (currentVersion == null)
+                        {
+                            currentVersion = Version.valueOf(line);
                         }
                         else
                         {
-                            if (currentIndex == null)
-                            {
-                                currentIndex = line;
-                            }
-                            else if (currentBSN == null)
-                            {
-                                currentBSN = line;
-                            }
-                            else if (currentVersion == null)
-                            {
-                                currentVersion = Version.valueOf(line);
-                            }
-                            else
-                            {
-                                currentPaths.add(line);
-                            }
+                            currentPaths.add(line);
                         }
                     }
-                    while ((line = reader.readLine()) != null);
-                    if (currentIndex != null)
-                    {
-                        ConnectContentIndexed content = new ConnectContentIndexed(
-                            currentIndex, currentPaths);
-                        bootBundles.add(new AtomosContentIndexed(
-                            getIndexedLocation(content, currentBSN), currentBSN,
-                            currentVersion, content));
-                        debug("Found indexed content: %s %s %s %s", currentIndex,
-                            currentBSN, currentVersion, currentPaths);
-                    }
+                }
+                if (currentIndex != null)
+                {
+                    bootBundles.add(createIndexedContent(indexRoot, currentIndex,
+                        currentBSN, currentVersion, currentPaths));
                 }
             }
             catch (IOException e)
