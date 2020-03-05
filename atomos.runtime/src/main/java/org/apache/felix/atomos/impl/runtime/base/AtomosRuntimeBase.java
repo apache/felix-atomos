@@ -100,6 +100,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     private final AtomicReference<File> storeRoot = new AtomicReference<>();
 
     private ServiceRegistration<?> atomosCommandsReg = null;
+    private ServiceRegistration<?> atomosRuntimeReg = null;
     protected final Map<String, String> config = new ConcurrentHashMap<String, String>();
 
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
@@ -1454,7 +1455,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         boolean startBundles = Boolean.parseBoolean(
             getProperty(bc, AtomosRuntime.ATOMOS_CONTENT_START, "true"));
         installAtomosContents(getBootLayer(), installBundles, startBundles);
-        bc.registerService(AtomosRuntime.class, this, null);
+        atomosRuntimeReg = bc.registerService(AtomosRuntime.class, this, null);
         atomosCommandsReg = new AtomosCommands(this).register(bc);
     }
 
@@ -1526,6 +1527,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 
         AtomosFrameworkUtilHelper.removeHelper(this);
         atomosCommandsReg.unregister();
+        atomosRuntimeReg.unregister();
     }
 
     private String getProperty(BundleContext bc, String key, String defaultValue)

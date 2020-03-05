@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase.AtomosLayerBase.AtomosContentBase;
+import org.apache.felix.atomos.runtime.AtomosRuntime;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.connect.ConnectModule;
@@ -28,8 +29,17 @@ public class AtomosModuleConnector implements ModuleConnector
 {
     final AtomosRuntimeBase atomosRuntime;
 
+    public AtomosModuleConnector()
+    {
+        this(null);
+    }
+
     public AtomosModuleConnector(AtomosRuntimeBase atomosRuntime)
     {
+        if (atomosRuntime == null)
+        {
+            atomosRuntime = (AtomosRuntimeBase) AtomosRuntime.newAtomosRuntime();
+        }
         this.atomosRuntime = atomosRuntime;
     }
 

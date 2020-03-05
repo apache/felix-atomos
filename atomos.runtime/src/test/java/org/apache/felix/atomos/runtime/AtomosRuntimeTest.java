@@ -23,11 +23,14 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.function.Supplier;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosFrameworkUtilHelper;
+import org.apache.felix.atomos.impl.runtime.base.AtomosModuleConnector;
 import org.apache.felix.atomos.impl.runtime.base.JavaServiceNamespace;
 import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.junit.jupiter.api.AfterEach;
@@ -39,7 +42,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
-import org.osgi.framework.connect.FrameworkUtilHelper;
+import org.osgi.framework.connect.ModuleConnector;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.resource.Capability;
@@ -54,8 +57,8 @@ public class AtomosRuntimeTest
     @AfterEach
     void afterTest() throws BundleException, InterruptedException, IOException
     {
-        if (testFramework != null && testFramework.getState() == Bundle.ACTIVE
-            || testFramework.getState() == Bundle.STARTING)
+        if (testFramework != null && (testFramework.getState() == Bundle.ACTIVE
+            || testFramework.getState() == Bundle.STARTING))
         {
             testFramework.stop();
             testFramework.waitForStop(10000);
@@ -64,7 +67,32 @@ public class AtomosRuntimeTest
     }
 
     @Test
+    void testRuntime(@TempDir Path storage) throws BundleException
+    {
+        AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
+        Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE,
+            storage.toFile().getAbsolutePath());
+        testFramework = AtomosLauncher.newFramework(config, runtime);
+        doTestFramework(testFramework);
+    }
+
+    @Test
     void testFactory(@TempDir Path storage) throws BundleException
+    {
+        doTestFactory(storage,
+            () -> AtomosRuntime.newAtomosRuntime().getModuleConnector());
+    }
+
+    @Test
+    void testModuleConnectorService(@TempDir Path storage) throws BundleException
+    {
+        doTestFactory(storage, () -> {
+            return ServiceLoader.load(ModuleConnector.class).findFirst().get();
+        });
+    }
+
+    void doTestFactory(Path storage, Supplier<ModuleConnector> connector)
+        throws BundleException
     {
         ServiceLoader<ConnectFrameworkFactory> loader = ServiceLoader.load(
             getClass().getModule().getLayer(), ConnectFrameworkFactory.class);
@@ -80,17 +108,7 @@ public class AtomosRuntimeTest
         Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE,
             storage.toFile().getAbsolutePath());
         testFramework = factory.newFramework(config,
-            AtomosRuntime.newAtomosRuntime().getModuleConnector());
-        doTestFramework(testFramework);
-    }
-
-    @Test
-    void testRuntime(@TempDir Path storage) throws BundleException
-    {
-        AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
-        Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE,
-            storage.toFile().getAbsolutePath());
-        testFramework = AtomosLauncher.newFramework(config, runtime);
+            connector.get());
         doTestFramework(testFramework);
     }
 
@@ -341,29 +359,50 @@ public class AtomosRuntimeTest
         AtomosContent runtimeContent = runtime.getBootLayer().findAtomosContent("org.apache.felix.atomos.runtime").get();
         Bundle b = runtimeContent.getBundle();
         assertNotNull(b, "No atomos runtime bundle.");
-        BundleRevision r = b.adapt(BundleRevision.class);
+        BundleRevision rev = b.adapt(BundleRevision.class);
 
-        List<Capability> javaServiceCaps = r.getCapabilities(
+        List<Capability> javaServiceCaps = rev.getCapabilities(
             JavaServiceNamespace.JAVA_SERVICE_NAMESPACE);
-        assertEquals(1, javaServiceCaps.size(), "No Java service capabilities.");
-        Capability javaServiceCap = javaServiceCaps.iterator().next();
-        assertEquals(FrameworkUtilHelper.class.getName(),
-            javaServiceCap.getAttributes().get(
-                JavaServiceNamespace.JAVA_SERVICE_NAMESPACE));
-        assertEquals(AtomosFrameworkUtilHelper.class.getName(),
-            javaServiceCap.getAttributes().get(
-                JavaServiceNamespace.CAPABILITY_PROVIDES_WITH_ATTRIBUTE));
+        assertEquals(2, javaServiceCaps.size(), "No Java service capabilities.");
+        javaServiceCaps.forEach((c) -> {
+            String serviceName = (String) c.getAttributes().get(
+                JavaServiceNamespace.JAVA_SERVICE_NAMESPACE);
 
-        List<Requirement> javaServiceReqs = r.getRequirements(
-            JavaServiceNamespace.JAVA_SERVICE_NAMESPACE);
-        assertEquals(1, javaServiceReqs.size(), "No Java service requirements.");
-        Requirement javaServiceReq = javaServiceReqs.iterator().next();
-        assertEquals(
+            switch (serviceName)
+            {
+                case "org.osgi.framework.connect.FrameworkUtilHelper":
+                    assertEquals(AtomosFrameworkUtilHelper.class.getName(),
+                        c.getAttributes().get(
+                            JavaServiceNamespace.CAPABILITY_PROVIDES_WITH_ATTRIBUTE));
+                    break;
+                case "org.osgi.framework.connect.ModuleConnector":
+                    assertEquals(AtomosModuleConnector.class.getName(),
+                        c.getAttributes().get(
+                            JavaServiceNamespace.CAPABILITY_PROVIDES_WITH_ATTRIBUTE));
+                    break;
+                default:
+                    fail("Unexpected serviceName: " + serviceName);
+                    break;
+            }
+        });
+
+        Collection<String> validFilters = List.of(
             "(" + JavaServiceNamespace.JAVA_SERVICE_NAMESPACE + "="
                 + ConnectFrameworkFactory.class.getName() + ")",
-            javaServiceReq.getDirectives().get(
-                Namespace.REQUIREMENT_FILTER_DIRECTIVE));
-        assertEquals(Namespace.RESOLUTION_OPTIONAL, javaServiceReq.getDirectives().get(
-            Namespace.REQUIREMENT_RESOLUTION_DIRECTIVE));
+            "(" + JavaServiceNamespace.JAVA_SERVICE_NAMESPACE + "="
+                + ModuleConnector.class.getName() + ")");
+        List<Requirement> javaServiceReqs = rev.getRequirements(
+            JavaServiceNamespace.JAVA_SERVICE_NAMESPACE);
+        assertEquals(2, javaServiceReqs.size(),
+            "Wrong number of Java service requirements.");
+        javaServiceReqs.forEach(r -> {
+            assertTrue(
+                validFilters.contains(
+                    r.getDirectives().get(Namespace.REQUIREMENT_FILTER_DIRECTIVE)),
+                "Wrong filter: " + r);
+            assertEquals(Namespace.RESOLUTION_OPTIONAL,
+                r.getDirectives().get(Namespace.REQUIREMENT_RESOLUTION_DIRECTIVE));
+        });
+
     }
 }

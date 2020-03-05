@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 import org.apache.felix.atomos.impl.runtime.base.AtomosFrameworkUtilHelper;
+import org.apache.felix.atomos.impl.runtime.base.AtomosModuleConnector;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.connect.FrameworkUtilHelper;
+import org.osgi.framework.connect.ModuleConnector;
 
 open module org.apache.felix.atomos.runtime
 {
@@ -27,6 +29,8 @@ open module org.apache.felix.atomos.runtime
     requires static org.apache.felix.gogo.runtime;
 
     uses ConnectFrameworkFactory;
+    uses ModuleConnector;
 
     provides FrameworkUtilHelper with AtomosFrameworkUtilHelper;
+    provides ModuleConnector with AtomosModuleConnector;
 }
