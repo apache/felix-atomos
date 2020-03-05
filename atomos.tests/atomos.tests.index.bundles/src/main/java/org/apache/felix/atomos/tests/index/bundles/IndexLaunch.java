@@ -16,7 +16,6 @@ package org.apache.felix.atomos.tests.index.bundles;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
 import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.launch.Framework;
@@ -25,12 +24,10 @@ public class IndexLaunch
 {
     private static volatile Framework framework;
 
-    public static void main(String[] args) throws BundleException
+    public static void main(String... args) throws BundleException
     {
         long start = System.nanoTime();
         Map<String, String> config = AtomosLauncher.getConfiguration(args);
-        config.put(AtomosRuntimeBase.ATOMOS_LOAD_INDEX_PROP,
-            AtomosRuntimeBase.Index.FIRST.toString());
         framework = AtomosLauncher.launch(config);
         long total = System.nanoTime() - start;
         System.out.println("Total time: " + TimeUnit.NANOSECONDS.toMillis(total));

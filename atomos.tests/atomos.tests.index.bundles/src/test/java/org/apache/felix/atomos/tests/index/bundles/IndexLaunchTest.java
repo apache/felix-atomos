@@ -24,8 +24,10 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
+import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
 import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
@@ -68,12 +70,61 @@ public class IndexLaunchTest
         return runtime;
     }
 
-    @Test
-    void testFindBundle(@TempDir Path storage) throws BundleException
+    private Framework getTestFramework(Path storage, String indexPath)
+        throws BundleException
     {
-        IndexLaunch.main(new String[] {
-                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
-        testFramework = IndexLaunch.getFramework();
+        if (indexPath == null)
+        {
+            IndexLaunch.main(
+                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath());
+        }
+        else
+        {
+            IndexLaunch.main(
+                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(),
+                AtomosRuntimeBase.ATOMOS_INDEX_PATH_PROP + '=' + indexPath);
+        }
+        return IndexLaunch.getFramework();
+    }
+
+    @Test
+    void testIgnoreIndex(@TempDir Path storage) throws BundleException
+    {
+        testFramework = getTestFramework(storage, AtomosRuntimeBase.ATOMOS_IGNORE_INDEX);
+        BundleContext bc = testFramework.getBundleContext();
+
+        AtomosRuntime runtime = getRuntime(bc);
+        assertFindBundle("java.base", runtime.getBootLayer(), runtime.getBootLayer(),
+            true);
+        assertFindBundle(TESTBUNDLES_SERVICE_IMPL, runtime.getBootLayer(),
+            runtime.getBootLayer(), true);
+
+        // the default indexed bundles should not be found
+        for (int i = 1; i <= 4; i++)
+        {
+            assertFindBundle(INDEX_BSN_PREFIX + i, runtime.getBootLayer(),
+                runtime.getBootLayer(), false);
+        }
+    }
+
+    @Test
+    void testFindBundleDefault(@TempDir Path storage) throws BundleException
+    {
+        doTestFindBundle(storage, null, List.of(1, 2, 3, 4), List.of());
+    }
+
+    @Test
+    void testFindBundleTestIndex(@TempDir Path storage) throws BundleException
+    {
+        doTestFindBundle(storage, "/testIndex/test.index", List.of(3, 4), List.of(1, 2));
+    }
+
+    void doTestFindBundle(@TempDir Path storage, String indexPath,
+        Collection<Integer> expected,
+        Collection<Integer> unexpected)
+        throws BundleException
+    {
+        testFramework = getTestFramework(storage, indexPath);
         BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
 
@@ -83,25 +134,43 @@ public class IndexLaunchTest
         assertFindBundle(TESTBUNDLES_SERVICE_IMPL, runtime.getBootLayer(),
             runtime.getBootLayer(), true);
 
-        for (int i = 1; i <= 4; i++)
+        for (int i : expected)
         {
             assertFindBundle(INDEX_BSN_PREFIX + i, runtime.getBootLayer(),
                 runtime.getBootLayer(), true);
+        }
+        for (int i : unexpected)
+        {
+            assertFindBundle(INDEX_BSN_PREFIX + i, runtime.getBootLayer(),
+                runtime.getBootLayer(), false);
         }
         assertFindBundle("not.found", runtime.getBootLayer(), null, false);
     }
 
     @Test
-    void testActivatorService(@TempDir Path storage)
+    void testActivatorServiceDefault(
+        @TempDir Path storage)
         throws BundleException, InvalidSyntaxException
     {
-        IndexLaunch.main(new String[] {
-                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
-        testFramework = IndexLaunch.getFramework();
+        doTestActivatorService(storage, null, 1, 2, 3, 4);
+    }
+
+    @Test
+    void testActivatorServiceTestIndex(@TempDir Path storage)
+        throws BundleException, InvalidSyntaxException
+    {
+        doTestActivatorService(storage, "testIndex/test.index", 3, 4);
+    }
+
+    void doTestActivatorService(@TempDir Path storage, String indexPath,
+        int... expected)
+        throws BundleException, InvalidSyntaxException
+    {
+        testFramework = getTestFramework(storage, indexPath);
         BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
 
-        for (int i = 1; i <= 4; i++)
+        for (int i : expected)
         {
             assertFindActivatorService(bc, i);
         }
@@ -118,11 +187,22 @@ public class IndexLaunchTest
     }
 
     @Test
-    void testGetEntry(@TempDir Path storage) throws BundleException, IOException
+    void testGetEntryDefault(@TempDir Path storage) throws BundleException, IOException
     {
-        IndexLaunch.main(new String[] {
-                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
-        testFramework = IndexLaunch.getFramework();
+        doTestGetEntry(storage, null, 1, 2, 3, 4);
+    }
+
+    @Test
+    void testGetEntryTestIndex(@TempDir Path storage) throws BundleException, IOException
+    {
+        doTestGetEntry(storage, "testIndex/test.index", 3, 4);
+    }
+
+    void doTestGetEntry(@TempDir Path storage, String indexPath,
+        int... expected)
+        throws BundleException, IOException
+    {
+        testFramework = getTestFramework(storage, indexPath);
         BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
 
@@ -134,7 +214,7 @@ public class IndexLaunchTest
         URL mf = b.getEntry("/META-INF/MANIFEST.MF");
         assertNotNull(mf, "No manifest found.");
 
-        for (int i = 1; i <= 4; i++)
+        for (int i : expected)
         {
             AtomosContent content = runtime.getBootLayer().findAtomosContent(
                 "bundle." + i).get();
