@@ -1,0 +1,8 @@
+github:
+  description: "Apache Felix Atomos"
+  homepage: https://felix.apache.org/
+  labels:
+    - osgi
+    - modules
+    - jlink
+    - substrate
