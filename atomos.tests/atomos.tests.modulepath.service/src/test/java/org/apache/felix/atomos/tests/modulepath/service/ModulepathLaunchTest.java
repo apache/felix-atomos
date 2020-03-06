@@ -26,7 +26,16 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.felix.atomos.launch.AtomosLauncher;
@@ -498,7 +507,7 @@ public class ModulepathLaunchTest
         {
             f = AtomosLauncher.newFramework(
                 Map.of(Constants.FRAMEWORK_STORAGE, storage2.getAbsolutePath(),
-                        "felix.cache.locking", "false"),
+                    "felix.cache.locking", "false"),
                 atomosRuntime);
             f.start();
             fail();
@@ -519,7 +528,7 @@ public class ModulepathLaunchTest
 
     @Test
     void testLoaderType(@TempDir Path storage) throws BundleException,
-        ClassNotFoundException
+    ClassNotFoundException
     {
         ModulepathLaunch.main(new String[] {
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath() });
@@ -685,8 +694,8 @@ public class ModulepathLaunchTest
         children.iterator().next().getAtomosContents().stream().map(
             AtomosContent::getBundle).filter(
                 Objects::nonNull).filter(
-                (b) -> b.getSymbolicName().equals(
-                    TESTBUNDLES_SERVICE_IMPL_A)).findFirst().orElseThrow().uninstall();
+                    (b) -> b.getSymbolicName().equals(
+                        TESTBUNDLES_SERVICE_IMPL_A)).findFirst().orElseThrow().uninstall();
         checkServices(bc, 7);
 
         testFramework.stop();
@@ -725,8 +734,10 @@ public class ModulepathLaunchTest
 
         final ServiceReference<?>[] refs = b.getRegisteredServices();
         assertNotNull(refs, "No services.");
-        assertEquals(1, refs.length, "Wrong number of services.");
+        assertEquals(2, refs.length, "Wrong number of services.");
         assertEquals(Boolean.TRUE, refs[0].getProperty("echo.reference"),
+            "Wrong service.");
+        assertEquals(Boolean.TRUE, refs[1].getProperty("echo.reference"),
             "Wrong service.");
     }
 
@@ -796,7 +807,7 @@ public class ModulepathLaunchTest
             final URL resc = clazz.getResource("/file.txt");
             assertNotNull(resc, "Expected URL, got null ");
             assertEquals("/file.txt", new BufferedReader(
-                    new InputStreamReader(resc.openStream())).readLine(),
+                new InputStreamReader(resc.openStream())).readLine(),
                 "Incorrect contents from URL");
         }
         catch (final ClassNotFoundException e)

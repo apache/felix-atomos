@@ -1,0 +1,33 @@
+[
+
+  {
+    "name" : "org.apache.felix.webconsole.internal.core.ServicesServlet",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.webconsole.internal.system.VMStatPlugin",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.webconsole.internal.configuration.ConfigManager",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.webconsole.internal.core.BundlesServlet",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.webconsole.internal.misc.LicenseServlet",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.apache.felix.webconsole.internal.compendium.LogServlet",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  }
+]

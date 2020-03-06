@@ -1,0 +1,40 @@
+[
+  {
+     "name":"org.apache.felix.service.command.Converter"
+  },
+    {
+    "name" : "org.apache.felix.gogo.shell.Builtin",
+    "allPublicMethods" : true,
+    "allDeclaredMethods" : true,
+    "allPublicFields" : true,
+    "allDeclaredFields" : true
+  },
+  {
+    "name" : "org.apache.felix.gogo.shell.Shell",
+    "allPublicMethods" : true,
+    "allDeclaredMethods" : true,
+    "allPublicFields" : true,
+    "allDeclaredFields" : true
+  },
+  {
+    "name" : "org.apache.felix.gogo.shell.Procedural",
+    "allPublicMethods" : true,
+    "allDeclaredMethods" : true,
+    "allPublicFields" : true,
+    "allDeclaredFields" : true
+  },
+  {
+    "name" : "org.apache.felix.gogo.shell.Posix",
+    "allPublicMethods" : true,
+    "allDeclaredMethods" : true,
+    "allPublicFields" : true,
+    "allDeclaredFields" : true
+  },
+  {
+    "name" : "org.apache.felix.gogo.shell.Telnet",
+    "allPublicMethods" : true,
+    "allDeclaredMethods" : true,
+    "allPublicFields" : true,
+    "allDeclaredFields" : true
+  }
+]
