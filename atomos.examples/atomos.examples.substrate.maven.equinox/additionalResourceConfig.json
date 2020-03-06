@@ -1,0 +1,16 @@
+{
+	"resources": [
+		{
+			"pattern": "META-INF/services/.*$"
+		},
+		{
+			"pattern": "templates/.*$"
+		},
+		{
+			"pattern": "res/.*$"
+		},
+		{
+			"pattern": "/system/console/res/imgs/favicon.ico"
+		}
+	]
+}

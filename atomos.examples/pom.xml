@@ -20,6 +20,7 @@
                 <module>atomos.examples.jlink</module>
                 <module>atomos.examples.substrate.equinox</module>
                 <module>atomos.examples.substrate.felix</module>
+                <module>atomos.examples.substrate.maven.equinox</module>
             </modules>
         </profile>
     </profiles>

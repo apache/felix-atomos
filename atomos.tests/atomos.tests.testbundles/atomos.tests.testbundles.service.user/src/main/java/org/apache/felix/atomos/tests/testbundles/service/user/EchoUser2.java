@@ -13,30 +13,23 @@
  */
 package org.apache.felix.atomos.tests.testbundles.service.user;
 
+import java.util.Map;
+
 import org.apache.felix.atomos.tests.testbundles.service.contract.Echo;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
-@Component(service = EchoUser.class, property = {
+@Component(service = EchoUser2.class, property = {
 "echo.reference:Boolean=true" }, immediate = true)
 @org.osgi.annotation.bundle.Requirement(namespace = "osgi.ee", filter = "(&(osgi.ee=JavaSE)(version=1.8))")
-public class EchoUser
+public class EchoUser2
 {
     @Activate
-    public void activate()
+    public EchoUser2(Map<String, Object> componentProps, @Reference Echo echo)
     {
-        System.out.println("Activated: " + getClass().getName());
+        System.out.println("Activated via constructor: " + getClass().getName());
     }
 
-    @Reference
-    protected void setEcho(Echo echo)
-    {
-        System.out.println("Echo service found: " + echo.echo("hello"));
-    }
 
-    protected void unsetEcho(Echo echo)
-    {
-        System.out.println("Echo service unset: " + echo.echo("goodbye"));
-    }
 }

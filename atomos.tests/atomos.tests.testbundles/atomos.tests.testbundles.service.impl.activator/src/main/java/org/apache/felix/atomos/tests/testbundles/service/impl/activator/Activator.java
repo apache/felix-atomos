@@ -13,7 +13,6 @@
  */
 package org.apache.felix.atomos.tests.testbundles.service.impl.activator;
 
-import java.util.Collections;
 import java.util.Hashtable;
 
 import org.apache.felix.atomos.tests.testbundles.service.contract.Echo;
@@ -29,9 +28,14 @@ public class Activator implements BundleActivator
     @Override
     public void start(BundleContext context) throws Exception
     {
-        Echo impl = (m) -> "impl.activator " + m;
-        context.registerService(Echo.class, impl, new Hashtable<String, String>(
-            Collections.singletonMap("type", "impl.activator")));
+        Echo impl = new ActivatorEcho();
+
+        Hashtable<String, Object> ht = new Hashtable<>();
+        ht.put("type", "impl.activator");
+        ht.put("osgi.command.scope", "echo");
+        ht.put("osgi.command.function", new String[] { "echo" });
+
+        context.registerService(Echo.class, impl, ht);
         System.out.println("Registered Echo service from activator.");
     }
 
