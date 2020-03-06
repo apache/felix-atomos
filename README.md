@@ -4,9 +4,9 @@ Atomos - A Java Module Runtime using OSGi Connect
 
 Atomos requires an OSGi Framework implementation which supports OSGi Connect initially described in this OSGi [blog post](https://blog.osgi.org/2019/09/osgi-connect-revisited.html).  The OSGi Connect specification is currently being developed as an RFC with the OSGi Alliance and the current version of the RFC can be found [here](https://github.com/osgi/design/blob/master/rfcs/rfc0243/rfc-0243-Connect.pdf).
 
-Currently a snapshot of the Equinox and Felix OSGi Framework are being used that implements the proposed OSGi Connect specification for an upcoming OSGi R8 Core specification. Source for the snapshots can be found at:
+Currently snapshots of the Equinox and Felix OSGi Frameworks are being used that implement the proposed OSGi Connect specification for an upcoming OSGi R8 Core specification release. Source for the snapshots can be found at:
 1. Equinox - The `osgiR8` branch in the git repo https://git.eclipse.org/c/equinox/rt.equinox.framework.git
-1. Felix - https://svn.apache.org/repos/asf/felix/sandbox/pauls/connect
+1. Felix - https://github.com/apache/felix-dev/tree/connect
 
 The snapshot JARs and source JARs are pushed to https://github.com/tjwatson/atomos-temp-m2repo for Atomos. The Atomos build is currently configured to use this as a repository for getting the OSGi Framework implementations: https://github.com/tjwatson/atomos-temp-m2repo/raw/master/repository
 
