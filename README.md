@@ -1,4 +1,4 @@
-# Atomos ![](https://github.com/tjwatson/atomos/workflows/Java%20CI/badge.svg) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/Atomos-OSGi-Connect-Framework/community)
+# Atomos [![Java CI](https://github.com/apache/felix-atomos/workflows/Java%20CI/badge.svg)](https://github.com/apache/felix-atomos/actions?query=workflow%3A%22Java%20CI%22) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/Atomos-OSGi-Connect-Framework/community)
 
 Atomos - A Java Module Runtime using OSGi Connect
 
@@ -40,7 +40,7 @@ Registered Echo service from activator.
 ____________________________
 Welcome to Apache Felix Gogo
 
-g! 
+g!
 ```
 
 In order to successfully build a jlink image all bundles included in the image must contain a `module-info.class`, they cannot be automatic modules. The `atomos/atomos.examples/atomos.examples.jlink` example uses the `1.0.0.Beta2` version of the `moditect-maven-plugin` to add `module-info.class` as necessary to the bundles used in the image.
@@ -71,7 +71,7 @@ There are two examples projects that build native images using Graal Substrate:
 
 These two example projects are not built as part of the main Atomos build because they require an installation of GraalVM CE 19.3.1 (Java 8 or Java 11 can be used) and the native-image tools for Substrate. The Java 11 version of Graal Substrate does not currently support full introspection at image runtime of the Java Platform Module System. Atomos Module support expects to have full introspection of the Java Platform Module System when running on Java versions greater than Java 8. Therefore the example will run in basic class path mode for both Java 8 and Java 11 when running with a native substrate image.
 
-To build the native image you must install the native image support for Graal (see https://www.graalvm.org/docs/reference-manual/native-image/).  You need to run the `gu` command that comes with Graal VM: 
+To build the native image you must install the native image support for Graal (see https://www.graalvm.org/docs/reference-manual/native-image/).  You need to run the `gu` command that comes with Graal VM:
 
 `gu install native-image`
 
