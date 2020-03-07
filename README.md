@@ -1,4 +1,4 @@
-# Atomos [![Java CI](https://github.com/apache/felix-atomos/workflows/Java%20CI/badge.svg)](https://github.com/apache/felix-atomos/actions?query=workflow%3A%22Java%20CI%22) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/Atomos-OSGi-Connect-Framework/community)
+# Atomos [![Java CI](https://github.com/apache/felix-atomos/workflows/Java%20CI/badge.svg)](https://github.com/apache/felix-atomos/actions?query=workflow%3A%22Java%20CI%22) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/Atomos-OSGi-Connect-Framework/community) [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/apache/felix-atomos)
 
 Atomos - A Java Module Runtime using OSGi Connect
 

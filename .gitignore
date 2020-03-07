@@ -17,6 +17,7 @@
 .recommenders
 .settings
 .springBeans
+.theia
 /build
 /code
 _site/
