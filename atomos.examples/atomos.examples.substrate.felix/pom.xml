@@ -212,7 +212,7 @@
                 </executions>
                 <configuration>
                     <imageName>atomos</imageName>
-                    <mainClass>org.apache.felix.atomos.examples.substrate.felix.GogoConsole</mainClass>
+                    <mainClass>org.apache.felix.atomos.launch.AtomosLauncher</mainClass>
                     <buildArgs>
                         --allow-incomplete-classpath
                         --no-fallback
