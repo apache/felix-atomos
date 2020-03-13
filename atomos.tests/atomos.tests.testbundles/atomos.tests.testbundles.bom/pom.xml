@@ -53,11 +53,6 @@
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
-            <artifactId>org.apache.felix.atomos.tests.testbundles.substrate.main</artifactId>
-            <version>${atomos.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.reflect.command</artifactId>
             <version>${atomos.version}</version>
         </dependency>

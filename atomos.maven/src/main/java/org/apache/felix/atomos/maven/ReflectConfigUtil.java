@@ -28,7 +28,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Dictionary;
@@ -76,8 +75,6 @@ public class ReflectConfigUtil
 
     private static String PARAMETER_TYPE = "\"parameterTypes\":[%s]";
 
-    private static String COMPONENT_CONSTRUCTOR = "\"allPublicConstructors\" : true";
-
     public static List<ReflectConfig> reflectConfig(List<Path> paths) throws Exception
     {
         URL[] urls = paths.stream().map(p -> {
@@ -103,10 +100,9 @@ public class ReflectConfigUtil
                 {
                     discoverBundleActivators(cl, jar, reflectConfigs);
                     discoverSeriviceComponents(cl, jar, reflectConfigs);
-                    discoverDTOs(classes, reflectConfigs);
-
                 }
             }
+            discoverDTOs(classes, reflectConfigs);
             return reflectConfigs;
         }
     }
@@ -289,7 +285,7 @@ public class ReflectConfigUtil
                     bundleActivatorClazz, reflectConfigs);
                 magic(cl, bundleActivatorClazz, reflectConfigs);
             }
-            catch (ClassNotFoundException e)
+            catch (ClassNotFoundException | NoClassDefFoundError e)
             {
                 // TODO log
             }
@@ -321,7 +317,7 @@ public class ReflectConfigUtil
         try
         {
 
-            Object o = bundleActivatorClass.newInstance();
+            Object o = bundleActivatorClass.getConstructor().newInstance();
 
             Method startMethod = null;
             for (Method m : bundleActivatorClass.getMethods())
@@ -592,33 +588,48 @@ public class ReflectConfigUtil
     private static void addMethod(String mName, Class<?>[] parameterTypes, Class<?> clazz,
         List<ReflectConfig> reflectConfigs)
     {
-        for (Method m : clazz.getDeclaredMethods())
+        if (parameterTypes != null)
         {
-            if (mName.equals(m.getName()))
+            // do direct lookup because we know the types
+            try
             {
-                if (parameterTypes == null)
+                clazz.getDeclaredMethod(mName, parameterTypes);
+                addMethod0(clazz, mName, parameterTypes, reflectConfigs);
+                return;
+            }
+            catch (NoSuchMethodException e)
+            {
+                // move on to super class
+            }
+        }
+        else
+        {
+            // must do this the hard way because we don't know the params
+            for (Method m : clazz.getDeclaredMethods())
+            {
+                if (mName.equals(m.getName()))
                 {
-                    ReflectConfig config = computeIfAbsent(reflectConfigs,
-                        clazz.getName());
-                    config.methods.add(new MethodConfig(mName, null));
-                    break;
-                }
-                else if (Arrays.equals(m.getParameterTypes(), parameterTypes))
-                {
-                    ReflectConfig config = computeIfAbsent(reflectConfigs,
-                        clazz.getName());
-                    String[] sParameterTypes = Stream.of(parameterTypes).sequential().map(
-                        Class::getName).toArray(String[]::new);
-                    config.methods.add(new MethodConfig(mName, sParameterTypes));
-                    break;
+                    addMethod0(clazz, mName, parameterTypes, reflectConfigs);
+                    return;
                 }
             }
+            // move on to super class
         }
         Class<?> superClass = clazz.getSuperclass();
         if (superClass != null)
         {
             addMethod(mName, parameterTypes, superClass, reflectConfigs);
         }
+    }
+
+    private static void addMethod0(Class<?> clazz, String mName,
+        Class<?>[] parameterTypes, List<ReflectConfig> reflectConfigs)
+    {
+        ReflectConfig config = computeIfAbsent(reflectConfigs, clazz.getName());
+        String[] sParameterTypes = parameterTypes == null ? null
+            : Stream.of(parameterTypes).sequential().map(Class::getName).toArray(
+                String[]::new);
+        config.methods.add(new MethodConfig(mName, sParameterTypes));
     }
 
     private static void addField(String fName, Class<?> clazz,

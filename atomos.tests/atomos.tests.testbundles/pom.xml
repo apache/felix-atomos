@@ -18,7 +18,6 @@
         <module>atomos.tests.testbundles.service.user</module>
         <module>atomos.tests.testbundles.service.library</module>
         <module>atomos.tests.testbundles.resources.a</module>
-        <module>atomos.tests.testbundles.substrate.main</module>
         <module>atomos.tests.testbundles.bom</module>
         <module>atomos.tests.testbundles.reflect.command</module>
         <module>atomos.tests.testbundles.reflect.dto</module>
