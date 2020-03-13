@@ -12,12 +12,14 @@
     <name>atomos.examples</name>
     <modules>
         <module>atomos.examples.jlink</module>
+        <module>atomos.examples.springloader</module>
     </modules>
     <profiles>
         <profile>
             <id>substrate</id>
             <modules>
                 <module>atomos.examples.jlink</module>
+                <module>atomos.examples.springloader</module>
                 <module>atomos.examples.substrate.equinox</module>
                 <module>atomos.examples.substrate.felix</module>
                 <module>atomos.examples.substrate.maven.equinox</module>
