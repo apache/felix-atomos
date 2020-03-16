@@ -25,9 +25,11 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
+import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
@@ -75,16 +77,15 @@ public class IndexLaunchTest
     {
         if (indexPath == null)
         {
-            IndexLaunch.main(
-                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath());
+            return AtomosLauncher.launch(
+                Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
         }
         else
         {
-            IndexLaunch.main(
-                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(),
-                AtomosRuntimeBase.ATOMOS_INDEX_PATH_PROP + '=' + indexPath);
+            return AtomosLauncher.launch(
+                Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath(),
+                    AtomosRuntimeBase.ATOMOS_INDEX_PATH_PROP, indexPath));
         }
-        return IndexLaunch.getFramework();
     }
 
     @Test

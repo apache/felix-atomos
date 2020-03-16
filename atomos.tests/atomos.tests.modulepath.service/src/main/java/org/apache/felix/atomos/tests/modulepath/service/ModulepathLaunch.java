@@ -13,26 +13,7 @@
  */
 package org.apache.felix.atomos.tests.modulepath.service;
 
-import java.util.concurrent.TimeUnit;
-
-import org.apache.felix.atomos.launch.AtomosLauncher;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.launch.Framework;
-
 public class ModulepathLaunch
 {
-    private static volatile Framework framework;
-
-    public static void main(String[] args) throws BundleException
-    {
-        long start = System.nanoTime();
-        framework = AtomosLauncher.launch(AtomosLauncher.getConfiguration(args));
-        long total = System.nanoTime() - start;
-        System.out.println("Total time: " + TimeUnit.NANOSECONDS.toMillis(total));
-    }
-
-    public static Framework getFramework()
-    {
-        return framework;
-    }
+    // Do nothing class only to make a module our tests can use
 }
