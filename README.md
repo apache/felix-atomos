@@ -2,15 +2,15 @@
 
 Atomos - A Java Module Runtime using OSGi Connect
 
-Atomos requires an OSGi Framework implementation which supports OSGi Connect initially described in this OSGi [blog post](https://blog.osgi.org/2019/09/osgi-connect-revisited.html).  The OSGi Connect specification is currently being developed as an RFC with the OSGi Alliance and the current version of the RFC can be found [here](https://github.com/osgi/design/blob/master/rfcs/rfc0243/rfc-0243-Connect.pdf).
+Atomos requires an OSGi Framework implementation that supports the OSGi Connect Specification. The Connect Specification will be released as part of the OSGi Core Release 8 Specification which is currently in draft form available [here](https://osgi.org/download/osgi.core-8.0.0-early-draft-2020-03.pdf). The Connect Specification can be found in chapter 60.
 
-Currently snapshots of the Equinox and Felix OSGi Frameworks are being used that implement the proposed OSGi Connect specification for an upcoming OSGi R8 Core specification release. Source for the snapshots can be found at:
+Currently snapshots of the Equinox and Felix OSGi Frameworks are being used that implement the proposed OSGi Connect specification. Source for the snapshots can be found at:
 1. Equinox - The `osgiR8` branch in the git repo https://git.eclipse.org/c/equinox/rt.equinox.framework.git
 1. Felix - https://github.com/apache/felix-dev/tree/connect
 
 The snapshot JARs and source JARs are pushed to https://github.com/tjwatson/atomos-temp-m2repo for Atomos. The Atomos build is currently configured to use this as a repository for getting the OSGi Framework implementations: https://github.com/tjwatson/atomos-temp-m2repo/raw/master/repository
 
-Atomos is an implementation of an OSGi `ModuleConnector` which is part of the upcoming OSGi R8 Connect specification. A `ModuleConnector` can be used to create an OSGi Framework instance that allows a Framework to connect bundles installed in the framework to content managed outside of the Framework. Framework instances created with the Atomos `ModuleConnector` add support to the OSGi Framework that enables bundles to be connected to three different sources of content from outside the OSGi module layer:
+Atomos is an implementation of an OSGi `ModuleConnector` which is defined by the Connect specification. A `ModuleConnector` can be used to create an OSGi Framework instance that allows a Framework to connect bundles installed in the framework to content managed outside of the Framework. Framework instances created with the Atomos `ModuleConnector` add support to the OSGi Framework that enables bundles to be connected to three different sources of content from outside the OSGi module layer:
 
 1. Module Path:  Using the Java Platform Module System (JPMS) Atomos will discover the modules on the module path and will make any modules found available for installation into the Framework as connected bundles.  This also allows for Atomos and a set of OSGi bundles to be packaged into a jlink image resulting in a small fit-for-purpose JVM.
 1. Class Path:  When loaded from the class path Atomos will discover the JARs on the class path and will make any OSGi bundles found available for installation into the Framework.
