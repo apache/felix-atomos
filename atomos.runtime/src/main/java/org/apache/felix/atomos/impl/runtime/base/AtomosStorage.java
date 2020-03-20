@@ -64,6 +64,12 @@ public class AtomosStorage
             }
             long nextLayerId = in.readLong();
             int numLayers = in.readInt();
+            if (numLayers > 1 && !atomosRuntime.getBootLayer().isAddLayerSupported())
+            {
+                System.out.println(
+                    "Atomos persistent layers are ignored because Atomos is not loaded as a module.");
+                return;
+            }
             for (int i = 0; i < numLayers; i++)
             {
                 readLayer(in);
