@@ -60,6 +60,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.framework.Version;
@@ -69,6 +71,7 @@ import org.osgi.framework.connect.FrameworkUtilHelper;
 import org.osgi.framework.connect.ModuleConnector;
 import org.osgi.framework.hooks.bundle.CollisionHook;
 import org.osgi.framework.hooks.resolver.ResolverHookFactory;
+import org.osgi.framework.namespace.IdentityNamespace;
 import org.osgi.framework.namespace.PackageNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
@@ -76,11 +79,13 @@ import org.osgi.framework.wiring.FrameworkWiring;
 
 import sun.misc.Signal;
 
-public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBundleListener, FrameworkUtilHelper
+public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBundleListener, FrameworkUtilHelper, FrameworkListener
 {
     static final String JAR_PROTOCOL = "jar";
     static final String FILE_PROTOCOL = "file";
     public static final String ATOMOS_PROP_PREFIX = "atomos.";
+    public static final String ATOMOS_REPORT_RESOLUTION_PROP = ATOMOS_PROP_PREFIX
+        + "enable.resolution.errors";
     public static final String ATOMOS_DEBUG_PROP = ATOMOS_PROP_PREFIX + "enable.debug";
     public static final String ATOMOS_INDEX_PATH_PROP = ATOMOS_PROP_PREFIX + "index.path";
     public static final String ATOMOS_IGNORE_INDEX = "IGNORE";
@@ -94,6 +99,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     public static final String GRAAL_NATIVE_IMAGE_KIND = "org.graalvm.nativeimage.kind";
 
     private final boolean DEBUG;
+    private final boolean REPORT_RESOLUTION_ERRORS;
     private final String indexPath;
 
     private final AtomicReference<BundleContext> context = new AtomicReference<>();
@@ -181,6 +187,8 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     {
         saveConfig(config);
         DEBUG = Boolean.parseBoolean(this.config.get(ATOMOS_DEBUG_PROP));
+        REPORT_RESOLUTION_ERRORS = Boolean.parseBoolean(
+            this.config.get(ATOMOS_REPORT_RESOLUTION_PROP));
         indexPath = getIndexPath(this.config.get(ATOMOS_INDEX_PATH_PROP));
 
         try
@@ -546,6 +554,35 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
             finally
             {
                 unlockWrite();
+            }
+        }
+    }
+
+    @Override
+    public void frameworkEvent(FrameworkEvent event)
+    {
+        if (REPORT_RESOLUTION_ERRORS && event.getType() == FrameworkEvent.ERROR)
+        {
+            if (event.getThrowable() instanceof BundleException
+                && ((BundleException) event.getThrowable()).getType() == BundleException.RESOLVE_ERROR)
+            {
+                Bundle b = event.getBundle();
+                BundleRevision rev = b == null ? null : b.adapt(BundleRevision.class);
+                if (rev != null)
+                {
+                    rev.getCapabilities(IdentityNamespace.IDENTITY_NAMESPACE).forEach(
+                        i -> {
+                            @SuppressWarnings("unchecked")
+                            List<String> tags = (List<String>) i.getAttributes().get(
+                                IdentityNamespace.CAPABILITY_TAGS_ATTRIBUTE);
+                            if (tags != null
+                                && tags.contains(ConnectContent.TAG_OSGI_CONNECT))
+                            {
+                                System.out.println("Unable to resolve connected bundle: "
+                                    + event.getThrowable().getMessage());
+                            }
+                        });
+                }
             }
         }
     }
@@ -1450,6 +1487,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         AtomosFrameworkUtilHelper.addHelper(this);
 
         bc.addBundleListener(this);
+        bc.addFrameworkListener(this);
         for (Bundle b : bc.getBundles())
         {
             addPackages(b);
@@ -1533,6 +1571,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         }
 
         bc.removeBundleListener(this);
+        bc.removeFrameworkListener(this);
 
         AtomosFrameworkUtilHelper.removeHelper(this);
         atomosCommandsReg.unregister();

@@ -77,6 +77,10 @@ public class AtomosLauncher
     public static Framework launch(Map<String, String> frameworkConfig)
         throws BundleException
     {
+        frameworkConfig = new HashMap<>(frameworkConfig);
+        // default to reporting resolution issues from launcher
+        frameworkConfig.putIfAbsent(AtomosRuntimeBase.ATOMOS_REPORT_RESOLUTION_PROP,
+            "true");
         AtomosRuntime atomosRuntime = AtomosRuntime.newAtomosRuntime(frameworkConfig);
         if (atomosRuntime.getBootLayer().isAddLayerSupported())
         {
