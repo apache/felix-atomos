@@ -11,6 +11,8 @@
     <artifactId>org.apache.felix.atomos.examples</artifactId>
     <name>atomos.examples</name>
     <modules>
+        <module>atomos.examples.webconsole.bom</module>
+        <module>atomos.examples.index</module>
         <module>atomos.examples.jlink</module>
         <module>atomos.examples.springloader</module>
     </modules>
@@ -18,6 +20,8 @@
         <profile>
             <id>substrate</id>
             <modules>
+                <module>atomos.examples.webconsole.bom</module>
+                <module>atomos.examples.index</module>
                 <module>atomos.examples.jlink</module>
                 <module>atomos.examples.springloader</module>
                 <module>atomos.examples.substrate.equinox</module>

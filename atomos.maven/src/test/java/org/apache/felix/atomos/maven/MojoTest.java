@@ -32,7 +32,7 @@ public class MojoTest extends TestBase
 
         List<Path> paths = getAllDependencys();
 
-        SubstrateUtil.substrate(paths, tempDir);
+        SubstrateUtil.indexContent(paths, tempDir);
         List<ReflectConfig> reflectConfigs = ReflectConfigUtil.reflectConfig(paths);
         ResourceConfigResult resourceConfigResult = ResourceConfigUtil.resourceConfig(
             paths);

@@ -15,11 +15,15 @@ package org.apache.felix.atomos.maven;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
@@ -136,7 +140,14 @@ public class NativeImageMojo extends AbstractMojo
             List<Path> paths = Files.list(classpath_lib.toPath()).filter(
                 NativeImageMojo::isJarFile).collect(Collectors.toList());
 
-            Path p = SubstrateUtil.substrate(paths, outputDirectory.toPath());
+            Path p = new File(outputDirectory, "atomos.substrate.jar").toPath();
+            URI uri = URI.create("jar:" + p.toUri());
+
+            try (FileSystem zipfs = FileSystems.newFileSystem(uri,
+                Map.of("create", "true")))
+            {
+                SubstrateUtil.indexContent(paths, zipfs.getPath("/"));
+            }
 
             List<ReflectConfig> reflectConfigs = ReflectConfigUtil.reflectConfig(paths);
 

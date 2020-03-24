@@ -17,8 +17,13 @@ import static org.apache.felix.atomos.maven.TestConstants.DEP_ATOMOS_TESTS_TESTB
 import static org.apache.felix.atomos.maven.TestConstants.getDependency;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.File;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -33,18 +38,40 @@ public class SubstrateTest extends TestBase
     void testSubstrate(@TempDir Path tempDir) throws Exception
     {
         Path path = getDependency(DEP_ATOMOS_TESTS_TESTBUNDLES_RESOURCE_A);
-        Path atomosSubstrateJar = SubstrateUtil.substrate(Arrays.asList(path), tempDir);
+        Path atomosSubstrateJar = new File(tempDir.toFile(), "test.index.jar").toPath();
+        URI uri = URI.create("jar:" + atomosSubstrateJar.toUri());
+
+        try (FileSystem zipfs = FileSystems.newFileSystem(uri, Map.of("create", "true")))
+        {
+            SubstrateUtil.indexContent(Arrays.asList(path),
+                zipfs.getPath("/"));
+        }
         assertThat(atomosSubstrateJar).exists().isRegularFile();
 
         try (JarFile jarFile = new JarFile(atomosSubstrateJar.toFile());)
         {
             assertThat(jarFile.stream().map(JarEntry::getName).collect(
-                Collectors.toList())).containsOnly("META-INF/MANIFEST.MF", //
+                Collectors.toList())).containsOnly( //
+                    "META-INF/", //
+                    "META-INF/MANIFEST.MF",
+                    "atomos/", //
+                    "atomos/0/", //
+                    "atomos/0/META-INF/", //
                     "atomos/0/META-INF/MANIFEST.MF", //
-                    "atomos/0/META-TEXT/file.txt", //
-                    "atomos/0/org/apache/felix/atomos/tests/testbundles/resource/a/file.txt", //
                     "atomos/0/file.txt", //
+                    "atomos/0/META-TEXT/", //
+                    "atomos/0/META-TEXT/file.txt", //
+                    "atomos/0/org/", //
+                    "atomos/0/org/apache/", //
+                    "atomos/0/org/apache/felix/", //
+                    "atomos/0/org/apache/felix/atomos/", //
+                    "atomos/0/org/apache/felix/atomos/tests/", //
+                    "atomos/0/org/apache/felix/atomos/tests/testbundles/", //
+                    "atomos/0/org/apache/felix/atomos/tests/testbundles/resource/", //
+                    "atomos/0/org/apache/felix/atomos/tests/testbundles/resource/a/", //
+                    "atomos/0/org/apache/felix/atomos/tests/testbundles/resource/a/file.txt", //
                     "atomos/bundles.index", //
+                    "META-INF/native-image/", //
                     "META-INF/native-image/resource-config.json");
         }
 

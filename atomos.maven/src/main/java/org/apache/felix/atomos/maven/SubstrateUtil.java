@@ -15,8 +15,8 @@ package org.apache.felix.atomos.maven;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -30,7 +30,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -93,53 +92,54 @@ public class SubstrateUtil
         return true;
     }
 
-    public static Path substrate(List<Path> files, Path outputDir)
+    public static void indexContent(List<Path> files,
+        Path outputRoot)
         throws IOException, NoSuchAlgorithmException
     {
-        if (!outputDir.toFile().isDirectory())
+        if (!Files.exists(outputRoot))
+        {
+            Files.createDirectories(outputRoot);
+        }
+        if (!Files.isDirectory(outputRoot))
         {
             throw new IllegalArgumentException(
-                "Output file must be a directory." + outputDir);
+                "Output file must be a directory." + outputRoot);
         }
-        if (!outputDir.toFile().exists())
-        {
-            Files.createDirectories(outputDir);
-        }
-
-        final Path p = outputDir.resolve(ATOMOS_SUBSTRATE_JAR);
 
         final Manifest manifest = new Manifest();
         manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-        try (final JarOutputStream z = new JarOutputStream(
-            new FileOutputStream(p.toFile()), manifest);)
+        Files.createDirectory(outputRoot.resolve("META-INF/"));
+        try (OutputStream mf = Files.newOutputStream(
+            outputRoot.resolve("META-INF/MANIFEST.MF")))
         {
-
-            final List<String> bundleIndexLines = new ArrayList<>();
-            final List<String> resources = new ArrayList<>();
-            final AtomicLong counter = new AtomicLong(0);
-            final Stream<SubstrateInfo> bis = files.stream()//
-                .map(path -> create(z, counter.getAndIncrement(), path));
-
-            bis.forEach(s -> {
-                if (s.bsn != null)
-                {
-                    bundleIndexLines.add(ATOMOS_BUNDLE_SEPARATOR);
-                    bundleIndexLines.add(s.id);
-                    bundleIndexLines.add(s.bsn);
-                    bundleIndexLines.add(s.version);
-                    s.files.forEach(f -> {
-                        bundleIndexLines.add(f);
-                        resources.add(ATOMOS_BUNDLES_BASE_PATH + s.id + "/" + f);
-                    });
-                }
-            });
-            writeBundleIndexFile(z, bundleIndexLines);
-            writeGraalResourceConfig(z, resources);
+            manifest.write(mf);
         }
-        return p;
+
+        final List<String> bundleIndexLines = new ArrayList<>();
+        final List<String> resources = new ArrayList<>();
+        final AtomicLong counter = new AtomicLong(0);
+        final Stream<SubstrateInfo> bis = files.stream()//
+            .map(path -> create(outputRoot, counter.getAndIncrement(), path));
+
+        bis.forEach(s -> {
+            if (s.bsn != null)
+            {
+                bundleIndexLines.add(ATOMOS_BUNDLE_SEPARATOR);
+                bundleIndexLines.add(s.id);
+                bundleIndexLines.add(s.bsn);
+                bundleIndexLines.add(s.version);
+                s.files.forEach(f -> {
+                    bundleIndexLines.add(f);
+                    resources.add(ATOMOS_BUNDLES_BASE_PATH + s.id + "/" + f);
+                });
+            }
+        });
+        writeBundleIndexFile(outputRoot, bundleIndexLines);
+        writeGraalResourceConfig(outputRoot, resources);
     }
 
-    private static void writeGraalResourceConfig(JarOutputStream jos,
+    private static void writeGraalResourceConfig(
+        Path root,
         List<String> resources) throws IOException
     {
         //        resources.add(ATOMOS_BUNDLES_INDEX);
@@ -150,19 +150,19 @@ public class SubstrateUtil
 
         final String graalResConfJson = ResourceConfigUtil.createResourceJson(result);
 
-        final JarEntry graalResConfEntry = new JarEntry(
+        final Path graalResConfEntry = root.resolve(
             "META-INF/native-image/resource-config.json");
-        jos.putNextEntry(graalResConfEntry);
-        jos.write(graalResConfJson.getBytes());
-
+        Files.createDirectories(graalResConfEntry.getParent());
+        Files.writeString(graalResConfEntry, graalResConfJson);
     }
 
-    private static void writeBundleIndexFile(JarOutputStream jos,
+    private static void writeBundleIndexFile(
+        Path root,
         final List<String> resources) throws IOException
     {
 
-        final JarEntry atomosIndexEntry = new JarEntry(ATOMOS_BUNDLES_INDEX);
-        jos.putNextEntry(atomosIndexEntry);
+        final Path atomosIndexEntry = root.resolve(ATOMOS_BUNDLES_INDEX);
+        Files.createDirectories(atomosIndexEntry.getParent());
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out)))
@@ -178,11 +178,10 @@ public class SubstrateUtil
                 }
             });
         }
-        jos.write(out.toByteArray());
-
+        Files.write(atomosIndexEntry, out.toByteArray());
     }
 
-    static SubstrateInfo create(JarOutputStream jos, long id, Path path)
+    static SubstrateInfo create(Path root, long id, Path path)
     {
         final SubstrateInfo info = new SubstrateInfo();
         info.path = path;
@@ -204,18 +203,18 @@ public class SubstrateUtil
             info.files = jar.stream().filter(j -> filter(j)).peek(j -> {
                 try
                 {
-                    final JarEntry entry = new JarEntry(
+                    final Path entry = root.resolve(
                         ATOMOS_BUNDLES_BASE_PATH + id + "/" + j.getName());
                     if (j.getCreationTime() != null)
                     {
-                        entry.setCreationTime(j.getCreationTime());
+                        Files.setLastModifiedTime(entry, j.getCreationTime());
                     }
                     if (j.getComment() != null)
                     {
-                        entry.setComment(j.getComment());
+                        // TODO figure out if there is a comment attribute
                     }
-                    jos.putNextEntry(entry);
-                    jos.write(jar.getInputStream(j).readAllBytes());
+                    Files.createDirectories(entry.getParent());
+                    Files.copy(jar.getInputStream(j), entry);
                 }
                 catch (final IOException e)
                 {
