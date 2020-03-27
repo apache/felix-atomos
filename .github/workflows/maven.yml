@@ -24,6 +24,11 @@ jobs:
       run: ./mvnw clean install -B -Pfelix -Pjava8
     - name: Main build using Equinox
       run: ./mvnw clean install -B -Pequinox -Pjava8
+    - name: Build Android App
+      if: matrix.java_version == '11' && matrix.os == 'ubuntu-latest'
+      run: |
+        cp atomos.examples/atomos.examples.index/target/org.apache.felix.atomos.examples.index-*.jar atomos.examples/atomos.examples.android/app/libs
+        atomos.examples/atomos.examples.android/gradlew -b atomos.examples/atomos.examples.android/build.gradle build
     - name: Setup GraalVM environment
       if: matrix.os == 'ubuntu-latest'
       uses: DeLaGuardo/setup-graalvm@2.0
@@ -36,3 +41,21 @@ jobs:
     - name: Build Equinox substrate example
       if: matrix.os == 'ubuntu-latest'
       run: ./mvnw clean package -f atomos.examples/atomos.examples.substrate.equinox/pom.xml
+    - name: Upload Atomos Index Executable JAR
+      if: matrix.java_version == '11' && matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v1
+      with:
+        name: org.apache.felix.atomos.examples.index-0.0.1-SNAPSHOT.jar
+        path: atomos.examples/atomos.examples.index/target/org.apache.felix.atomos.examples.index-0.0.1-SNAPSHOT.jar
+    - name: Upload Atomos Spring Loader Executable JAR
+      if: matrix.java_version == '11' && matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v1
+      with:
+        name: org.apache.felix.atomos.examples.springloader-0.0.1-SNAPSHOT.jar
+        path: atomos.examples/atomos.examples.springloader/target/org.apache.felix.atomos.examples.springloader-0.0.1-SNAPSHOT.jar
+    - name: Upload Atomos Android App
+      if: matrix.java_version == '11' && matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v1
+      with:
+        name: atomos-app.apk
+        path: atomos.examples/atomos.examples.android/app/build/outputs/apk/debug/app-debug.apk
