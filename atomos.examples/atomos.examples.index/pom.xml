@@ -22,11 +22,39 @@
     </repositories>
     <profiles>
         <profile>
+            <id>default</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
+                    <artifactId>atomos.osgi.framework</artifactId>
+                    <version>${atomos.version}</version>
+                </dependency>
+            </dependencies>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>equinox</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
+                    <artifactId>atomos.osgi.framework</artifactId>
+                    <version>${atomos.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
             <id>felix</id>
             <properties>
                 <buildWithFelix>true</buildWithFelix>
             </properties>
             <dependencies>
+                <dependency>
+                    <groupId>org.apache.felix.atomos.osgi.frameworks.felix</groupId>
+                    <artifactId>atomos.osgi.framework</artifactId>
+                    <version>${atomos.version}</version>
+                </dependency>
                 <dependency>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>org.apache.felix.log</artifactId>
@@ -39,6 +67,12 @@
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.atomos.runtime</artifactId>
             <version>${atomos.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.examples</groupId>
@@ -67,24 +101,20 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
                         <goals>
-                            <goal>single</goal>
+                            <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <archive>
-                                <manifest>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>org.apache.felix.atomos.launch.AtomosLauncher</mainClass>
-                                </manifest>
-                            </archive>
-                            <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
-                            <finalName>${project.artifactId}-${project.version}</finalName>
-                            <appendAssemblyId>false</appendAssemblyId>
+                                </transformer>
+                            </transformers>
                         </configuration>
                     </execution>
                 </executions>
