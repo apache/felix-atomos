@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
         File storage = getDir("framework-store", MODE_PRIVATE);
         final String[] args = new String[]{
                 Constants.FRAMEWORK_STORAGE + '=' + storage.getAbsolutePath(),
+                "gosh.args=--noshutdown"
         };
 
         launch.setOnClickListener(new View.OnClickListener() {
