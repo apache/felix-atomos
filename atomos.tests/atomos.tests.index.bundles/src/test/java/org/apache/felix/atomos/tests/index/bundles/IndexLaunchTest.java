@@ -16,6 +16,7 @@ package org.apache.felix.atomos.tests.index.bundles;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.BufferedReader;
@@ -27,6 +28,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
 import org.apache.felix.atomos.launch.AtomosLauncher;
@@ -44,6 +46,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.launch.Framework;
+import org.osgi.framework.wiring.BundleWiring;
 
 public class IndexLaunchTest
 {
@@ -229,6 +232,66 @@ public class IndexLaunchTest
             URL bundleResource2 = bundle.getEntry("OSGI-INF/bundle." + i + "-2.txt");
             assertNotNull(bundleResource2, "No bundle resource 2 found: " + i);
             assertContent(Integer.toString(i), bundleResource2);
+            assertNull(bundle.getEntry("OSGI-INF/notFound.txt"),
+                "Found unexpected resource.");
+        }
+    }
+
+    @Test
+    void testFindEntriesDefault(@TempDir Path storage) throws BundleException, IOException
+    {
+        doTestFindEntries(storage, null, 1, 2, 3, 4);
+    }
+
+    @Test
+    void testFindEntriesTestIndex(
+        @TempDir Path storage)
+        throws BundleException, IOException
+    {
+        doTestFindEntries(storage, "testIndex/test.index", 3, 4);
+    }
+
+    void doTestFindEntries(@TempDir Path storage, String indexPath,
+        int... expected)
+        throws BundleException, IOException
+    {
+        testFramework = getTestFramework(storage, indexPath);
+        BundleContext bc = testFramework.getBundleContext();
+        assertNotNull(bc, "No context found.");
+        AtomosRuntime runtime = getRuntime(bc);
+
+        for (int i : expected)
+        {
+            AtomosContent content = runtime.getBootLayer().findAtomosContent(
+                "bundle." + i).get();
+            List<String> expectedEntries = List.of( //
+                "/META-INF/", //
+                "/META-INF/MANIFEST.MF", //
+                "/OSGI-INF/", //
+                "/OSGI-INF/common.txt", //
+                "/OSGI-INF/bundle." + i + "-1.txt", //
+                "/OSGI-INF/bundle." + i + "-2.txt", //
+                "/org/", //
+                "/org/apache/", //
+                "/org/apache/felix/", //
+                "/org/apache/felix/atomos/", //
+                "/org/apache/felix/atomos/tests/", //
+                "/org/apache/felix/atomos/tests/index/", //
+                "/org/apache/felix/atomos/tests/index/bundles/", //
+                "/org/apache/felix/atomos/tests/index/bundles/b" + i + "/", //
+                "/org/apache/felix/atomos/tests/index/bundles/b" + i + "/ActivatorBundle" + i + ".class" //
+            );
+            Bundle bundle = content.getBundle();
+            BundleWiring wiring = bundle.adapt(BundleWiring.class);
+            List<URL> entryURLs = wiring.findEntries("/", "*",
+                BundleWiring.FINDENTRIES_RECURSE);
+            List<String> actualEntries = entryURLs.stream().map(
+                URL::getPath).collect(Collectors.toList());
+
+            assertEquals(expectedEntries, actualEntries, "Wrong list of entries.");
+
+            expectedEntries.forEach(
+                e -> assertNotNull(bundle.getEntry(e), "No entry found: " + e));
         }
     }
 

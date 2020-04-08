@@ -104,8 +104,12 @@ public class ConnectContentIndexed implements ConnectContent
     {
         if (entries.contains(name))
         {
-            URL resource = getClass().getResource(
-                index + '/' + name);
+            String slashName = '/' + name;
+            URL resource = getClass().getResource(index + slashName);
+            if (resource == null)
+            {
+                resource = getClass().getResource(slashName);
+            }
             if (resource != null)
             {
                 return Optional.of(new URLConnectEntry(name, resource));
