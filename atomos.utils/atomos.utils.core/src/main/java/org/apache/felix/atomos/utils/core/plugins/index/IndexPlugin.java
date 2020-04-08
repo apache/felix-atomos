@@ -22,10 +22,12 @@ import java.io.UncheckedIOException;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -55,32 +57,13 @@ public class IndexPlugin implements JarPlugin<IndexPluginConfig>
     public static final String ATOMOS_CATH_ALL = "atomos/.*$";
 
     private static final String ATOMOS_SUBSTRATE_JAR = "atomos.substrate.jar";
-    private static final Collection<String> DEFAULT_EXCLUDE_NAMES = Arrays.asList(
-        "about.html", "DEPENDENCIES", "LICENSE", "NOTICE", "changelog.txt",
-        "LICENSE.txt");
-    private static final Collection<String> DEFAULT_EXCLUDE_PATHS = Arrays.asList(
-        "META-INF/maven/", "OSGI-OPT/");
 
-    private static boolean filter(JarEntry entry)
+    private static boolean include(JarEntry entry)
     {
         final String path = entry.getName();
         if (entry.isDirectory() || isClass(path))
         {
             return false;
-        }
-        for (final String excludedPath : DEFAULT_EXCLUDE_PATHS)
-        {
-            if (path.startsWith(excludedPath))
-            {
-                return false;
-            }
-        }
-        for (final String excludedName : DEFAULT_EXCLUDE_NAMES)
-        {
-            if (path.endsWith(excludedName))
-            {
-                return false;
-            }
         }
         return true;
     }
@@ -95,10 +78,29 @@ public class IndexPlugin implements JarPlugin<IndexPluginConfig>
     JarOutputStream jos;
 
     private ArrayList<IndexInfo> sis;
+    private Map<String, Boolean> uniquePaths;
 
     private Path substrateJar;
 
     private IndexPluginConfig config;
+
+    @Override
+    public void initJar(JarFile jar, Context context, URLClassLoader classLoader)
+    {
+        // Detect if there are duplicates using the uniquePaths map
+        jar.stream().filter(IndexPlugin::include).forEach(e -> uniquePaths.compute(
+            e.getName(),
+
+            (p, b) -> //
+                // Always treat the bundle manifest as a duplicate
+                "META-INF/MANIFEST.MF".equals(p) //
+                // Always treat root resources as duplicate
+                || p.indexOf('/') < 0
+                // Check if this path was found already
+                || b != null //
+                    ? Boolean.FALSE
+                    : Boolean.TRUE));
+    }
 
     @Override
     public void doJar(JarFile jar, Context context, URLClassLoader classLoader)
@@ -131,30 +133,36 @@ public class IndexPlugin implements JarPlugin<IndexPluginConfig>
         {
             info.setVersion("0.0");
         }
-        List<String> files = jar.stream().filter(j -> filter(j)).peek(j -> {
+        List<String> files = jar.stream().peek(j -> {
             try
             {
-                String fileName = ATOMOS_BUNDLES_BASE_PATH + id + "/" + j.getName();
-                if (isJarType())
+                if (Boolean.FALSE == uniquePaths.get(j.getName()))
                 {
-                    final JarEntry entry = new JarEntry(fileName);
-                    if (j.getCreationTime() != null)
+                    String fileName = ATOMOS_BUNDLES_BASE_PATH + id + "/" + j.getName();
+                    if (isJarType())
                     {
-                        entry.setCreationTime(j.getCreationTime());
+                        final JarEntry entry = new JarEntry(fileName);
+                        if (j.getCreationTime() != null)
+                        {
+                            entry.setCreationTime(j.getCreationTime());
+                        }
+                        if (j.getComment() != null)
+                        {
+                            entry.setComment(j.getComment());
+                        }
+                        jos.putNextEntry(entry);
+                        jos.write(jar.getInputStream(j).readAllBytes());
                     }
-                    if (j.getComment() != null)
+                    else
                     {
-                        entry.setComment(j.getComment());
+                        Path path = config.indexOutputDirectory().resolve(fileName);
+                        Files.createDirectories(path.getParent());
+                        Files.write(path, jar.getInputStream(j).readAllBytes());
+                        BasicFileAttributeView attrs = Files.getFileAttributeView(path,
+                            BasicFileAttributeView.class);
+                        FileTime time = j.getCreationTime();
+                        attrs.setTimes(time, time, time);
                     }
-                    jos.putNextEntry(entry);
-                    jos.write(jar.getInputStream(j).readAllBytes());
-                }
-                else
-                {
-
-                    Path path = config.indexOutputDirectory().resolve(fileName);
-                    Files.createDirectories(path.getParent());
-                    Files.write(path, jar.getInputStream(j).readAllBytes());
                 }
             }
             catch (final IOException e)
@@ -296,6 +304,7 @@ public class IndexPlugin implements JarPlugin<IndexPluginConfig>
         }
         counter = new AtomicLong(0);
         sis = new ArrayList<>();
+        uniquePaths = new HashMap<>();
     }
 
     private void writeGraalResourceConfig(List<String> resources, Context context)
