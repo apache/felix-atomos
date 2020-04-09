@@ -1,0 +1,135 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.apache.felix.atomos.examples</groupId>
+        <artifactId>org.apache.felix.atomos.examples</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>org.apache.felix.atomos.examples.substrate.maven</artifactId>
+    <name>atomos.examples.substrate.maven</name>
+    <repositories>
+        <repository>
+            <id>atomos-temp-m2repo</id>
+            <url>https://github.com/tjwatson/atomos-temp-m2repo/raw/master/repository</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>interval:60</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
+    <profiles>
+        <!-- <profile> -->
+        <!-- <id>default</id> -->
+        <!-- <dependencies> -->
+        <!-- <dependency> -->
+        <!-- <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId> -->
+        <!-- <artifactId>atomos.osgi.framework</artifactId> -->
+        <!-- <version>${atomos.version}</version> -->
+        <!-- </dependency> -->
+        <!-- </dependencies> -->
+        <!-- <activation> -->
+        <!-- <activeByDefault>true</activeByDefault> -->
+        <!-- </activation> -->
+        <!-- </profile> -->
+
+        <profile>
+            <id>equinox</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
+                    <artifactId>atomos.osgi.framework</artifactId>
+                    <version>${atomos.version}</version>
+                </dependency>
+            </dependencies>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>felix</id>
+            <properties>
+                <buildWithFelix>true</buildWithFelix>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.felix.atomos.osgi.frameworks.felix</groupId>
+                    <artifactId>atomos.osgi.framework</artifactId>
+                    <version>${atomos.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>org.apache.felix.log</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.atomos.runtime</artifactId>
+            <version>${atomos.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix.atomos.tests</groupId>
+            <artifactId>org.apache.felix.atomos.tests.testbundles.bom</artifactId>
+            <version>${atomos.version}</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix.atomos.examples</groupId>
+            <artifactId>org.apache.felix.atomos.examples.webconsole.bom</artifactId>
+            <version>${atomos.version}</version>
+            <type>pom</type>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>atomos-maven-plugin</artifactId>
+                <version>${atomos.version}</version>
+                <configuration>
+                    <nativeImage>
+                        <debug>true</debug>
+                        <additionalInitializeAtBuildTime>
+                            <additionalInitializeAtBuildTime>org.apache.felix.atomos.runtime</additionalInitializeAtBuildTime>
+                            <additionalInitializeAtBuildTime>org.apache.felix.atomos.impl</additionalInitializeAtBuildTime>
+                            <additionalInitializeAtBuildTime>javax.servlet</additionalInitializeAtBuildTime>
+                            <additionalInitializeAtBuildTime>org.apache.felix.service.command.Converter</additionalInitializeAtBuildTime>
+                            <!-- <additionalInitializeAtBuildTime>org.apache.felix.atomos.impl.runtime.base</additionalInitializeAtBuildTime> -->
+                        </additionalInitializeAtBuildTime>
+                        <resourceConfigurationFiles>
+                            <resourceConfigurationFile>additionalResourceConfig.json</resourceConfigurationFile>
+                        </resourceConfigurationFiles>
+                        <dynamicProxyConfigurationFiles>
+                            <dynamicProxyConfigurationFile>proxy_config.json</dynamicProxyConfigurationFile>
+                        </dynamicProxyConfigurationFiles>
+
+                        <reflectionConfigurationFiles>
+                            <reflectionConfigurationFile>reflectConfig_felix_atomos.json</reflectionConfigurationFile>
+                            <reflectionConfigurationFile>reflectConfig_felix_gogo.json</reflectionConfigurationFile>
+                            <reflectionConfigurationFile>reflectConfig_felix_web.json</reflectionConfigurationFile>
+                            <reflectionConfigurationFile>reflectConfig_jdk.json</reflectionConfigurationFile>
+                            <reflectionConfigurationFile>reflectConfig_jetty.json</reflectionConfigurationFile>
+                        </reflectionConfigurationFiles>
+                        <!-- <mainClass>org.apache.felix.atomos.launch.AtomosLauncher</mainClass> -->
+                    </nativeImage>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>atomos-native-image</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

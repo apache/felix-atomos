@@ -6,19 +6,14 @@
         <artifactId>atomos-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-
-    <artifactId>org.apache.felix.atomos.maven</artifactId>
+    <artifactId>atomos-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
-    <name>atomos.maven</name>
+    <name>atomos-maven-plugin</name>
     <dependencies>
         <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.framework</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.scr</artifactId>
+            <groupId>org.apache.felix.atomos.utils</groupId>
+            <artifactId>org.apache.felix.atomos.utils.core</artifactId>
+            <version>${atomos.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
@@ -52,56 +47,6 @@
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
             <version>3.26.0-GA</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.felix.atomos.tests</groupId>
-            <artifactId>org.apache.felix.atomos.tests.testbundles.bom</artifactId>
-            <type>pom</type>
-            <scope>test</scope>
-            <version>${atomos.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
-            <version>6.0.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.service.http</artifactId>
-            <version>1.2.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.gogo.command</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.http.jetty</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.http.api</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.http.whiteboard</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.webconsole</artifactId>
-            <scope>test</scope>
-            <classifier>all</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.http.servlet-api</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>

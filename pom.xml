@@ -14,14 +14,16 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <atomos.version>${project.version}</atomos.version>
+        <bnd.version>5.0.1</bnd.version>
     </properties>
 
     <modules>
         <module>atomos.osgi.frameworks</module>
         <module>atomos.runtime</module>
         <module>atomos.tests</module>
-        <module>atomos.substrate.config</module>
         <module>atomos.examples</module>
+        <module>atomos.substrate.config</module>
+        <module>atomos.utils</module>
         <module>atomos.maven</module>
     </modules>
 
@@ -63,7 +65,7 @@
                 <plugin>
                     <groupId>biz.aQute.bnd</groupId>
                     <artifactId>bnd-maven-plugin</artifactId>
-                    <version>5.0.0</version>
+                    <version>${bnd.version}</version>
                     <executions>
                         <execution>
                             <goals>
@@ -91,7 +93,7 @@
                                         </goals>
                                     </pluginExecutionFilter>
                                     <action>
-                                        <ignore />
+                                        <ignore/>
                                     </action>
                                 </pluginExecution>
                             </pluginExecutions>

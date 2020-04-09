@@ -26,7 +26,7 @@
                 <module>atomos.examples.springloader</module>
                 <module>atomos.examples.substrate.equinox</module>
                 <module>atomos.examples.substrate.felix</module>
-                <module>atomos.examples.substrate.maven.equinox</module>
+                <module>atomos.examples.substrate.maven</module>
             </modules>
         </profile>
     </profiles>

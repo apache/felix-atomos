@@ -86,11 +86,8 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
-                <artifactId>org.apache.felix.atomos.maven</artifactId>
+                <artifactId>atomos-maven-plugin</artifactId>
                 <version>${atomos.version}</version>
-                <configuration>
-                    <debug>true</debug>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>
