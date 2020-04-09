@@ -40,7 +40,7 @@
     </dependencies>
     <profiles>
         <profile>
-            <id>default</id>
+            <id>equinox</id>
             <dependencies>
                 <dependency>
                     <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
@@ -51,16 +51,6 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-        </profile>
-        <profile>
-            <id>equinox</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
-                    <artifactId>atomos.osgi.framework</artifactId>
-                    <version>${atomos.version}</version>
-                </dependency>
-            </dependencies>
         </profile>
         <profile>
             <id>felix</id>
