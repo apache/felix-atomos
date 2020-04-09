@@ -183,9 +183,9 @@ public class LauncherImpl implements Launcher
                 });
             });//
 
-        List<Path> artefacts = context.getFiles(FileType.ARTIFACT).collect(
+        List<Path> artifacts = context.getFiles(FileType.ARTIFACT).collect(
             Collectors.toList());
-        URL[] urls = artefacts.stream().map(p -> {
+        URL[] urls = artifacts.stream().map(p -> {
             try
             {
                 return p.toUri().toURL();
@@ -196,75 +196,36 @@ public class LauncherImpl implements Launcher
             }
         }).toArray(URL[]::new);
 
+        List<JarFile> jarFiles = new ArrayList<>();
         try (URLClassLoader classLoader = URLClassLoader.newInstance(urls, null))
         {
 
-            List<Class<?>> classes = loadClasses(artefacts, classLoader);
+            List<Class<?>> classes = loadClasses(artifacts, classLoader);
 
             List<JarPlugin<?>> jarPlugins = new ArrayList<>();//collector had compile issues on ojdk compiler
             orderdPluginsBy(JarPlugin.class).forEachOrdered(jarPlugins::add);
 
             jarPlugins.forEach(plugin -> plugin.preJars(context));
 
-            for (Path path : artefacts)
+            for (Path p : artifacts)
             {
-                JarFile jar = new JarFile(path.toFile());
-                jarPlugins.forEach(plugin -> plugin.doJar(jar, context, classLoader));
+                jarFiles.add(new JarFile(p.toFile()));
+            }
 
-                Attributes attributes = jar.getManifest().getMainAttributes();
-                String bundleActivatorClassName = attributes.getValue(
-                    org.osgi.framework.Constants.BUNDLE_ACTIVATOR);
-                if (bundleActivatorClassName == null)
-                {
-                    bundleActivatorClassName = attributes.getValue(
-                        Constants.EXTENSION_BUNDLE_ACTIVATOR);
-                }
-
-                if (bundleActivatorClassName != null)
-                {
-                    Class<?> bundleActivatorClass;
-                    try
-                    {
-                        bundleActivatorClass = classLoader.loadClass(
-                            bundleActivatorClassName.trim());
-                        orderdPluginsBy(BundleActivatorPlugin.class)//
-                            .peek(System.out::println)//
-                            .forEachOrdered(plugin -> plugin.doBundleActivator(
-                                bundleActivatorClass, context, classLoader));
-                    }
-                    catch (ClassNotFoundException e)
-                    {
-                        e.printStackTrace();
-                    }
-                }
+            jarFiles.forEach(
+                j -> jarPlugins.forEach(p -> p.initJar(j, context, classLoader)));
+            jarFiles.forEach(j -> {
+                jarPlugins.forEach(p -> p.doJar(j, context, classLoader));
                 try
                 {
-                    List<ComponentMetaDataPlugin<?>> cmdP = new ArrayList<>();
-                    orderdPluginsBy(ComponentMetaDataPlugin.class).forEachOrdered(
-                        cmdP::add);
-                    List<ComponentDescription> cds = readComponentDescription(jar);
-                    for (ComponentDescription cd : cds)
-                    {
-                        cmdP.forEach(plugin -> {
-                            plugin.doComponentMetaData(cd, context, classLoader);
-                        });
-                    }
+                    processJar(j, context, classLoader);
                 }
-                catch (Exception e)
+                catch (IOException e)
                 {
                     e.printStackTrace();
                 }
+            });
 
-                List<RegisterServicepPlugin<?>> rscP = new ArrayList<>();//
-                orderdPluginsBy(RegisterServicepPlugin.class).forEachOrdered(rscP::add);
-                List<RegisterServiceCall> rscs = context.getRegisterServiceCalls();
-                for (RegisterServiceCall rsc : rscs)
-                {
-                    rscP.forEach(plugin -> {
-                        plugin.doRegisterServiceCall(rsc, context, classLoader);
-                    });
-                }
-            }
             jarPlugins.forEach(plugin -> plugin.postJars(context));
 
             List<ClassPlugin<?>> classPlugins = new ArrayList<>();
@@ -300,13 +261,81 @@ public class LauncherImpl implements Launcher
                 }
             }
             orderdPluginsBy(FinalPlugin.class).forEachOrdered(p -> p.doFinal(context));
-
         }
         catch (IOException e)
         {
             e.printStackTrace();
         }
+        finally
+        {
+            jarFiles.forEach(f -> {
+                try
+                {
+                    f.close();
+                }
+                catch (IOException e)
+                {
+                    // ignore
+                }
+            });
+        }
         return context;
+    }
+
+    private void processJar(JarFile j, Context context, URLClassLoader classLoader)
+        throws IOException
+    {
+        Attributes attributes = j.getManifest().getMainAttributes();
+        String bundleActivatorClassName = attributes.getValue(
+            org.osgi.framework.Constants.BUNDLE_ACTIVATOR);
+        if (bundleActivatorClassName == null)
+        {
+            bundleActivatorClassName = attributes.getValue(
+                Constants.EXTENSION_BUNDLE_ACTIVATOR);
+        }
+        if (bundleActivatorClassName != null)
+        {
+            Class<?> bundleActivatorClass;
+            try
+            {
+                bundleActivatorClass = classLoader.loadClass(
+                    bundleActivatorClassName.trim());
+                orderdPluginsBy(BundleActivatorPlugin.class)//
+                    .peek(System.out::println)//
+                    .forEachOrdered(plugin -> plugin.doBundleActivator(
+                        bundleActivatorClass, context, classLoader));
+            }
+            catch (ClassNotFoundException e)
+            {
+                e.printStackTrace();
+            }
+        }
+        try
+        {
+            List<ComponentMetaDataPlugin<?>> cmdP = new ArrayList<>();
+            orderdPluginsBy(ComponentMetaDataPlugin.class).forEachOrdered(cmdP::add);
+            List<ComponentDescription> cds = readComponentDescription(j);
+            for (ComponentDescription cd : cds)
+            {
+                cmdP.forEach(plugin -> {
+                    plugin.doComponentMetaData(cd, context, classLoader);
+                });
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
+        List<RegisterServicepPlugin<?>> rscP = new ArrayList<>();//
+        orderdPluginsBy(RegisterServicepPlugin.class).forEachOrdered(rscP::add);
+        List<RegisterServiceCall> rscs = context.getRegisterServiceCalls();
+        for (RegisterServiceCall rsc : rscs)
+        {
+            rscP.forEach(plugin -> {
+                plugin.doRegisterServiceCall(rsc, context, classLoader);
+            });
+        }
     }
 
     List<SubstratePlugin<?>> getPlugins()

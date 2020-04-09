@@ -21,6 +21,10 @@ import org.apache.felix.atomos.utils.api.Context;
 public interface JarPlugin<T> extends SubstratePlugin<T>
 {
 
+    default void initJar(JarFile jar, Context context, URLClassLoader classLoader)
+    {
+    }
+
     void doJar(JarFile jar, Context context, URLClassLoader classLoader);
 
     default void postJars(Context context)
