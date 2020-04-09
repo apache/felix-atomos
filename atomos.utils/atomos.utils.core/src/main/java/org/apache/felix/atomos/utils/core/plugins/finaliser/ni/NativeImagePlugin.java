@@ -90,7 +90,7 @@ public class NativeImagePlugin implements FinalPlugin<NativeImageBuilderConfig>
             NativeImageArguments arguments = NativeImageArguments.builder().imageName(
                 config.nativeImageApplicationName()).allowIncompleteClasspath(true)//
                 .classPathFiles(Optional.ofNullable(copyOfClassPath))//
-                .debugAttach(true)//
+                .debugAttach(false)//TODO: --debug-attach  crashes build
                 .dynamicProxyConfigurationFile(Optional.of(pDynPrC))//
                 .dynamicProxyConfigurationFiles(
                     Optional.of(config.dynamicProxyConfigurationFiles()))//
