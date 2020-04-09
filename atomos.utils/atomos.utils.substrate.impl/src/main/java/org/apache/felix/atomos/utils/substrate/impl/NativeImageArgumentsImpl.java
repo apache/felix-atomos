@@ -50,9 +50,14 @@ public class NativeImageArgumentsImpl implements DefaultNativeImageArguments
     private static String combineArgPath(final String parameterName,
         final Stream<Path> values)
     {
-        return combineArg(parameterName,
-            values.filter(Objects::nonNull).map(Path::toAbsolutePath).map(
-                Path::toString));
+        return combineArg(parameterName, values.filter(Objects::nonNull)//
+            .sorted(NativeImageArgumentsImpl::byAbsolutePath)//
+            .map(Path::toAbsolutePath).map(Path::toString));
+    }
+
+    private static int byAbsolutePath(Path p1, Path p2)
+    {
+        return p1.toAbsolutePath().toString().compareTo(p2.toAbsolutePath().toString());
     }
 
     boolean allowIncompleteClasspath = false;
@@ -111,8 +116,12 @@ public class NativeImageArgumentsImpl implements DefaultNativeImageArguments
         final List<String> otherArguments = new ArrayList<>();
         //-cp
         arguments.add(NI_PARAM_CP);
-        String cp = classPathFiles().stream().filter(Objects::nonNull).map(
-            Path::toAbsolutePath).map(Path::toString).collect(Collectors.joining(":"));
+        String cp = classPathFiles().stream()//
+            .filter(Objects::nonNull)//
+            .map(Path::toAbsolutePath)//
+            .sorted(NativeImageArgumentsImpl::byAbsolutePath)//
+            .map(Path::toString)//
+            .collect(Collectors.joining(":"));
         arguments.add(cp);
 
         //--verbose
