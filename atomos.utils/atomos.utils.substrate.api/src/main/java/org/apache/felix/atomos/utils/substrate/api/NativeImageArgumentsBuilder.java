@@ -43,6 +43,8 @@ public interface NativeImageArgumentsBuilder
         Optional<List<String>> initializeAtBuildTimePackages);
     NativeImageArgumentsBuilder mainClass(String mainClass);
     NativeImageArgumentsBuilder noFallback(boolean noFallback);
+    NativeImageArgumentsBuilder printClassInitialization(
+        boolean printClassInitialization);
     NativeImageArgumentsBuilder reflectionConfiguration(
         Optional<ReflectionConfiguration> reflectionConfiguration);
     NativeImageArgumentsBuilder reflectionConfigurationFile(
@@ -69,5 +71,6 @@ public interface NativeImageArgumentsBuilder
     NativeImageArgumentsBuilder vmFlags(Optional<List<String>> vmFlags);
     NativeImageArgumentsBuilder vmSystemProperties(
         Optional<Map<String, String>> vmSystemProperties);
+
     NativeImageArgumentsBuilder vmSystemProperty(String key, String value);
 }

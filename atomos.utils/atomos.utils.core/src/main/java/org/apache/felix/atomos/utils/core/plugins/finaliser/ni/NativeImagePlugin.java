@@ -110,6 +110,7 @@ public class NativeImagePlugin implements FinalPlugin<NativeImageBuilderConfig>
                 .vmFlags(Optional.ofNullable(config.nativeImageVmFlags()))//
                 .vmSystemProperties(
                     Optional.ofNullable(config.nativeImageVmSystemProperties()))//
+                .printClassInitialization(true)
                 .build();
 
             //try to find NativeImageCli

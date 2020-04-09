@@ -71,6 +71,7 @@ public class NativeImageArgumentsImpl implements DefaultNativeImageArguments
     boolean verbose = true;
     final List<String> vmFlags = new ArrayList<>();
     final Map<String, String> vmSystemProperties = new HashMap<>();
+    boolean printClassInitialization = false;
 
     NativeImageArgumentsImpl()
     {
@@ -146,6 +147,10 @@ public class NativeImageArgumentsImpl implements DefaultNativeImageArguments
         addArgIfTrue(arguments, NI_PARAM_NO_FALLBACK, noFallback());
         //--debug-attach
         addArgIfTrue(arguments, NI_PARAM_DEBUG_ATTACH, debugAttach());
+        //-H:+PrintClassInitialization
+        addArgIfTrue(arguments, NI_PARAM_PRINT_CLASS_INITIALIZATION,
+            printClassInitialization());
+
         //-H:Class
         arguments.add(combineArg(NI_PARAM_H_CLASS, mainClass()));
         //-H:Name"
@@ -163,6 +168,11 @@ public class NativeImageArgumentsImpl implements DefaultNativeImageArguments
             arguments.addAll(additionalArguments());
         }
         return arguments;
+    }
+
+    public boolean printClassInitialization()
+    {
+        return printClassInitialization;
     }
 
     @Override

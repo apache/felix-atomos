@@ -25,14 +25,11 @@ public interface BaseNativeImageArguments extends NativeImageArguments
 
     String NI_PARAM_CP = "-cp";
 
-    String NI_PARAM_VERBOSE = "--verbose";
-
     String NI_PARAM_DEBUG_ATTACH = "--debug-attach";
 
     String NI_PARAM_H_CLASS = "-H:Class";
 
     String NI_PARAM_H_DYNAMIC_PROXY_CONFIGURATION_FILES = "-H:DynamicProxyConfigurationFiles";
-
     String NI_PARAM_H_NAME = "-H:Name";
 
     String NI_PARAM_H_PRINT_CLASS_INITIALIZATION = "-H:+PrintClassInitialization";
@@ -48,7 +45,11 @@ public interface BaseNativeImageArguments extends NativeImageArguments
     String NI_PARAM_H_TRACE_CLASS_INITIALIZATION = "-H:+TraceClassInitialization";
 
     String NI_PARAM_INITIALIZE_AT_BUILD_TIME = "--initialize-at-build-time";
+
     String NI_PARAM_NO_FALLBACK = "--no-fallback";
+
+    String NI_PARAM_PRINT_CLASS_INITIALIZATION = "-H:+PrintClassInitialization";
+    String NI_PARAM_VERBOSE = "--verbose";
 
     List<String> additionalArguments();
 

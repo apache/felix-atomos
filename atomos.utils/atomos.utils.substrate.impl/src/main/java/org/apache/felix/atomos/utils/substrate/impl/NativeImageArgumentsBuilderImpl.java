@@ -266,4 +266,12 @@ public class NativeImageArgumentsBuilderImpl implements NativeImageArgumentsBuil
             throw new UncheckedIOException(e);
         }
     }
+
+    @Override
+    public NativeImageArgumentsBuilder printClassInitialization(
+        boolean printClassInitialization)
+    {
+        a.printClassInitialization = printClassInitialization;
+        return this;
+    }
 }
