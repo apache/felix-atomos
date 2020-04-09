@@ -108,6 +108,7 @@ public class NativeImageArgumentsImpl implements DefaultNativeImageArguments
     public List<String> arguments()
     {
         final List<String> arguments = new ArrayList<>();
+        final List<String> otherArguments = new ArrayList<>();
         //-cp
         arguments.add(NI_PARAM_CP);
         String cp = classPathFiles().stream().filter(Objects::nonNull).map(
@@ -115,58 +116,61 @@ public class NativeImageArgumentsImpl implements DefaultNativeImageArguments
         arguments.add(cp);
 
         //--verbose
-        addArgIfTrue(arguments, NI_PARAM_VERBOSE, verbose);
+        addArgIfTrue(otherArguments, NI_PARAM_VERBOSE, verbose);
         //initialize-at-build-time
-        addArgIfExits(arguments, NI_PARAM_INITIALIZE_AT_BUILD_TIME,
+        addArgIfExits(otherArguments, NI_PARAM_INITIALIZE_AT_BUILD_TIME,
             initializeAtBuildTime());
         //H:ReflectionConfigurationFiles
-        addArgIfExitsPath(arguments, NI_PARAM_H_REFLECTION_CONFIGURATION_FILES,
+        addArgIfExitsPath(otherArguments, NI_PARAM_H_REFLECTION_CONFIGURATION_FILES,
             reflectionConfigurationFiles());
         //H:ResourceConfigurationFiles
-        addArgIfExitsPath(arguments, NI_PARAM_H_RESOURCE_CONFIGURATION_FILES,
+        addArgIfExitsPath(otherArguments, NI_PARAM_H_RESOURCE_CONFIGURATION_FILES,
             resourceConfigurationFiles());
         //H:DynamicProxyConfigurationFiles
-        addArgIfExitsPath(arguments, NI_PARAM_H_DYNAMIC_PROXY_CONFIGURATION_FILES,
+        addArgIfExitsPath(otherArguments, NI_PARAM_H_DYNAMIC_PROXY_CONFIGURATION_FILES,
             dynamicProxyConfigurationFiles());
         //--allow-incomplete-classpath
-        addArgIfTrue(arguments, NI_PARAM_ALLOW_INCOMPLETE_CLASSPATH,
+        addArgIfTrue(otherArguments, NI_PARAM_ALLOW_INCOMPLETE_CLASSPATH,
             allowIncompleteClasspath());
         //-H:+ReportUnsupportedElementsAtRuntime
-        addArgIfTrue(arguments, NI_PARAM_H_REPORT_UNSUPPORTED_ELEMENTS_AT_RUNTIME,
+        addArgIfTrue(otherArguments, NI_PARAM_H_REPORT_UNSUPPORTED_ELEMENTS_AT_RUNTIME,
             reportUnsupportedElementsAtRuntime());
         //-H:+ReportExceptionStackTraces
-        addArgIfTrue(arguments, NI_PARAM_H_REPORT_EXCEPTION_STACK_TRACES,
+        addArgIfTrue(otherArguments, NI_PARAM_H_REPORT_EXCEPTION_STACK_TRACES,
             reportExceptionStackTraces());
         //
-        addArgIfTrue(arguments, NI_PARAM_H_TRACE_CLASS_INITIALIZATION,
+        addArgIfTrue(otherArguments, NI_PARAM_H_TRACE_CLASS_INITIALIZATION,
             allowIncompleteClasspath());
         //-H:+TraceClassInitialization
-        addArgIfTrue(arguments, NI_PARAM_H_PRINT_CLASS_INITIALIZATION,
+        addArgIfTrue(otherArguments, NI_PARAM_H_PRINT_CLASS_INITIALIZATION,
             traceClassInitialization());
         //--no-fallback
-        addArgIfTrue(arguments, NI_PARAM_NO_FALLBACK, noFallback());
+        addArgIfTrue(otherArguments, NI_PARAM_NO_FALLBACK, noFallback());
         //--debug-attach
-        addArgIfTrue(arguments, NI_PARAM_DEBUG_ATTACH, debugAttach());
+        addArgIfTrue(otherArguments, NI_PARAM_DEBUG_ATTACH, debugAttach());
         //-H:+PrintClassInitialization
-        addArgIfTrue(arguments, NI_PARAM_PRINT_CLASS_INITIALIZATION,
+        addArgIfTrue(otherArguments, NI_PARAM_PRINT_CLASS_INITIALIZATION,
             printClassInitialization());
 
         //-H:Class
-        arguments.add(combineArg(NI_PARAM_H_CLASS, mainClass()));
+        otherArguments.add(combineArg(NI_PARAM_H_CLASS, mainClass()));
         //-H:Name"
-        arguments.add(combineArg(NI_PARAM_H_NAME, name()));
+        otherArguments.add(combineArg(NI_PARAM_H_NAME, name()));
         //-D<name>=<value> sets a system property for the JVM running the image generator
         vmSystemProperties().forEach((k, v) -> {
-            arguments.add(combineArg("-D" + k, v));
+            otherArguments.add(combineArg("-D" + k, v));
         });
         vmFlags().forEach(flag -> {
-            arguments.add("-J" + flag);
+            otherArguments.add("-J" + flag);
         });
         final List<String> additionalArguments = additionalArguments();
         if (additionalArguments != null && !additionalArguments.isEmpty())
         {
-            arguments.addAll(additionalArguments());
+            otherArguments.addAll(additionalArguments());
         }
+
+        otherArguments.sort((o1, o2) -> o1.compareTo(o2));
+        arguments.addAll(otherArguments);
         return arguments;
     }
 
