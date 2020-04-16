@@ -15,11 +15,10 @@ package org.apache.felix.atomos.utils.core;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Stream;
 
+import org.apache.felix.atomos.utils.api.Context;
 import org.apache.felix.atomos.utils.api.FileType;
 import org.apache.felix.atomos.utils.api.RegisterServiceCall;
-import org.apache.felix.atomos.utils.api.Context;
 import org.apache.felix.atomos.utils.substrate.api.dynproxy.DynamicProxyConfiguration;
 import org.apache.felix.atomos.utils.substrate.api.reflect.ReflectionConfiguration;
 import org.apache.felix.atomos.utils.substrate.api.resource.ResourceConfiguration;
@@ -96,7 +95,7 @@ public interface TestContext extends Context
     }
 
     @Override
-    default Stream<Path> getFiles(FileType... fileType)
+    default List<Path> getFiles(FileType... fileType)
     {
         return null;
     }

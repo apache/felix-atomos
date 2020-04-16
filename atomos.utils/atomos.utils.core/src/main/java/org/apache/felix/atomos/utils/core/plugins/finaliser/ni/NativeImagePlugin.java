@@ -21,7 +21,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.apache.felix.atomos.utils.api.Context;
 import org.apache.felix.atomos.utils.api.FileType;
@@ -58,7 +57,7 @@ public class NativeImagePlugin implements FinalPlugin<NativeImageBuilderConfig>
 
             //prepare classpath
             List<Path> classpath = context.getFiles(FileType.ARTIFACT,
-                FileType.INDEX_JAR).collect(Collectors.toList());
+                FileType.INDEX_JAR);
             System.out.println(native_image_build_timed);
             List<Path> copyOfClassPath = new ArrayList<>();
             classpath.forEach(p -> {

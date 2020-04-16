@@ -29,7 +29,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
-import java.util.stream.Collectors;
 
 import org.apache.felix.atomos.utils.api.Context;
 import org.apache.felix.atomos.utils.api.FileType;
@@ -71,17 +70,17 @@ public class ShaderPlugin implements FinalPlugin<ShadeConfig>
         {
 
             List<Path> classpath = context.getFiles(FileType.ARTIFACT,
-                FileType.INDEX_JAR).collect(Collectors.toList());
+                FileType.INDEX_JAR);
             classpath.forEach(p -> {
                 try
                 {
                     JarFile jar = new JarFile(p.toFile());
                     map.put(jar, p);
                     jar.stream()//
-                        .filter(Predicate.not(JarEntry::isDirectory))//
-                        .forEach(je -> {
-                            compute(je.getName()).add(jar);
-                        });
+                    .filter(Predicate.not(JarEntry::isDirectory))//
+                    .forEach(je -> {
+                        compute(je.getName()).add(jar);
+                    });
                 }
                 catch (IOException e)
                 {
@@ -128,9 +127,9 @@ public class ShaderPlugin implements FinalPlugin<ShadeConfig>
                                 System.out.println("-- List of Jars:");
 
                                 v.stream().map(map::get)//
-                                    .map(Path::toAbsolutePath)//
-                                    .map(p -> "-- " + p.toString())//
-                                    .forEach(System.out::println);
+                                .map(Path::toAbsolutePath)//
+                                .map(p -> "-- " + p.toString())//
+                                .forEach(System.out::println);
 
                             });
                         }
@@ -150,7 +149,7 @@ public class ShaderPlugin implements FinalPlugin<ShadeConfig>
         }
         catch (
 
-        Exception e)
+            Exception e)
         {
             e.printStackTrace();
         }

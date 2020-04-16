@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.felix.atomos.utils.api.Context;
@@ -196,11 +197,14 @@ public class ContextImpl implements Context
     }
 
     @Override
-    public Stream<Path> getFiles(FileType... fileType)
+    public List<Path> getFiles(FileType... fileType)
     {
-        return paths.entrySet().parallelStream().filter(
-            e -> List.of(fileType).stream().filter(Objects::nonNull).anyMatch(
-                t -> t.equals(e.getValue()))).map(Entry::getKey);
+        return paths.entrySet().parallelStream()//
+            .filter(e -> List.of(fileType).stream()//
+                .filter(Objects::nonNull)//
+                .anyMatch(t -> t.equals(e.getValue())))//
+            .map(Entry::getKey)//
+            .collect(Collectors.toList());
     }
 
     Map<Path, FileType> getPaths()

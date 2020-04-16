@@ -168,23 +168,22 @@ public class LauncherImpl implements Launcher
 
         //CollectFiles
         orderdPluginsBy(FileCollectorPlugin.class)//
-            .peek(System.out::println)//
-            .forEachOrdered(plugin -> plugin.collectFiles(context));//
+        .peek(System.out::println)//
+        .forEachOrdered(plugin -> plugin.collectFiles(context));//
 
         //Visit all files with type
         orderdPluginsBy(FileHandlerPlugin.class)//
-            .peek(System.out::println)//
-            .forEachOrdered(plugin -> {
+        .peek(System.out::println)//
+        .forEachOrdered(plugin -> {
 
-                //for each FileType
-                List.of(FileType.values()).forEach(fileType -> {
-                    context.getFiles(fileType)//
-                        .forEach(path -> plugin.handleFile(context, path, fileType));
-                });
-            });//
+            //for each FileType
+            List.of(FileType.values()).forEach(fileType -> {
+                context.getFiles(fileType)//
+                .forEach(path -> plugin.handleFile(context, path, fileType));
+            });
+        });//
 
-        List<Path> artifacts = context.getFiles(FileType.ARTIFACT).collect(
-            Collectors.toList());
+            List<Path> artifacts = context.getFiles(FileType.ARTIFACT);
         URL[] urls = artifacts.stream().map(p -> {
             try
             {
@@ -301,9 +300,9 @@ public class LauncherImpl implements Launcher
                 bundleActivatorClass = classLoader.loadClass(
                     bundleActivatorClassName.trim());
                 orderdPluginsBy(BundleActivatorPlugin.class)//
-                    .peek(System.out::println)//
-                    .forEachOrdered(plugin -> plugin.doBundleActivator(
-                        bundleActivatorClass, context, classLoader));
+                .peek(System.out::println)//
+                .forEachOrdered(plugin -> plugin.doBundleActivator(
+                    bundleActivatorClass, context, classLoader));
             }
             catch (ClassNotFoundException e)
             {
