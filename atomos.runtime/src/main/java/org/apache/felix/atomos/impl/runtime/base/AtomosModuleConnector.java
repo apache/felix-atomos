@@ -44,7 +44,7 @@ public class AtomosModuleConnector implements ModuleConnector
     }
 
     @Override
-    public Optional<BundleActivator> createBundleActivator()
+    public Optional<BundleActivator> newBundleActivator()
     {
         atomosRuntime.debug("Creating Atomos activator");
         return Optional.of(new BundleActivator()
