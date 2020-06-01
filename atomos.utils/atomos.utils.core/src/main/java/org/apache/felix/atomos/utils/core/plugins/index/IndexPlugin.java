@@ -207,7 +207,14 @@ public class IndexPlugin implements JarPlugin<IndexPluginConfig>
                     bundleIndexLines.add(s.getVersion());
                     s.getFiles().forEach(f -> {
                         bundleIndexLines.add(f);
-                        resources.add(ATOMOS_BUNDLES_BASE_PATH + s.getId() + "/" + f);
+                        if (Boolean.FALSE == uniquePaths.get(f))
+                        {
+                            resources.add(ATOMOS_BUNDLES_BASE_PATH + s.getId() + "/" + f);
+                        }
+                        else
+                        {
+                            resources.add(f);
+                        }
                     });
                 }
             });
