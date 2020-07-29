@@ -15,16 +15,16 @@ package org.apache.felix.atomos.impl.runtime.modules;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.lang.module.Configuration;
 import java.lang.module.ModuleDescriptor;
-import java.lang.module.ModuleDescriptor.Exports;
-import java.lang.module.ModuleDescriptor.Provides;
-import java.lang.module.ModuleDescriptor.Requires;
 import java.lang.module.ModuleFinder;
+import java.lang.module.ModuleReader;
 import java.lang.module.ResolvedModule;
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,18 +33,17 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.jar.Attributes;
-import java.util.jar.Attributes.Name;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
-import org.apache.felix.atomos.impl.runtime.base.JavaServiceNamespace;
 import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.apache.felix.atomos.runtime.AtomosLayer.LoaderType;
@@ -53,13 +52,9 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
-import org.osgi.framework.connect.ConnectContent;
-import org.osgi.framework.connect.ConnectContent.ConnectEntry;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.launch.FrameworkFactory;
-import org.osgi.framework.namespace.BundleNamespace;
 import org.osgi.framework.wiring.BundleCapability;
-import org.osgi.resource.Namespace;
 
 public class AtomosRuntimeModules extends AtomosRuntimeBase
 {
@@ -285,164 +280,65 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
         return super.getAtomosKey(classFromBundle);
     }
 
-    protected Optional<Map<String, String>> createManifest(ConnectContent connectContent,
-        Module module)
+    private static Entry<String, Version> getBSNVersion(ResolvedModule m)
     {
-        return Optional.of(connectContent.getEntry("META-INF/MANIFEST.MF").map(
-            (mf) -> createManifest(mf, module)).orElseGet(
-                () -> createManifest((ConnectEntry) null, module)));
-
+        try (ModuleReader reader = m.reference().open())
+        {
+            return reader.find("META-INF/MANIFEST.MF").map(
+                (mf) -> getManifestBSNVersion(mf, m)).orElseGet(
+                    () -> new SimpleEntry<>(getBSN(m, null), getVersion(m, null)));
+        }
+        catch (IOException e)
+        {
+            return new SimpleEntry<>(getBSN(m, null), getVersion(m, null));
+        }
     }
 
-    private Map<String, String> createManifest(ConnectEntry mfEntry, Module module)
+    private static Entry<String, Version> getManifestBSNVersion(URI manifest,
+        ResolvedModule resolved)
     {
-        Map<String, String> result = new HashMap<>();
-        if (mfEntry != null)
+        try (InputStream is = manifest.toURL().openStream())
         {
-            try
-            {
-                Manifest mf = new Manifest(mfEntry.getInputStream());
-                Attributes mainAttrs = mf.getMainAttributes();
-                for (Object key : mainAttrs.keySet())
-                {
-                    Name name = (Name) key;
-                    result.put(name.toString(), mainAttrs.getValue(name));
-                }
-            }
-            catch (IOException e)
-            {
-                throw new UncheckedIOException("Error reading connect manfest.", e);
-            }
+            Attributes headers = new Manifest(is).getMainAttributes();
+            return new SimpleEntry<>(getBSN(resolved, headers),
+                getVersion(resolved, headers));
         }
-
-        ModuleDescriptor desc = module.getDescriptor();
-        StringBuilder capabilities = new StringBuilder();
-        StringBuilder requirements = new StringBuilder();
-        String bsn = result.get(Constants.BUNDLE_SYMBOLICNAME);
-        if (bsn == null)
+        catch (IOException e)
         {
-            // cannot use bundle manifest version 2 because we want to allow java.* exports
-            //result.put(Constants.BUNDLE_MANIFESTVERSION, "2");
-            // set the symbolic name for the module; don't allow fragments to attach
-            result.put(Constants.BUNDLE_SYMBOLICNAME,
-                desc.name() + "; " + Constants.FRAGMENT_ATTACHMENT_DIRECTIVE + ":="
-                    + Constants.FRAGMENT_ATTACHMENT_NEVER);
-
-            // set the version; use empty version in case of missing or format issues
-            Version version = desc.version().map((v) -> {
-                try
-                {
-                    return Version.valueOf(v.toString());
-                }
-                catch (IllegalArgumentException e)
-                {
-                    return Version.emptyVersion;
-                }
-            }).orElse(Version.emptyVersion);
-            result.put(Constants.BUNDLE_VERSION, version.toString());
-
-            // only do exports for non bundle modules
-            // real OSGi bundles already have good export capabilities
-            StringBuilder exportPackageHeader = new StringBuilder();
-            for (Exports exports : desc.exports())
-            {
-                if (exportPackageHeader.length() > 0)
-                {
-                    exportPackageHeader.append(", ");
-                }
-                exportPackageHeader.append(exports.source());
-                // TODO map targets to x-friends directive?
-            }
-            if (exportPackageHeader.length() > 0)
-            {
-                result.put(Constants.EXPORT_PACKAGE, exportPackageHeader.toString());
-            }
-
-            // only do requires for non bundle modules
-            // map requires to require bundle
-            StringBuilder requireBundleHeader = new StringBuilder();
-            for (Requires requires : desc.requires())
-            {
-                if (requireBundleHeader.length() > 0)
-                {
-                    requireBundleHeader.append(", ");
-                }
-
-                requireBundleHeader.append(requires.name()).append("; ");
-                // determine the resolution value based on the STATIC modifier
-                String resolution = requires.modifiers().contains(
-                    Requires.Modifier.STATIC) ? Namespace.RESOLUTION_OPTIONAL
-                        : Namespace.RESOLUTION_MANDATORY;
-                requireBundleHeader.append(Constants.RESOLUTION_DIRECTIVE).append(
-                    ":=").append(resolution).append("; ");
-                // determine the visibility value based on the TRANSITIVE modifier
-                String visibility = requires.modifiers().contains(
-                    Requires.Modifier.TRANSITIVE) ? BundleNamespace.VISIBILITY_REEXPORT
-                        : BundleNamespace.VISIBILITY_PRIVATE;
-                requireBundleHeader.append(Constants.VISIBILITY_DIRECTIVE).append(
-                    ":=").append(visibility);
-
-            }
-            if (requireBundleHeader.length() > 0)
-            {
-                result.put(Constants.REQUIRE_BUNDLE, requireBundleHeader.toString());
-            }
+            return null;
         }
-        else
+    }
+
+    private static String getBSN(ResolvedModule resolved, Attributes headers)
+    {
+        String bsnHeader = headers != null
+            ? headers.getValue(Constants.BUNDLE_SYMBOLICNAME)
+            : null;
+        if (bsnHeader == null)
         {
-            String origCaps = result.get(Constants.PROVIDE_CAPABILITY);
-            if (origCaps != null)
-            {
-                capabilities.append(origCaps);
-            }
-            String origReqs = result.get(Constants.REQUIRE_CAPABILITY);
-            if (origReqs != null)
-            {
-                requirements.append(origReqs);
-            }
+            return resolved.name();
         }
-        // map provides to a made up namespace only to give proper resolution errors
-        // (although JPMS will likely complain first
-        for (Provides provides : desc.provides())
-        {
-            if (capabilities.length() > 0)
-            {
-                capabilities.append(", ");
-            }
-            capabilities.append(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE).append("; ");
-            capabilities.append(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE).append(
-                "=").append(provides.service()).append("; ");
-            capabilities.append(
-                JavaServiceNamespace.CAPABILITY_PROVIDES_WITH_ATTRIBUTE).append(
-                "=\"").append(
-                String.join(",", provides.providers())).append("\"");
-        }
+        int bsnEnd = bsnHeader.indexOf(';');
+        return bsnEnd < 0 ? bsnHeader.trim() : bsnHeader.substring(0, bsnEnd).trim();
+    }
 
-        // map uses to a made up namespace only to give proper resolution errors
-        // (although JPMS will likely complain first)
-        for (String uses : desc.uses())
+    private static Version getVersion(ResolvedModule resolved, Attributes headers)
+    {
+        String sVersion = headers != null ? headers.getValue(Constants.BUNDLE_VENDOR)
+            : null;
+        if (sVersion == null)
         {
-            if (requirements.length() > 0)
-            {
-                requirements.append(", ");
-            }
-            requirements.append(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE).append("; ");
-            requirements.append(Constants.RESOLUTION_DIRECTIVE).append(":=").append(
-                Constants.RESOLUTION_OPTIONAL).append("; ");
-            requirements.append(Constants.FILTER_DIRECTIVE).append(":=").append(
-                "\"(").append(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE).append(
-                    "=").append(uses).append(")\"");
+            sVersion = resolved.reference().descriptor().version().map(
+                java.lang.module.ModuleDescriptor.Version::toString).orElse("0");
         }
-
-        if (capabilities.length() > 0)
+        try
         {
-            result.put(Constants.PROVIDE_CAPABILITY, capabilities.toString());
+            return Version.valueOf(sVersion);
         }
-        if (requirements.length() > 0)
+        catch (IllegalArgumentException e)
         {
-            result.put(Constants.REQUIRE_CAPABILITY, requirements.toString());
+            return Version.emptyVersion;
         }
-        return result;
     }
 
     @Override
@@ -486,12 +382,17 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
     {
         private final ModuleLayer moduleLayer;
         private final Set<AtomosContentBase> atomosBundles;
+        private final Map<Module, AtomosContentBase> atomosModules;
 
         AtomosLayerModules(Configuration config, List<AtomosLayer> parents, long id, String name, LoaderType loaderType, Path... paths)
         {
             super(parents, id, name, loaderType, paths);
             moduleLayer = findModuleLayer(config, parents, loaderType);
             atomosBundles = findAtomosLayerContent();
+            atomosModules = atomosBundles.stream().filter(
+                a -> a.adapt(Module.class).isPresent()).collect(
+                    Collectors.toUnmodifiableMap((k) -> k.adapt(Module.class).get(),
+                        (v) -> v));
         }
 
         @Override
@@ -514,13 +415,13 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
                     {
                         // Use the module location as the relative base to locate the modules folder
                         File thisModuleFile = new File(location);
-                        File candidate = new File(thisModuleFile.getParent(), "modules");
+                        File candidate = new File(thisModuleFile.getParent(), name);
                         path = candidate.isDirectory() ? candidate.toPath() : null;
                     }
                 }
                 if (path != null)
                 {
-                    return addLayer("modules", LoaderType.OSGI, path);
+                    return addLayer(name, LoaderType.OSGI, path);
                 }
                 else
                 {
@@ -542,9 +443,9 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
         private Set<AtomosContentBase> findModuleLayerAtomosBundles(
             ModuleLayer searchLayer)
         {
+            Set<AtomosContentBase> found = new LinkedHashSet<>();
             Map<ModuleDescriptor, Module> descriptorMap = searchLayer.modules().stream().collect(
                 Collectors.toMap(Module::getDescriptor, m -> (m)));
-            Set<AtomosContentBase> found = new LinkedHashSet<>();
             for (ResolvedModule resolved : searchLayer.configuration().modules())
             {
                 // include only if it is not excluded
@@ -578,19 +479,9 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
                     continue;
                 }
 
-                Version version = resolved.reference().descriptor().version().map((v) -> {
-                    try
-                    {
-                        return Version.valueOf(v.toString());
-                    }
-                    catch (IllegalArgumentException e)
-                    {
-                        return Version.emptyVersion;
-                    }
-                }).orElse(Version.emptyVersion);
-
+                Entry<String, Version> bsnVersion = getBSNVersion(resolved);
                 found.add(new AtomosContentModule(resolved, m, location,
-                    resolved.name(), version));
+                    bsnVersion.getKey(), bsnVersion.getValue()));
 
             }
 
@@ -624,7 +515,8 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
             public AtomosContentModule(ResolvedModule resolvedModule, Module module, String location, String symbolicName, Version version)
             {
                 super(location, symbolicName, version, new ConnectContentModule(module,
-                    resolvedModule.reference(), AtomosRuntimeModules.this));
+                    resolvedModule.reference(), AtomosLayerModules.this, symbolicName,
+                    version));
                 this.module = module;
             }
 
@@ -656,6 +548,27 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
         protected void findBootModuleLayerAtomosContents(Set<AtomosContentBase> result)
         {
             result.addAll(findModuleLayerAtomosBundles(ModuleLayer.boot()));
+        }
+
+        AtomosContentBase getAtomosContent(Module m)
+        {
+            AtomosContentBase result = atomosModules.get(m);
+            if (result != null)
+            {
+                return result;
+            }
+            for (AtomosLayer parent : getParents())
+            {
+                if (parent instanceof AtomosLayerModules)
+                {
+                    result = ((AtomosLayerModules) parent).getAtomosContent(m);
+                }
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+            return null;
         }
     }
 

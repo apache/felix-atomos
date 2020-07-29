@@ -56,6 +56,8 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.launch.Framework;
+import org.osgi.framework.namespace.BundleNamespace;
+import org.osgi.framework.wiring.BundleWiring;
 
 public class ModulepathLaunchTest
 {
@@ -818,7 +820,7 @@ public class ModulepathLaunchTest
         }
     }
 
-    private static String BSN_CONTRACT = "org.apache.felix.atomos.tests.testbundles.service.contract";
+    private static String BSN_CONTRACT = "atomos.service.contract";
     private static String BSN_SERVICE_IMPL = "org.apache.felix.atomos.tests.testbundles.service.impl";
     @Test
     void testConnectLocation(@TempDir Path storage)
@@ -959,6 +961,37 @@ public class ModulepathLaunchTest
 
         testFramework.stop();
         testFramework.waitForStop(5000);
+    }
 
+    @Test
+    void testModuleNameBSNDiffer(@TempDir Path storage) throws BundleException
+    {
+        testFramework = getFramework(
+            Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath());
+
+        // make sure the contract names are correct
+        Module contractModule = Echo.class.getModule();
+        Bundle contractBundle = FrameworkUtil.getBundle(Echo.class);
+        assertEquals(BSN_CONTRACT, contractBundle.getSymbolicName(),
+            "Wrong BSN for contract bundle.");
+        assertEquals(Echo.class.getPackageName(), contractModule.getName(),
+            "Wrong module name for contract module.");
+
+        // TODO Felix has some weird bug that causes this to fail
+        if (testFramework.getSymbolicName().startsWith("org.apache.felix.framework"))
+        {
+            return;
+        }
+
+        // make sure the bundle wiring reflect the mapping correctly using the BSN
+        Bundle testBundle = FrameworkUtil.getBundle(ModulepathLaunch.class);
+        BundleWiring testWiring = testBundle.adapt(BundleWiring.class);
+        assertTrue(
+            testWiring.getRequiredWires(BundleNamespace.BUNDLE_NAMESPACE).stream() //
+                .filter((w) -> BSN_CONTRACT.equals( //
+                    w.getCapability().getAttributes().get( //
+                        BundleNamespace.BUNDLE_NAMESPACE))) //
+                .findFirst().isPresent(),
+            "No wire for " + BSN_CONTRACT);
     }
 }
