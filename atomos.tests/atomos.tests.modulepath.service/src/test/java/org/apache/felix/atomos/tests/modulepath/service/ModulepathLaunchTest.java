@@ -977,12 +977,6 @@ public class ModulepathLaunchTest
         assertEquals(Echo.class.getPackageName(), contractModule.getName(),
             "Wrong module name for contract module.");
 
-        // TODO Felix has some weird bug that causes this to fail
-        if (testFramework.getSymbolicName().startsWith("org.apache.felix.framework"))
-        {
-            return;
-        }
-
         // make sure the bundle wiring reflect the mapping correctly using the BSN
         Bundle testBundle = FrameworkUtil.getBundle(ModulepathLaunch.class);
         BundleWiring testWiring = testBundle.adapt(BundleWiring.class);

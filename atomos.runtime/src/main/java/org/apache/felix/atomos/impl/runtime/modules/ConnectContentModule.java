@@ -167,8 +167,9 @@ public class ConnectContentModule implements ConnectContent
         String bsn = result.get(Constants.BUNDLE_SYMBOLICNAME);
         if (bsn == null)
         {
-            // cannot use bundle manifest version 2 because we want to allow java.* exports
-            //result.put(Constants.BUNDLE_MANIFESTVERSION, "2");
+            // NOTE that we depend on the framework connect implementation to allow connect bundles
+            // to export java.* packages
+            result.put(Constants.BUNDLE_MANIFESTVERSION, "2");
             // set the symbolic name for the module; don't allow fragments to attach
             result.put(Constants.BUNDLE_SYMBOLICNAME,
                 symbolicName + "; " + Constants.FRAGMENT_ATTACHMENT_DIRECTIVE + ":="
