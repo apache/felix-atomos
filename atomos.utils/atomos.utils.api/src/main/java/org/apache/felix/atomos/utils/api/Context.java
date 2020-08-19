@@ -102,7 +102,7 @@ public interface Context
 
     void addResourceConfig(ResourceConfiguration resourceConfig);
 
-    Stream<Path> getFiles(FileType... fileType);
+    List<Path> getFiles(FileType... fileType);
 
     List<RegisterServiceCall> getRegisterServiceCalls();
 
