@@ -88,6 +88,12 @@
                             <additionalInitializeAtBuildTime>org.apache.felix.atomos.impl</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>javax.servlet</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>org.apache.felix.service.command.Converter</additionalInitializeAtBuildTime>
+                            <additionalInitializeAtBuildTime>org.eclipse.jetty.util.TypeUtil</additionalInitializeAtBuildTime>
+                            <additionalInitializeAtBuildTime>org.eclipse.jetty.http.HttpTokens</additionalInitializeAtBuildTime>
+                            <additionalInitializeAtBuildTime>org.eclipse.jetty.util.log.Log</additionalInitializeAtBuildTime>
+                            <additionalInitializeAtBuildTime>org.eclipse.jetty.util.log.StdErrLog</additionalInitializeAtBuildTime>
+                            <additionalInitializeAtBuildTime>org.eclipse.jetty.util.Uptime</additionalInitializeAtBuildTime>
+                            <additionalInitializeAtBuildTime>org.eclipse.jetty.server.HttpOutput</additionalInitializeAtBuildTime>
                             <!-- <additionalInitializeAtBuildTime>org.apache.felix.atomos.impl.runtime.base</additionalInitializeAtBuildTime> -->
                         </additionalInitializeAtBuildTime>
                         <resourceConfigurationFiles>

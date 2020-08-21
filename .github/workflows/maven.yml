@@ -34,7 +34,7 @@ jobs:
       uses: DeLaGuardo/setup-graalvm@2.0
       with:
         # The GraalVM version to make available on the path.
-        graalvm-version: '20.0.0.java8'
+        graalvm-version: '20.2.0.java11'
     - name: Install substrate native-image support
       if: matrix.os == 'ubuntu-latest'
       run: gu install native-image
