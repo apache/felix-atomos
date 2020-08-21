@@ -93,7 +93,7 @@
                                         </goals>
                                     </pluginExecutionFilter>
                                     <action>
-                                        <ignore/>
+                                        <ignore />
                                     </action>
                                 </pluginExecution>
                             </pluginExecutions>
@@ -199,7 +199,7 @@
             <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.http.jetty</artifactId>
-                <version>3.1.0</version>
+                <version>4.0.20</version>
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>
@@ -221,7 +221,7 @@
             <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.http.whiteboard</artifactId>
-                <version>3.0.0</version>
+                <version>4.0.0</version>
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>
@@ -232,7 +232,7 @@
             <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.webconsole</artifactId>
-                <version>4.3.16</version>
+                <version>4.5.4</version>
                 <classifier>all</classifier>
                 <exclusions>
                     <exclusion>
@@ -278,6 +278,17 @@
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.service.event</artifactId>
                 <version>1.4.0</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>javax.portlet</groupId>
+                <artifactId>portlet-api</artifactId>
+                <version>3.0.1</version>
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>
