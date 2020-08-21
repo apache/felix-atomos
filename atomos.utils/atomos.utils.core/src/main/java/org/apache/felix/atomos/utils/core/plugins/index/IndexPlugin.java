@@ -109,12 +109,15 @@ public class IndexPlugin implements JarPlugin<IndexPluginConfig>
 
         IndexInfoImpl info = new IndexInfoImpl();
 
-        Attributes attributes;
         try
         {
-            attributes = jar.getManifest().getMainAttributes();
-            info.setBsn(attributes.getValue(Constants.BUNDLE_SYMBOLICNAME));
-            info.setVersion(attributes.getValue(Constants.BUNDLE_VERSION));
+            Manifest mf = jar.getManifest();
+            Attributes attributes = mf == null ? null : mf.getMainAttributes();
+            if (attributes != null)
+            {
+                info.setBsn(attributes.getValue(Constants.BUNDLE_SYMBOLICNAME));
+                info.setVersion(attributes.getValue(Constants.BUNDLE_VERSION));
+            }
         }
         catch (IOException e1)
         {
