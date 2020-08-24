@@ -1,0 +1,686 @@
+[
+{
+  "name":"apple.security.AppleProvider",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"java.io.PrintWriter"
+},
+{
+  "name":"java.lang.Boolean",
+  "methods":[{"name":"valueOf","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.Byte",
+  "methods":[{"name":"valueOf","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.ClassLoader",
+  "methods":[{"name":"getPlatformClassLoader","parameterTypes":[] }]
+},
+{
+  "name":"java.lang.Double",
+  "methods":[{"name":"valueOf","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.Float",
+  "methods":[{"name":"valueOf","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.Integer",
+  "methods":[{"name":"valueOf","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.Long",
+  "methods":[{"name":"valueOf","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.Module",
+  "methods":[{"name":"getDescriptor","parameterTypes":[] }]
+},
+{
+  "name":"java.lang.ModuleLayer",
+  "methods":[
+    {"name":"boot","parameterTypes":[] }, 
+    {"name":"modules","parameterTypes":[] }
+  ]
+},
+{
+  "name":"java.lang.Object",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"java.lang.Object[]"
+},
+{
+  "name":"java.lang.Short",
+  "methods":[{"name":"valueOf","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.String"
+},
+{
+  "name":"java.lang.String[]"
+},
+{
+  "name":"java.lang.System",
+  "allPublicMethods":true
+},
+{
+  "name":"java.lang.Thread",
+  "methods":[
+    {"name":"getId","parameterTypes":[] }, 
+    {"name":"getStackTrace","parameterTypes":[] }
+  ]
+},
+{
+  "name":"java.lang.management.ManagementFactory",
+  "methods":[{"name":"getRuntimeMXBean","parameterTypes":[] }]
+},
+{
+  "name":"java.lang.management.RuntimeMXBean",
+  "methods":[{"name":"getUptime","parameterTypes":[] }]
+},
+{
+  "name":"java.lang.module.Configuration",
+  "methods":[{"name":"findModule","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.module.ModuleDescriptor",
+  "methods":[
+    {"name":"exports","parameterTypes":[] }, 
+    {"name":"isAutomatic","parameterTypes":[] }, 
+    {"name":"packages","parameterTypes":[] }
+  ]
+},
+{
+  "name":"java.lang.module.ModuleDescriptor$Exports",
+  "methods":[
+    {"name":"isQualified","parameterTypes":[] }, 
+    {"name":"source","parameterTypes":[] }
+  ]
+},
+{
+  "name":"java.lang.module.ModuleReference",
+  "methods":[{"name":"location","parameterTypes":[] }]
+},
+{
+  "name":"java.lang.module.ResolvedModule"
+},
+{
+  "name":"java.net.SetAccessible/0x0000000840096c40",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"java.net.URI",
+  "allPublicMethods":true,
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.security.MessageDigestSpi"
+},
+{
+  "name":"java.security.SecureRandomParameters"
+},
+{
+  "name":"java.util.ArrayList",
+  "methods":[{"name":"clone","parameterTypes":[] }]
+},
+{
+  "name":"javax.security.auth.login.Configuration"
+},
+{
+  "name":"javax.servlet.Servlet"
+},
+{
+  "name":"javax.servlet.ServletRequest",
+  "methods":[{"name":"isAsyncSupported","parameterTypes":[] }]
+},
+{
+  "name":"javax.servlet.WriteListener"
+},
+{
+  "name":"javax.ws.rs.core.Application",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"javax.ws.rs.ext.ExceptionMapper",
+  "allPublicMethods":true
+},
+{
+  "name":"javax.ws.rs.ext.MessageBodyReader",
+  "allPublicMethods":true
+},
+{
+  "name":"javax.ws.rs.ext.MessageBodyWriter",
+  "allPublicMethods":true
+},
+{
+  "name":"jdk.internal.loader.ClassLoaders$AppClassLoader",
+  "methods":[{"name":"appendToClassPathForInstrumentation","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"org.apache.aries.jax.rs.whiteboard.activator.CxfJaxrsBundleActivator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.aries.jax.rs.whiteboard.internal.DefaultApplication",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.aries.jax.rs.whiteboard.internal.cxf.CxfJaxrsServiceRegistrator$1",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.aries.spifly.dynamic.DynamicWeavingActivator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.cxf.binding.AbstractBindingFactory",
+  "fields":[{"name":"bus"}]
+},
+{
+  "name":"org.apache.cxf.bus.managers.CXFBusLifeCycleManager",
+  "fields":[{"name":"bus"}],
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.cxf.Bus"] }]
+},
+{
+  "name":"org.apache.cxf.bus.managers.ClientLifeCycleManagerImpl"
+},
+{
+  "name":"org.apache.cxf.bus.managers.EndpointResolverRegistryImpl"
+},
+{
+  "name":"org.apache.cxf.bus.managers.HeaderManagerImpl"
+},
+{
+  "name":"org.apache.cxf.bus.managers.PhaseManagerImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.cxf.bus.managers.ServerLifeCycleManagerImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.cxf.Bus"] }]
+},
+{
+  "name":"org.apache.cxf.bus.managers.ServerRegistryImpl",
+  "fields":[{"name":"bus"}],
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.cxf.Bus"] }]
+},
+{
+  "name":"org.apache.cxf.bus.managers.WorkQueueManagerImpl"
+},
+{
+  "name":"org.apache.cxf.bus.resource.ResourceManagerImpl"
+},
+{
+  "name":"org.apache.cxf.buslifecycle.BusLifeCycleManager"
+},
+{
+  "name":"org.apache.cxf.catalog.OASISCatalogManager"
+},
+{
+  "name":"org.apache.cxf.endpoint.ServerLifeCycleManager"
+},
+{
+  "name":"org.apache.cxf.endpoint.ServerRegistry"
+},
+{
+  "name":"org.apache.cxf.jaxrs.JAXRSBindingFactory",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.cxf.Bus"] }]
+},
+{
+  "name":"org.apache.cxf.jaxrs.client.spec.ClientBuilderImpl"
+},
+{
+  "name":"org.apache.cxf.jaxrs.ext.ContextProvider",
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.impl.RuntimeDelegateImpl"
+},
+{
+  "name":"org.apache.cxf.jaxrs.impl.WebApplicationExceptionMapper",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.nio.NioMessageBodyWriter",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.provider.AbstractConfigurableProvider",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.provider.AbstractJAXBProvider",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.provider.BinaryDataProvider",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.provider.DataSourceProvider",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.provider.FormEncodingProvider",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.provider.JAXBElementProvider",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.provider.JAXBElementTypedProvider",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.provider.MultipartProvider",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.provider.PrimitiveTextProvider",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.provider.SourceProvider",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.provider.StringTextProvider",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.sse.SseContextProvider",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.sse.SseEventSinkContextProvider",
+  "allDeclaredFields":true,
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.cxf.jaxrs.sse.client.SseEventSourceBuilderImpl"
+},
+{
+  "name":"org.apache.cxf.phase.PhaseManager"
+},
+{
+  "name":"org.apache.cxf.service.factory.FactoryBeanListenerManager",
+  "fields":[{"name":"bus"}],
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.cxf.Bus"] }]
+},
+{
+  "name":"org.apache.cxf.transport.http.HTTPTransportFactory",
+  "fields":[{"name":"DEFAULT_NAMESPACES"}],
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.cxf.transport.sse.SseProvidersExtension",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allPublicMethods":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.felix.atomos.examples.jaxrs.bundle.HelloResource",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allPublicMethods":true,
+  "allPublicConstructors":true
+},
+{
+  "name":"org.apache.felix.atomos.examples.jaxrs.bundle.HelloService",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allPublicMethods":true,
+  "allPublicConstructors":true
+},
+{
+  "name":"org.apache.felix.atomos.impl.runtime.base.AtomosCommands"
+},
+{
+  "name":"org.apache.felix.atomos.impl.runtime.modules.AtomosRuntimeModules",
+  "methods":[{"name":"<init>","parameterTypes":["java.util.Map"] }]
+},
+{
+  "name":"org.apache.felix.atomos.runtime.AtomosRuntime"
+},
+{
+  "name":"org.apache.felix.gogo.command.Activator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.felix.gogo.command.Basic"
+},
+{
+  "name":"org.apache.felix.gogo.command.Files"
+},
+{
+  "name":"org.apache.felix.gogo.command.Inspect"
+},
+{
+  "name":"org.apache.felix.gogo.runtime.CommandProcessorImpl",
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.felix.gogo.runtime.activator.Activator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.felix.gogo.shell.Activator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.felix.gogo.shell.Builtin"
+},
+{
+  "name":"org.apache.felix.gogo.shell.Posix",
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.felix.gogo.shell.Procedural",
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.felix.gogo.shell.Shell",
+  "allPublicMethods":true
+},
+{
+  "name":"org.apache.felix.gogo.shell.Telnet"
+},
+{
+  "name":"org.apache.felix.http.base.internal.console.HttpServicePlugin",
+  "methods":[{"name":"printConfiguration","parameterTypes":["java.io.PrintWriter"] }]
+},
+{
+  "name":"org.apache.felix.http.jetty.internal.JettyActivator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.felix.http.whiteboard.internal.WhiteboardActivator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.felix.inventory.InventoryPrinter"
+},
+{
+  "name":"org.apache.felix.inventory.impl.Activator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.felix.scr.impl.Activator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.felix.scr.impl.ComponentCommands"
+},
+{
+  "name":"org.apache.felix.service.command.CommandProcessor"
+},
+{
+  "name":"org.apache.felix.service.command.CommandSession",
+  "allDeclaredMethods":true
+},
+{
+  "name":"org.apache.felix.service.command.Converter"
+},
+{
+  "name":"org.apache.felix.service.command.Function[]"
+},
+{
+  "name":"org.apache.felix.service.threadio.ThreadIO"
+},
+{
+  "name":"org.apache.felix.webconsole.ConfigurationPrinter"
+},
+{
+  "name":"org.apache.felix.webconsole.bundleinfo.BundleInfoProvider"
+},
+{
+  "name":"org.apache.felix.webconsole.internal.OsgiManagerActivator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.felix.webconsole.internal.compendium.LogServlet",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.felix.webconsole.internal.compendium.WireAdminConfigurationPrinter",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.felix.webconsole.internal.configuration.ConfigManager",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.felix.webconsole.internal.configuration.ConfigurationAdminConfigurationPrinter",
+  "methods":[
+    {"name":"<init>","parameterTypes":[] }, 
+    {"name":"getTitle","parameterTypes":[] }, 
+    {"name":"printConfiguration","parameterTypes":["java.io.PrintWriter"] }
+  ]
+},
+{
+  "name":"org.apache.felix.webconsole.internal.core.BundlesConfigurationPrinter",
+  "methods":[
+    {"name":"<init>","parameterTypes":[] }, 
+    {"name":"getTitle","parameterTypes":[] }, 
+    {"name":"printConfiguration","parameterTypes":["java.io.PrintWriter"] }
+  ]
+},
+{
+  "name":"org.apache.felix.webconsole.internal.core.BundlesServlet",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.felix.webconsole.internal.core.PermissionsConfigurationPrinter",
+  "methods":[
+    {"name":"<init>","parameterTypes":[] }, 
+    {"name":"getTitle","parameterTypes":[] }, 
+    {"name":"printConfiguration","parameterTypes":["java.io.PrintWriter"] }
+  ]
+},
+{
+  "name":"org.apache.felix.webconsole.internal.core.ServicesConfigurationPrinter",
+  "methods":[
+    {"name":"<init>","parameterTypes":[] }, 
+    {"name":"getTitle","parameterTypes":[] }, 
+    {"name":"printConfiguration","parameterTypes":["java.io.PrintWriter"] }
+  ]
+},
+{
+  "name":"org.apache.felix.webconsole.internal.core.ServicesServlet",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.felix.webconsole.internal.misc.LicenseServlet",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.felix.webconsole.internal.misc.SystemPropertiesPrinter",
+  "methods":[
+    {"name":"<init>","parameterTypes":[] }, 
+    {"name":"getTitle","parameterTypes":[] }, 
+    {"name":"printConfiguration","parameterTypes":["java.io.PrintWriter"] }
+  ]
+},
+{
+  "name":"org.apache.felix.webconsole.internal.misc.ThreadPrinter",
+  "methods":[
+    {"name":"<init>","parameterTypes":[] }, 
+    {"name":"getTitle","parameterTypes":[] }, 
+    {"name":"printConfiguration","parameterTypes":["java.io.PrintWriter","java.lang.String"] }
+  ]
+},
+{
+  "name":"org.apache.felix.webconsole.internal.system.VMStatPlugin",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.eclipse.equinox.log.ExtendedLogService"
+},
+{
+  "name":"org.eclipse.jetty.server.Handler[]"
+},
+{
+  "name":"org.eclipse.jetty.server.handler.ContextHandlerCollection$Branch[]"
+},
+{
+  "name":"org.eclipse.jetty.servlet.ServletMapping[]"
+},
+{
+  "name":"org.eclipse.jetty.util.log.Slf4jLog",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.eclipse.osgi.framework.log.FrameworkLog"
+},
+{
+  "name":"org.eclipse.osgi.internal.cds.CDSHookConfigurator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.eclipse.osgi.internal.connect.ConnectHookConfigurator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.eclipse.osgi.internal.framework.BundleContextImpl",
+  "allPublicMethods":true
+},
+{
+  "name":"org.eclipse.osgi.internal.framework.EquinoxBundle$SystemBundle",
+  "allPublicMethods":true
+},
+{
+  "name":"org.eclipse.osgi.internal.framework.SystemBundleActivator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.eclipse.osgi.internal.signedcontent.SignedBundleHook",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.eclipse.osgi.service.datalocation.Location"
+},
+{
+  "name":"org.eclipse.osgi.service.debug.DebugOptions"
+},
+{
+  "name":"org.eclipse.osgi.service.debug.DebugOptionsListener"
+},
+{
+  "name":"org.eclipse.osgi.service.environment.EnvironmentInfo"
+},
+{
+  "name":"org.eclipse.osgi.service.localization.BundleLocalization"
+},
+{
+  "name":"org.eclipse.osgi.service.security.TrustEngine"
+},
+{
+  "name":"org.eclipse.osgi.service.urlconversion.URLConverter"
+},
+{
+  "name":"org.eclipse.osgi.signedcontent.SignedContentFactory"
+},
+{
+  "name":"org.osgi.framework.hooks.bundle.CollisionHook"
+},
+{
+  "name":"org.osgi.framework.hooks.resolver.ResolverHookFactory"
+},
+{
+  "name":"org.osgi.framework.hooks.weaving.WeavingHook"
+},
+{
+  "name":"org.osgi.service.cm.ConfigurationListener"
+},
+{
+  "name":"org.osgi.service.component.runtime.ServiceComponentRuntime"
+},
+{
+  "name":"org.osgi.service.condition.Condition"
+},
+{
+  "name":"org.osgi.service.condpermadmin.ConditionalPermissionAdmin"
+},
+{
+  "name":"org.osgi.service.http.HttpService"
+},
+{
+  "name":"org.osgi.service.http.context.ServletContextHelper"
+},
+{
+  "name":"org.osgi.service.http.runtime.HttpServiceRuntime"
+},
+{
+  "name":"org.osgi.service.jaxrs.client.SseEventSourceFactory"
+},
+{
+  "name":"org.osgi.service.jaxrs.runtime.JaxrsServiceRuntime"
+},
+{
+  "name":"org.osgi.service.log.LogService"
+},
+{
+  "name":"org.osgi.service.log.LoggerFactory"
+},
+{
+  "name":"org.osgi.service.log.admin.LoggerAdmin"
+},
+{
+  "name":"org.osgi.service.packageadmin.PackageAdmin"
+},
+{
+  "name":"org.osgi.service.permissionadmin.PermissionAdmin"
+},
+{
+  "name":"org.osgi.service.resolver.Resolver"
+},
+{
+  "name":"org.osgi.service.startlevel.StartLevel"
+},
+{
+  "name":"org.slf4j.LoggerFactory",
+  "methods":[{"name":"getILoggerFactory","parameterTypes":[] }]
+},
+{
+  "name":"org.slf4j.impl.StaticLoggerBinder"
+},
+{
+  "name":"sun.misc.Unsafe",
+  "fields":[{"name":"theUnsafe"}],
+  "methods":[{"name":"defineAnonymousClass","parameterTypes":["java.lang.Class","byte[]","java.lang.Object[]"] }]
+},
+{
+  "name":"sun.security.provider.NativePRNG",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.provider.SHA",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+}
+]
