@@ -65,7 +65,7 @@ public class ShadePreHolder
 
     List<JarFile> all()
     {
-        return source.entrySet().parallelStream().flatMap(
+        return source.entrySet().stream().flatMap(
             c -> c.getValue().stream()).collect(Collectors.toList());
     }
 
@@ -76,7 +76,7 @@ public class ShadePreHolder
 
     JarFile any()
     {
-        return source.entrySet().parallelStream().map(
+        return source.entrySet().stream().map(
             c -> c.getValue().stream().findAny()).findAny().get().get();
     }
 
@@ -92,7 +92,7 @@ public class ShadePreHolder
 
     long size()
     {
-        return source.entrySet().parallelStream().flatMap(
+        return source.entrySet().stream().flatMap(
             c -> c.getValue().stream()).count();
     }
 

@@ -157,7 +157,6 @@
                             <additionalInitializeAtBuildTime>org.apache.cxf.bus.managers.DestinationFactoryManagerImpl</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>org.apache.cxf.bus.managers.ConduitInitiatorManagerImpl</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>org.apache.cxf.bus.managers.BindingFactoryManagerImpl</additionalInitializeAtBuildTime>
-                            <!-- <additionalInitializeAtBuildTime>org.apache.felix.atomos.impl.runtime.base</additionalInitializeAtBuildTime> -->
                         </additionalInitializeAtBuildTime>
                         <resourceConfigurationFiles>
                             <resourceConfigurationFile>additionalResourceConfig.json</resourceConfigurationFile>
@@ -175,7 +174,6 @@
                             <reflectionConfigurationFile>reflectConfig_jetty.json</reflectionConfigurationFile>
                             <reflectionConfigurationFile>reflectAgentConfig.json</reflectionConfigurationFile>
                         </reflectionConfigurationFiles>
-                        <!-- <mainClass>org.apache.felix.atomos.launch.AtomosLauncher</mainClass> -->
                     </nativeImage>
                 </configuration>
                 <executions>
