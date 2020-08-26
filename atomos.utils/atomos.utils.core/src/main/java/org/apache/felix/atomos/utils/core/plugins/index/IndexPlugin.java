@@ -25,7 +25,9 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -200,7 +202,7 @@ public class IndexPlugin implements JarPlugin<IndexPluginConfig>
         {
 
             final List<String> bundleIndexLines = new ArrayList<>();
-            final List<String> resources = new ArrayList<>();
+            final Collection<String> resources = new LinkedHashSet<>();
             sis.forEach(s -> {
                 if (s.getBundleSymbolicName() != null)
                 {
@@ -217,7 +219,7 @@ public class IndexPlugin implements JarPlugin<IndexPluginConfig>
                                 resources.add(
                                     ATOMOS_BUNDLES_BASE_PATH + s.getId() + "/" + f);
                             }
-                            else
+                            if (!f.endsWith("/") && !"META-INF/MANIFEST.MF".equals(f))
                             {
                                 resources.add(f);
                             }
@@ -321,7 +323,7 @@ public class IndexPlugin implements JarPlugin<IndexPluginConfig>
         uniquePaths = new HashMap<>();
     }
 
-    private void writeGraalResourceConfig(List<String> resources, Context context)
+    private void writeGraalResourceConfig(Collection<String> resources, Context context)
         throws IOException
     {
         resources.add(ATOMOS_CATH_ALL); // This alone could be enough,

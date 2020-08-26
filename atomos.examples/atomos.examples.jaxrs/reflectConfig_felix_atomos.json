@@ -1,0 +1,9 @@
+[
+   {
+    "name" : "org.apache.felix.atomos.impl.runtime.base.AtomosCommands",
+    "allPublicMethods" : true,
+    "allDeclaredMethods" : true,
+    "allPublicFields" : true,
+    "allDeclaredFields" : true
+   }
+]

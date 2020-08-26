@@ -1,0 +1,13 @@
+[
+  {
+    "name" : "org.eclipse.jetty.servlet.ServletMapping[]",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.eclipse.jetty.servlet.FilterMapping[]",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  }
+  
+]
