@@ -32,6 +32,7 @@ import java.util.Deque;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -675,7 +676,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
 
         protected final Set<AtomosContentBase> findAtomosContents()
         {
-            Set<AtomosContentBase> bootBundles = new HashSet<>();
+            Set<AtomosContentBase> bootBundles = new LinkedHashSet<>();
 
             // first get the modules from the boot ModuleLayer (Java 9+ JPMS)
             findBootModuleLayerAtomosContents(bootBundles);

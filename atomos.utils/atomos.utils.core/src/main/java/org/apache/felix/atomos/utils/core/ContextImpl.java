@@ -198,7 +198,7 @@ public class ContextImpl implements Context
     @Override
     public Stream<Path> getFiles(FileType... fileType)
     {
-        return paths.entrySet().parallelStream().filter(
+        return paths.entrySet().stream().filter(
             e -> List.of(fileType).stream().filter(Objects::nonNull).anyMatch(
                 t -> t.equals(e.getValue()))).map(Entry::getKey);
     }

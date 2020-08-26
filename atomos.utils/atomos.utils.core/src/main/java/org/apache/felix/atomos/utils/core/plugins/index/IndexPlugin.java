@@ -79,7 +79,7 @@ public class IndexPlugin implements JarPlugin<IndexPluginConfig>
 
     JarOutputStream jos;
 
-    private ArrayList<IndexInfo> sis;
+    private ArrayList<IndexInfo> indexInfos;
     private Map<String, Boolean> uniquePaths;
 
     private Path substrateJar;
@@ -178,7 +178,7 @@ public class IndexPlugin implements JarPlugin<IndexPluginConfig>
         }).map(JarEntry::getName).collect(Collectors.toList());
 
         info.setFiles(files);
-        sis.add(info);
+        indexInfos.add(info);
     }
 
     @Override
@@ -203,21 +203,23 @@ public class IndexPlugin implements JarPlugin<IndexPluginConfig>
 
             final List<String> bundleIndexLines = new ArrayList<>();
             final Collection<String> resources = new LinkedHashSet<>();
-            sis.forEach(s -> {
-                if (s.getBundleSymbolicName() != null)
-                {
+            indexInfos.stream() //
+                .filter((i) -> i.getBundleSymbolicName() != null) //
+                .sorted((i1, i2) -> i1.getBundleSymbolicName().compareTo(
+                    i2.getBundleSymbolicName())) //
+                .forEach((i) -> {
                     bundleIndexLines.add(ATOMOS_BUNDLE_SEPARATOR);
-                    bundleIndexLines.add(s.getId());
-                    bundleIndexLines.add(s.getBundleSymbolicName());
-                    bundleIndexLines.add(s.getVersion());
-                    s.getFiles().forEach(f -> {
+                    bundleIndexLines.add(i.getId());
+                    bundleIndexLines.add(i.getBundleSymbolicName());
+                    bundleIndexLines.add(i.getVersion());
+                    i.getFiles().forEach(f -> {
                         bundleIndexLines.add(f);
                         if (!isClass(f))
                         {
                             if (Boolean.FALSE == uniquePaths.get(f))
                             {
                                 resources.add(
-                                    ATOMOS_BUNDLES_BASE_PATH + s.getId() + "/" + f);
+                                    ATOMOS_BUNDLES_BASE_PATH + i.getId() + "/" + f);
                             }
                             if (!f.endsWith("/") && !"META-INF/MANIFEST.MF".equals(f))
                             {
@@ -225,8 +227,8 @@ public class IndexPlugin implements JarPlugin<IndexPluginConfig>
                             }
                         }
                     });
-                }
-            });
+                });
+
             ByteArrayOutputStream indexBytes;
             try (final ByteArrayOutputStream out = new ByteArrayOutputStream();
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out)))
@@ -319,7 +321,7 @@ public class IndexPlugin implements JarPlugin<IndexPluginConfig>
             }
         }
         counter = new AtomicLong(0);
-        sis = new ArrayList<>();
+        indexInfos = new ArrayList<>();
         uniquePaths = new HashMap<>();
     }
 

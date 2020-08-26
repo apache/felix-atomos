@@ -133,7 +133,7 @@ public class LauncherImpl implements Launcher
             //      }
         }
 
-        List<ComponentDescription> cds = list.parallelStream().map(cmd -> {
+        List<ComponentDescription> cds = list.stream().map(cmd -> {
             cmd.validate();
             return new ComponentDescriptionImpl(cmd);
 
@@ -345,7 +345,7 @@ public class LauncherImpl implements Launcher
 
     private <T extends SubstratePlugin<?>> Stream<T> orderdPluginsBy(Class<T> clazz)
     {
-        return plugins.parallelStream()//
+        return plugins.stream()//
             .filter(clazz::isInstance)//
             .map(clazz::cast)//
             .sorted((p1, p2) -> p1.ranking(clazz) - p2.ranking(clazz));

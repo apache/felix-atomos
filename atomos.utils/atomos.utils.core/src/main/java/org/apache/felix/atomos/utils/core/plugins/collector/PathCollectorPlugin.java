@@ -62,7 +62,7 @@ public class PathCollectorPlugin implements FileCollectorPlugin<PathCollectorPlu
             }
 
         };
-        config.paths().parallelStream().forEach(p -> {
+        config.paths().forEach(p -> {
             try
             {
                 Files.walkFileTree(p, v);

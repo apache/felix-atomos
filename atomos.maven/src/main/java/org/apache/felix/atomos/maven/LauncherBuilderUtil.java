@@ -109,6 +109,7 @@ public class LauncherBuilderUtil
                     .anyMatch(s -> a.getArtifactId().matches(s));
             })//
             .map(a -> a.getFile().toPath())//
+            .sorted()//
             .collect(Collectors.toList());
 
         PathCollectorPluginConfig dc = new PathCollectorPluginConfig()
