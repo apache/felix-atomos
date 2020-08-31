@@ -7,3 +7,4 @@ The following examples are available:
 1. Atomos native-image example ([Equinox](atomos.examples.substrate.equinox/README.md) and [Felix](atomos.examples.substrate.felix/README.md)) - Assembles a native image using Graal Substrate to load the framework and a set of bundles
 1. Atomos native-image example ([atomos-maven-plugin](atomos.examples.substrate.maven.equinox/README.md)) - Assembles a native image using Graal Substrate with the atomos-maven-plugin
 1. [Atomos Android example](atomos.examples.android/README.md) - Uses the result of the [Atomos index example](atomos.examples.index/README.md) to build an Android application
+1. [Atomos JAX-RS example](atomos.examples.jaxrs/README.md) - Uses Aries JAX-RS [whiteboard](https://github.com/apache/aries-jax-rs-whiteboard) implementation for a simple JAX-RS resource example.

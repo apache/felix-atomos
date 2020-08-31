@@ -46,20 +46,17 @@ public class NativeImagePlugin implements FinalPlugin<NativeImageBuilderConfig>
             Path native_image_build = config.nativeImageOutputDirectory().resolve(
                 "native_image_build");
             Files.createDirectories(native_image_build);
-            Path native_image_build_timed = native_image_build.resolve(
-                System.currentTimeMillis() + "");
-            Files.createDirectories(native_image_build_timed);
-            Path cpDir = native_image_build_timed.resolve("cp");
+            Path cpDir = native_image_build.resolve("cp");
             Files.createDirectories(cpDir);
-            Path cfgDir = native_image_build_timed.resolve("cfg");
+            Path cfgDir = native_image_build.resolve("cfg");
             Files.createDirectories(cfgDir);
-            Path binDir = native_image_build_timed.resolve("bin");
+            Path binDir = native_image_build.resolve("bin");
             Files.createDirectories(binDir);
 
             //prepare classpath
             List<Path> classpath = context.getFiles(FileType.ARTIFACT,
                 FileType.INDEX_JAR).collect(Collectors.toList());
-            System.out.println(native_image_build_timed);
+            System.out.println(native_image_build);
             List<Path> copyOfClassPath = new ArrayList<>();
             classpath.forEach(p -> {
                 try
