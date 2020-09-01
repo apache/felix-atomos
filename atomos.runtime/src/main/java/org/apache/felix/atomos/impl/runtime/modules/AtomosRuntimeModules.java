@@ -599,4 +599,16 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
         }
         return bc.getBundle(location);
     }
+
+    @Override
+    public void populateConfig(Map<String, String> config)
+    {
+        super.populateConfig(config);
+        if (config.get(Constants.FRAMEWORK_SYSTEMPACKAGES) == null)
+        {
+            // this is to prevent the framework from exporting all the packages provided
+            // by the module path.
+            config.put(Constants.FRAMEWORK_SYSTEMPACKAGES, "");
+        }
+    }
 }

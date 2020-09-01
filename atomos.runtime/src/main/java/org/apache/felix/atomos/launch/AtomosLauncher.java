@@ -23,7 +23,6 @@ import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Constants;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.launch.Framework;
 
@@ -144,13 +143,7 @@ public class AtomosLauncher
         frameworkConfig = frameworkConfig == null ? new HashMap<>()
             : new HashMap<>(frameworkConfig);
 
-        if (atomosRuntime.getBootLayer().isAddLayerSupported()
-            && frameworkConfig.get(Constants.FRAMEWORK_SYSTEMPACKAGES) == null)
-        {
-            // this is to prevent the framework from exporting all the packages provided
-            // by the module path.
-            frameworkConfig.put(Constants.FRAMEWORK_SYSTEMPACKAGES, "");
-        }
+        ((AtomosRuntimeBase) atomosRuntime).populateConfig(frameworkConfig);
 
         // Always allow the console to work
         frameworkConfig.putIfAbsent("osgi.console", "");
