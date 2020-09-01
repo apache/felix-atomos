@@ -1696,4 +1696,9 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
     {
         throw (E) e;
     }
+
+    public void populateConfig(Map<String, String> frameworkConfig)
+    {
+        // do nothing by default
+    }
 }

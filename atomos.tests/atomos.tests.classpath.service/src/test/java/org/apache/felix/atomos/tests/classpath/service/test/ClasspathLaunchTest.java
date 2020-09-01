@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosCommands;
@@ -46,6 +47,12 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.launch.Framework;
+import org.osgi.framework.namespace.PackageNamespace;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.FrameworkWiring;
+import org.osgi.resource.Namespace;
+import org.osgi.resource.Requirement;
+import org.osgi.resource.Resource;
 
 public class ClasspathLaunchTest
 {
@@ -256,5 +263,46 @@ public class ClasspathLaunchTest
             }
             assertEquals(expected, b.getState(), "Wrong bundle state for bundle: " + msg);
         }
+    }
+
+    @Test
+    void testSystemPackages(@TempDir Path storage) throws BundleException
+    {
+        testFramework = AtomosLauncher.launch(Collections.singletonMap(
+            Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        // this test assumes it is running on Java 11+
+        Collection<BundleCapability> javaLangPackages = testFramework.adapt(
+            FrameworkWiring.class).findProviders(new Requirement()
+            {
+
+                @Override
+                public Resource getResource()
+                {
+                    return null;
+                }
+
+                @Override
+                public String getNamespace()
+                {
+                    return PackageNamespace.PACKAGE_NAMESPACE;
+                }
+
+                @Override
+                public Map<String, String> getDirectives()
+                {
+                    return Map.of(Namespace.REQUIREMENT_FILTER_DIRECTIVE,
+                        "(" + PackageNamespace.PACKAGE_NAMESPACE + "=java.lang)");
+                }
+
+                @Override
+                public Map<String, Object> getAttributes()
+                {
+                    return Collections.emptyMap();
+                }
+            });
+        assertEquals(1, javaLangPackages.size(), "Wrong number of java.lang packages.");
+        assertEquals(Object.class.getModule().getName(),
+            javaLangPackages.iterator().next().getRevision().getSymbolicName(),
+            "Wrong provider of java.lang package.");
     }
 }
