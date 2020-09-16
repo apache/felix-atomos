@@ -1593,7 +1593,7 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         {
             debug("Installing Atomos content.");
             List<Bundle> bundles = new ArrayList<>();
-            for (AtomosContent atomosContent : atomosLayer.getAtomosContents())
+            atomosLayer.getAtomosContents().stream().sorted().forEach((atomosContent) -> //
             {
                 if (getBundle(atomosContent) == null)
                 {
@@ -1612,7 +1612,8 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
                             e.getMessage());
                     }
                 }
-            }
+            });
+
             if (startBundles)
             {
                 for (Bundle b : bundles)
