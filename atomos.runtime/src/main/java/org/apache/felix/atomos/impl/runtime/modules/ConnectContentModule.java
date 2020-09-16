@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.lang.module.ModuleDescriptor;
-import java.lang.module.ModuleDescriptor.Exports;
 import java.lang.module.ModuleDescriptor.Provides;
 import java.lang.module.ModuleDescriptor.Requires;
 import java.lang.module.ModuleReader;
@@ -181,7 +180,7 @@ public class ConnectContentModule implements ConnectContent
             // only do exports for non bundle modules
             // real OSGi bundles already have good export capabilities
             StringBuilder exportPackageHeader = new StringBuilder();
-            for (Exports exports : desc.exports())
+            desc.exports().stream().sorted().forEach((exports) ->
             {
                 if (exportPackageHeader.length() > 0)
                 {
@@ -189,7 +188,7 @@ public class ConnectContentModule implements ConnectContent
                 }
                 exportPackageHeader.append(exports.source());
                 // TODO map targets to x-friends directive?
-            }
+            });
             if (exportPackageHeader.length() > 0)
             {
                 result.put(Constants.EXPORT_PACKAGE, exportPackageHeader.toString());
