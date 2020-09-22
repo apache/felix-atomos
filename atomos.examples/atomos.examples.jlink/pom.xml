@@ -25,15 +25,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.eclipse.platform</groupId>
-            <artifactId>org.eclipse.osgi</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.framework.connect</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.atomos.runtime</artifactId>
             <version>${atomos.version}</version>
@@ -81,6 +72,10 @@
             <id>equinox</id>
             <dependencies>
                 <dependency>
+                    <groupId>org.eclipse.platform</groupId>
+                    <artifactId>org.eclipse.osgi</artifactId>
+                </dependency>
+                <dependency>
                     <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
                     <artifactId>atomos.osgi.framework</artifactId>
                     <version>${atomos.version}</version>
@@ -96,6 +91,10 @@
                 <buildWithFelix>true</buildWithFelix>
             </properties>
             <dependencies>
+                <dependency>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>org.apache.felix.framework.connect</artifactId>
+                </dependency>
                 <dependency>
                     <groupId>org.apache.felix.atomos.osgi.frameworks.felix</groupId>
                     <artifactId>atomos.osgi.framework</artifactId>
@@ -267,13 +266,15 @@
 
                                         exports org.apache.felix.framework;
                                         exports org.apache.felix.framework.cache;
-                                        exports org.apache.felix.framework.capabilityset;
+                                        exports
+                                        org.apache.felix.framework.capabilityset;
                                         exports
                                         org.apache.felix.framework.ext;
                                         exports
                                         org.apache.felix.framework.resolver;
                                         exports org.apache.felix.framework.util;
-                                        exports org.apache.felix.framework.util.manifestparser;
+                                        exports
+                                        org.apache.felix.framework.util.manifestparser;
                                         exports
                                         org.apache.felix.framework.wiring;
                                         exports org.apache.felix.resolver;
@@ -289,7 +290,8 @@
                                         exports
                                         org.osgi.framework.hooks.resolver;
                                         exports org.osgi.framework.hooks.service;
-                                        exports org.osgi.framework.hooks.weaving;
+                                        exports
+                                        org.osgi.framework.hooks.weaving;
                                         exports
                                         org.osgi.framework.launch;
                                         exports org.osgi.framework.namespace;
@@ -297,7 +299,8 @@
                                         org.osgi.framework.startlevel;
                                         exports
                                         org.osgi.framework.startlevel.dto;
-                                        exports org.osgi.framework.wiring;
+                                        exports
+                                        org.osgi.framework.wiring;
                                         exports
                                         org.osgi.framework.wiring.dto;
                                         exports org.osgi.resource;
@@ -306,14 +309,16 @@
                                         org.osgi.service.packageadmin;
                                         exports
                                         org.osgi.service.resolver;
-                                        exports org.osgi.service.startlevel;
+                                        exports
+                                        org.osgi.service.startlevel;
                                         exports
                                         org.osgi.service.url;
                                         exports org.osgi.util.tracker;
 
                                         provides org.osgi.framework.launch.FrameworkFactory with
                                         org.apache.felix.framework.FrameworkFactory;
-                                        provides org.osgi.framework.connect.ConnectFrameworkFactory
+                                        provides
+                                        org.osgi.framework.connect.ConnectFrameworkFactory
                                         with org.apache.felix.framework.FrameworkFactory;
 
                                         uses org.apache.felix.framework.ext.ClassPathExtenderFactory;
@@ -500,7 +505,7 @@
         </plugins>
         <pluginManagement>
             <plugins>
-                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
                 <plugin>
                     <groupId>org.eclipse.m2e</groupId>
                     <artifactId>lifecycle-mapping</artifactId>
