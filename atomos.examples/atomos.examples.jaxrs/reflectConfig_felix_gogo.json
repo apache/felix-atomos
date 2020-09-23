@@ -1,5 +1,9 @@
 [
   {
+    "name":"java.lang.Boolean",
+    "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }]
+  },
+  {
      "name":"org.apache.felix.service.command.Converter"
   },
     {
