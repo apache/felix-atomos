@@ -40,4 +40,4 @@ jobs:
       run: gu install native-image
     - name: Build Equinox substrate example
       if: matrix.os == 'ubuntu-latest'
-      run: ./mvnw clean package -f atomos.examples/atomos.examples.substrate.equinox/pom.xml
+      run: ./mvnw clean package -f atomos.examples/atomos.examples.substrate.lib/pom.xml

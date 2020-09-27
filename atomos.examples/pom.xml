@@ -26,8 +26,7 @@
                 <module>atomos.examples.jaxrs</module>
                 <module>atomos.examples.jlink</module>
                 <module>atomos.examples.springloader</module>
-                <module>atomos.examples.substrate.equinox</module>
-                <module>atomos.examples.substrate.felix</module>
+                <module>atomos.examples.substrate.lib</module>
                 <module>atomos.examples.substrate.maven</module>
             </modules>
         </profile>
