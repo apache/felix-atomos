@@ -38,6 +38,6 @@ jobs:
     - name: Install substrate native-image support
       if: matrix.os == 'ubuntu-latest'
       run: gu install native-image
-    - name: Build Equinox substrate example
+    - name: Build substrate lib example
       if: matrix.os == 'ubuntu-latest'
       run: ./mvnw clean package -f atomos.examples/atomos.examples.substrate.lib/pom.xml
