@@ -31,7 +31,7 @@ jobs:
         atomos.examples/atomos.examples.android/gradlew -b atomos.examples/atomos.examples.android/build.gradle build
     - name: Setup GraalVM environment
       if: matrix.os == 'ubuntu-latest'
-      uses: DeLaGuardo/setup-graalvm@2.0
+      uses: DeLaGuardo/setup-graalvm@3.0
       with:
         # The GraalVM version to make available on the path.
         graalvm-version: '20.2.0.java11'
