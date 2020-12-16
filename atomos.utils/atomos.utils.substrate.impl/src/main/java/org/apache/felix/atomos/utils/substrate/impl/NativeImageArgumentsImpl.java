@@ -148,9 +148,6 @@ public class NativeImageArgumentsImpl implements DefaultNativeImageArguments
         addArgIfTrue(otherArguments, NI_PARAM_H_REPORT_EXCEPTION_STACK_TRACES,
             reportExceptionStackTraces());
         //
-        addArgIfTrue(otherArguments, NI_PARAM_H_TRACE_CLASS_INITIALIZATION,
-            allowIncompleteClasspath());
-        //-H:+TraceClassInitialization
         addArgIfTrue(otherArguments, NI_PARAM_H_PRINT_CLASS_INITIALIZATION,
             traceClassInitialization());
         //--no-fallback
