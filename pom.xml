@@ -14,7 +14,7 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <atomos.version>${project.version}</atomos.version>
-        <bnd.version>5.0.1</bnd.version>
+        <bnd.version>5.2.0</bnd.version>
     </properties>
 
     <modules>
