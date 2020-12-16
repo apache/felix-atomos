@@ -7,16 +7,7 @@
     </parent>
     <artifactId>org.apache.felix.atomos.examples.substrate.maven</artifactId>
     <name>atomos.examples.substrate.maven</name>
-    <repositories>
-        <repository>
-            <id>atomos-temp-m2repo</id>
-            <url>https://github.com/tjwatson/atomos-temp-m2repo/raw/master/repository</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>interval:60</updatePolicy>
-            </snapshots>
-        </repository>
-    </repositories>
+
     <profiles>
         <profile>
             <id>equinox</id>

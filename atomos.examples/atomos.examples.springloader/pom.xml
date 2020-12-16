@@ -10,16 +10,6 @@
     <name>atomos.examples.springloader</name>
     <description>Atomos example using Spring Boot Loader</description>
 
-    <repositories>
-        <repository>
-            <id>atomos-temp-m2repo</id>
-            <url>https://github.com/tjwatson/atomos-temp-m2repo/raw/master/repository</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-    </repositories>
     <profiles>
         <profile>
             <id>felix</id>

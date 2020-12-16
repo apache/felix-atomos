@@ -10,16 +10,6 @@
     <name>atomos.examples.index</name>
     <description>Example using the Atomos index to create an executable JAR</description>
 
-    <repositories>
-        <repository>
-            <id>atomos-temp-m2repo</id>
-            <url>https://github.com/tjwatson/atomos-temp-m2repo/raw/master/repository</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-    </repositories>
     <profiles>
         <profile>
             <id>equinox</id>

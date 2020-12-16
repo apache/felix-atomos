@@ -10,16 +10,6 @@
     <name>atomos.examples.jaxrs</name>
     <description>Atomos example using Aries JAX-RS</description>
 
-    <repositories>
-        <repository>
-            <id>atomos-temp-m2repo</id>
-            <url>https://github.com/tjwatson/atomos-temp-m2repo/raw/master/repository</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-    </repositories>
     <properties>
         <jaxb.version>2.3.3</jaxb.version>
         <aries.jaxrs.version>1.0.9</aries.jaxrs.version>
