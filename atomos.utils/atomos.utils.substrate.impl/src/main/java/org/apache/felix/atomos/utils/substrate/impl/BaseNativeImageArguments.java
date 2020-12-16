@@ -42,8 +42,6 @@ public interface BaseNativeImageArguments extends NativeImageArguments
 
     String NI_PARAM_H_RESOURCE_CONFIGURATION_FILES = "-H:ResourceConfigurationFiles";
 
-    String NI_PARAM_H_TRACE_CLASS_INITIALIZATION = "-H:+TraceClassInitialization";
-
     String NI_PARAM_INITIALIZE_AT_BUILD_TIME = "--initialize-at-build-time";
 
     String NI_PARAM_NO_FALLBACK = "--no-fallback";

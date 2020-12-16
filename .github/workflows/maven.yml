@@ -12,12 +12,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        java_version: ['11', '13']
+        java_version: ['11', '15']
         os: [ubuntu-latest, windows-latest, macOS-latest]
     steps:
     - uses: actions/checkout@v1
     - name: Set up JDK ${{ matrix.java_version }}
-      uses: actions/setup-java@v1.3.0 
+      uses: actions/setup-java@v1.4.3
       with:
         java-version: ${{ matrix.java_version }}
     - name: Main build using Felix
@@ -31,10 +31,10 @@ jobs:
         atomos.examples/atomos.examples.android/gradlew -b atomos.examples/atomos.examples.android/build.gradle build
     - name: Setup GraalVM environment
       if: matrix.os == 'ubuntu-latest'
-      uses: DeLaGuardo/setup-graalvm@2.0
+      uses: DeLaGuardo/setup-graalvm@3.0
       with:
         # The GraalVM version to make available on the path.
-        graalvm-version: '20.2.0.java11'
+        graalvm-version: '20.3.0.java11'
     - name: Install substrate native-image support
       if: matrix.os == 'ubuntu-latest'
       run: gu install native-image

@@ -14,8 +14,8 @@
 
     <repositories>
         <repository>
-            <id>atomos-temp-m2repo</id>
-            <url>https://github.com/tjwatson/atomos-temp-m2repo/raw/master/repository</url>
+            <id>apache-snapshots</id>
+            <url>https://repository.apache.org/snapshots</url>
             <snapshots>
                 <enabled>true</enabled>
                 <updatePolicy>always</updatePolicy>
@@ -93,7 +93,7 @@
             <dependencies>
                 <dependency>
                     <groupId>org.apache.felix</groupId>
-                    <artifactId>org.apache.felix.framework.connect</artifactId>
+                    <artifactId>org.apache.felix.framework</artifactId>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.felix.atomos.osgi.frameworks.felix</groupId>
@@ -258,10 +258,10 @@
                                 <module>
                                     <artifact>
                                         <groupId>org.apache.felix</groupId>
-                                        <artifactId>org.apache.felix.framework.connect</artifactId>
+                                        <artifactId>org.apache.felix.framework</artifactId>
                                     </artifact>
                                     <moduleInfoSource>
-                                        open module org.apache.felix.framework.connect {
+                                        open module org.apache.felix.framework {
                                         requires jdk.unsupported;
 
                                         exports org.apache.felix.framework;
