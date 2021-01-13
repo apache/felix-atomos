@@ -29,15 +29,4 @@ jobs:
       run: |
         cp atomos.examples/atomos.examples.index/target/org.apache.felix.atomos.examples.index-*.jar atomos.examples/atomos.examples.android/app/libs
         atomos.examples/atomos.examples.android/gradlew -b atomos.examples/atomos.examples.android/build.gradle build
-    - name: Setup GraalVM environment
-      if: matrix.os == 'ubuntu-latest'
-      uses: DeLaGuardo/setup-graalvm@3.0
-      with:
-        # The GraalVM version to make available on the path.
-        graalvm-version: '20.3.0.java11'
-    - name: Install substrate native-image support
-      if: matrix.os == 'ubuntu-latest'
-      run: gu install native-image
-    - name: Build substrate lib example
-      if: matrix.os == 'ubuntu-latest'
-      run: ./mvnw clean package -f atomos.examples/atomos.examples.substrate.lib/pom.xml
+
