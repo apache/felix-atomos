@@ -10,6 +10,12 @@
     <artifactId>atomos-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
     <name>atomos-maven-plugin</name>
+    <scm>
+        <connection>scm:git:https://github.com/apache/felix-atomos.git</connection>
+        <developerConnection>scm:git:https://github.com/apache/felix-atomos.git</developerConnection>
+        <url>https://github.com/apache/felix-atomos</url>
+        <tag>HEAD</tag>
+    </scm>
     <dependencies>
         <dependency>
             <groupId>org.apache.felix.atomos.utils</groupId>

@@ -11,6 +11,12 @@
     <groupId>org.apache.felix.atomos.utils</groupId>
     <artifactId>org.apache.felix.atomos.utils</artifactId>
     <name>atomos.utils</name>
+    <scm>
+        <connection>scm:git:https://github.com/apache/felix-atomos.git</connection>
+        <developerConnection>scm:git:https://github.com/apache/felix-atomos.git</developerConnection>
+        <url>https://github.com/apache/felix-atomos</url>
+        <tag>HEAD</tag>
+    </scm>
     <modules>
         <module>atomos.utils.api</module>
         <module>atomos.utils.core</module>

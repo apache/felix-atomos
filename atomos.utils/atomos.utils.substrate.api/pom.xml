@@ -10,6 +10,12 @@
     <artifactId>org.apache.felix.atomos.utils.substrate.api</artifactId>
     <packaging>jar</packaging>
     <name>atomos.utils.substrate.api</name>
+    <scm>
+        <connection>scm:git:https://github.com/apache/felix-atomos.git</connection>
+        <developerConnection>scm:git:https://github.com/apache/felix-atomos.git</developerConnection>
+        <url>https://github.com/apache/felix-atomos</url>
+        <tag>HEAD</tag>
+    </scm>
     <dependencies>
 
         <dependency>

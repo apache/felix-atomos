@@ -11,6 +11,12 @@
     <groupId>org.apache.felix.atomos.osgi.frameworks</groupId>
     <artifactId>atomos.osgi.frameworks</artifactId>
     <name>atomos.osgi.frameworks</name>
+    <scm>
+        <connection>scm:git:https://github.com/apache/felix-atomos.git</connection>
+        <developerConnection>scm:git:https://github.com/apache/felix-atomos.git</developerConnection>
+        <url>https://github.com/apache/felix-atomos</url>
+        <tag>HEAD</tag>
+    </scm>
     <modules>
         <module>equinox</module>
         <module>felix</module>

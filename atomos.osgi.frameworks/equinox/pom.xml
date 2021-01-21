@@ -9,9 +9,13 @@
     <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
     <artifactId>atomos.osgi.framework</artifactId>
     <name>atomos.osgi.framework-equinox</name>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <scm>
+        <connection>scm:git:https://github.com/apache/felix-atomos.git</connection>
+        <developerConnection>scm:git:https://github.com/apache/felix-atomos.git</developerConnection>
+        <url>https://github.com/apache/felix-atomos</url>
+        <tag>HEAD</tag>
+    </scm>
+
     <dependencies>
         <dependency>
             <groupId>org.eclipse.platform</groupId>
