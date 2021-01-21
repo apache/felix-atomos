@@ -5,6 +5,7 @@
         <groupId>org.apache.felix</groupId>
         <artifactId>atomos-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../atomos-parent/pom.xml</relativePath>
     </parent>
     <artifactId>org.apache.felix.atomos.substrate.config</artifactId>
 
