@@ -11,6 +11,9 @@
     <groupId>org.apache.felix.atomos.tests</groupId>
     <artifactId>org.apache.felix.atomos.tests</artifactId>
     <name>atomos.tests</name>
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
     <modules>
         <module>atomos.tests.testbundles</module>
         <module>atomos.tests.modulepath.service</module>
