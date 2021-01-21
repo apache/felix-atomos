@@ -29,6 +29,11 @@
             <artifactId>org.apache.felix.gogo.runtime</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>osgi.core</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>
@@ -38,6 +43,7 @@
                     <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
                     <artifactId>atomos.osgi.framework</artifactId>
                     <version>${atomos.version}</version>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
             <activation>
@@ -54,6 +60,7 @@
                     <groupId>org.apache.felix.atomos.osgi.frameworks.felix</groupId>
                     <artifactId>atomos.osgi.framework</artifactId>
                     <version>${atomos.version}</version>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
@@ -61,26 +68,6 @@
             <id>java8</id>
             <build>
                 <plugins>
-                    <plugin>
-                        <groupId>org.apache.rat</groupId>
-                        <artifactId>apache-rat-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>check</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <includes>
-                                <include>src/**</include>
-                            </includes>
-                            <excludes>
-                                <exclude>src/main/resources/META-INF/**</exclude>
-                            </excludes>
-                        </configuration>
-                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>

@@ -8,9 +8,36 @@
     </parent>
     <artifactId>org.apache.felix.atomos.tests.modulepath.service</artifactId>
     <name>atomos.tests.modulepath.service</name>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <profiles>
+        <profile>
+            <id>equinox</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
+                    <artifactId>atomos.osgi.framework</artifactId>
+                    <version>${atomos.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>felix</id>
+            <properties>
+                <buildWithFelix>true</buildWithFelix>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.felix.atomos.osgi.frameworks.felix</groupId>
+                    <artifactId>atomos.osgi.framework</artifactId>
+                    <version>${atomos.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
     <dependencies>
         <dependency>
             <groupId>org.apache.felix</groupId>

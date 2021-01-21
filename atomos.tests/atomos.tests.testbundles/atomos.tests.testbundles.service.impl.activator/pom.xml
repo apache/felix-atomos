@@ -12,9 +12,10 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.atomos.runtime</artifactId>
+            <groupId>org.apache.felix.atomos.osgi.frameworks.felix</groupId>
+            <artifactId>atomos.osgi.framework</artifactId>
             <version>${atomos.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>

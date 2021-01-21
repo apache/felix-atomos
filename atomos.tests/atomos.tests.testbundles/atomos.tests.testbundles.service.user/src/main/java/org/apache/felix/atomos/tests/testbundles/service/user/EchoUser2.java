@@ -16,13 +16,14 @@ package org.apache.felix.atomos.tests.testbundles.service.user;
 import java.util.Map;
 
 import org.apache.felix.atomos.tests.testbundles.service.contract.Echo;
+import org.osgi.annotation.bundle.Requirement;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 @Component(service = EchoUser2.class, property = {
 "echo.reference:Boolean=true" }, immediate = true)
-@org.osgi.annotation.bundle.Requirement(namespace = "osgi.ee", filter = "(&(osgi.ee=JavaSE)(version=1.8))")
+@Requirement(namespace = "osgi.ee", filter = "(&(osgi.ee=JavaSE)(version=1.8))")
 public class EchoUser2
 {
     @Activate
