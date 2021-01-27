@@ -21,5 +21,8 @@
         <module>atomos.tests.testbundles.bom</module>
         <module>atomos.tests.testbundles.reflect.command</module>
         <module>atomos.tests.testbundles.reflect.dto</module>
+        <module>atomos.tests.testbundles.dependency.a</module>
+        <module>atomos.tests.testbundles.dependency.b</module>
+        <module>atomos.tests.testbundles.dependent.x</module>
     </modules>
 </project>

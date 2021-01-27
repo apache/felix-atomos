@@ -80,6 +80,21 @@
             <version>${atomos.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.felix.atomos.tests</groupId>
+            <artifactId>org.apache.felix.atomos.tests.testbundles.dependency.a</artifactId>
+            <version>${atomos.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix.atomos.tests</groupId>
+            <artifactId>org.apache.felix.atomos.tests.testbundles.dependency.b</artifactId>
+            <version>${atomos.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix.atomos.tests</groupId>
+            <artifactId>org.apache.felix.atomos.tests.testbundles.dependent.x</artifactId>
+            <version>${atomos.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr</artifactId>
         </dependency>
@@ -116,7 +131,10 @@
                                 org.apache.felix.atomos.tests.testbundles.service.impl.a,
                                 org.apache.felix.atomos.tests.testbundles.service.impl.b,
                                 org.apache.felix.atomos.tests.testbundles.service.library,
-                                org.apache.felix.atomos.tests.testbundles.service.user
+                                org.apache.felix.atomos.tests.testbundles.service.user,
+                                org.apache.felix.atomos.tests.testbundles.dependency.a,
+                                org.apache.felix.atomos.tests.testbundles.dependency.b,
+                                org.apache.felix.atomos.tests.testbundles.dependent.x
                             </includeArtifactIds>
                         </configuration>
                     </execution>

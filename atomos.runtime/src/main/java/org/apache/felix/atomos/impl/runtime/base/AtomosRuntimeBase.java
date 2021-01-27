@@ -389,9 +389,19 @@ public abstract class AtomosRuntimeBase implements AtomosRuntime, SynchronousBun
         return null;
     }
 
-    abstract protected AtomosLayer addLayer(List<AtomosLayer> parents, String name,
-        long id, LoaderType loaderType, Path... paths);
+    protected AtomosLayer addLayer(List<AtomosLayer> parents, String name, long id,
+        LoaderType loaderType, Path... paths)
+    {
+        throw new UnsupportedOperationException(
+            "Cannot add module layers when Atomos is not loaded as module.");
+    }
 
+    @Override
+    public final AtomosLayer addLayer(List<AtomosLayer> parents, String name,
+        LoaderType loaderType, Path... modulePaths)
+    {
+        return addLayer(parents, name, -1, loaderType, modulePaths);
+    }
 
     @Override
     public ModuleConnector getModuleConnector()

@@ -15,10 +15,12 @@ package org.apache.felix.atomos.runtime;
 
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
 import org.apache.felix.atomos.launch.AtomosLauncher;
+import org.apache.felix.atomos.runtime.AtomosLayer.LoaderType;
 import org.osgi.framework.Constants;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.connect.ModuleConnector;
@@ -182,6 +184,19 @@ public interface AtomosRuntime
      */
     ModuleConnector getModuleConnector();
 
+    /**
+     * Adds a layer as a child of the specified parents and loads modules from the specified
+     * module paths
+     * 
+     * @param parents     the parent layers
+     * @param name        the name of the new layer
+     * @param loaderType  the type of class loader to use
+     * @param modulePaths the paths to load modules for the new layer
+     * @return a newly created layer
+     * @throws UnsupportedOperationException if {@link #isAddLayerSupported()} returns false.
+     */
+    AtomosLayer addLayer(List<AtomosLayer> parents, String name, LoaderType loaderType,
+        Path... modulePaths);
 
     /**
      * Creates a new AtomosRuntime that can be used to create a new OSGi framework

@@ -56,14 +56,6 @@ public class AtomosRuntimeClassPath extends AtomosRuntimeBase
     }
 
     @Override
-    protected AtomosLayer addLayer(List<AtomosLayer> parents, String name, long id,
-        LoaderType loaderType, Path... paths)
-    {
-        throw new UnsupportedOperationException(
-            "Cannot add module layers when Atomos is not loaded as module.");
-    }
-
-    @Override
     public ConnectFrameworkFactory findFrameworkFactory()
     {
         Iterator<ConnectFrameworkFactory> itr = ServiceLoader.load(
