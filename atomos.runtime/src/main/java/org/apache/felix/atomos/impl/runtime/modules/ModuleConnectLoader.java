@@ -15,6 +15,8 @@ package org.apache.felix.atomos.impl.runtime.modules;
 
 import java.io.IOException;
 import java.lang.module.Configuration;
+import java.lang.module.ModuleDescriptor;
+import java.lang.module.ModuleDescriptor.Exports;
 import java.lang.module.ModuleReader;
 import java.lang.module.ModuleReference;
 import java.lang.module.ResolvedModule;
@@ -93,13 +95,20 @@ public final class ModuleConnectLoader extends SecureClassLoader implements Bund
                 loaderForModuleRead = (cl != null) ? cl
                     : ClassLoader.getPlatformClassLoader();
             }
-            moduleRead.reference().descriptor().exports().forEach(packageExport -> {
-                if (!packageExport.isQualified()
-                    || packageExport.targets().contains(module.getName()))
-                {
-                    edges.putIfAbsent(packageExport.source(), loaderForModuleRead);
-                }
-            });
+            ModuleDescriptor descriptor = moduleRead.reference().descriptor();
+            if (descriptor.isAutomatic())
+            {
+                descriptor.packages().forEach(
+                    p -> edges.putIfAbsent(p, loaderForModuleRead));
+            }
+            else
+            {
+                descriptor.exports().stream() //
+                    .filter(
+                        p -> !p.isQualified() || p.targets().contains(module.getName())) //
+                    .map(Exports::source) //
+                    .forEach(pn -> edges.putIfAbsent(pn, loaderForModuleRead));
+            }
         }
     }
 
