@@ -65,7 +65,7 @@ public class ModulepathLaunchTest
     /**
      *
      */
-    private static final String ATOMOS_VERSION = "0.0.1-SNAPSHOT";
+    private static final String ATOMOS_VERSION = "1.0.0-SNAPSHOT";
 
     private static final String TESTBUNDLES_SERVICE_CONTRACT = "org.apache.felix.atomos.tests.testbundles.service.contract";
     private static final String TESTBUNDLES_SERVICE_IMPL = "org.apache.felix.atomos.tests.testbundles.service.impl";
