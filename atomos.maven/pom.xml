@@ -8,6 +8,7 @@
         <relativePath>../atomos-parent/pom.xml</relativePath>
     </parent>
     <artifactId>atomos-maven-plugin</artifactId>
+    <version>${atomos.maven.version}</version>
     <packaging>maven-plugin</packaging>
     <name>atomos-maven-plugin</name>
     <scm>
@@ -20,7 +21,7 @@
         <dependency>
             <groupId>org.apache.felix.atomos.utils</groupId>
             <artifactId>org.apache.felix.atomos.utils.core</artifactId>
-            <version>${atomos.version}</version>
+            <version>${atomos.maven.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>

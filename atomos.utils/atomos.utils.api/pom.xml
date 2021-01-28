@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.apache.felix.atomos.utils</groupId>
         <artifactId>org.apache.felix.atomos.utils</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>0.9.0-SNAPSHOT</version>
     </parent>
     <artifactId>org.apache.felix.atomos.utils.api</artifactId>
     <packaging>jar</packaging>
@@ -20,7 +20,7 @@
             <groupId>org.apache.felix.atomos.utils</groupId>
             <artifactId>org.apache.felix.atomos.utils.substrate.api</artifactId>
             <scope>compile</scope>
-            <version>${atomos.version}</version>
+            <version>${atomos.maven.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
