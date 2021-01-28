@@ -17,7 +17,7 @@
                 <dependency>
                     <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
                     <artifactId>atomos.osgi.framework</artifactId>
-                    <version>${atomos.version}</version>
+                    <version>1.0.0-SNAPSHOT</version>
                 </dependency>
             </dependencies>
             <activation>
@@ -33,7 +33,7 @@
                 <dependency>
                     <groupId>org.apache.felix.atomos.osgi.frameworks.felix</groupId>
                     <artifactId>atomos.osgi.framework</artifactId>
-                    <version>${atomos.version}</version>
+                    <version>1.0.0-SNAPSHOT</version>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.felix</groupId>
@@ -46,7 +46,7 @@
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.atomos.runtime</artifactId>
-            <version>${atomos.version}</version>
+            <version>1.0.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -57,7 +57,7 @@
         <dependency>
             <groupId>org.apache.felix.atomos.examples</groupId>
             <artifactId>org.apache.felix.atomos.examples.webconsole.bom</artifactId>
-            <version>${atomos.version}</version>
+            <version>1.0.0-SNAPSHOT</version>
             <type>pom</type>
         </dependency>
     </dependencies>
@@ -67,7 +67,7 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>atomos-maven-plugin</artifactId>
-                <version>${atomos.maven.version}</version>
+                <version>0.9.0-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <goals>

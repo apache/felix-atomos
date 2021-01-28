@@ -19,8 +19,6 @@
         <maven.compiler.release>${java.version}</maven.compiler.release>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <atomos.version>1.0.0-SNAPSHOT</atomos.version>
-        <atomos.maven.version>0.9.0-SNAPSHOT</atomos.maven.version>
         <bnd.version>5.2.0</bnd.version>
     </properties>
 
