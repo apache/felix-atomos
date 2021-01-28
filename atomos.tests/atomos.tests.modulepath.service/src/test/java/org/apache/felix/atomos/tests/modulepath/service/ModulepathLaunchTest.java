@@ -62,12 +62,6 @@ import org.osgi.framework.wiring.BundleWiring;
 public class ModulepathLaunchTest
 {
 
-    /**
-     *
-     */
-    private static final String ATOMOS_VERSION = "1.0.0-SNAPSHOT";
-
-    private static final String TESTBUNDLES_SERVICE_CONTRACT = "org.apache.felix.atomos.tests.testbundles.service.contract";
     private static final String TESTBUNDLES_SERVICE_IMPL = "org.apache.felix.atomos.tests.testbundles.service.impl";
     private static final String TESTBUNDLES_SERVICE_IMPL_A = "org.apache.felix.atomos.tests.testbundles.service.impl.a";
     private static final String TESTBUNDLES_SERVICE_IMPL_B = "org.apache.felix.atomos.tests.testbundles.service.impl.b";
@@ -79,9 +73,6 @@ public class ModulepathLaunchTest
     private static final String TESTBUNDLES_DEPENDENT_X = "org.apache.felix.atomos.tests.testbundles.dependent.x";
     private static final int NUM_MODULES_DIR = 8;
 
-    /**
-     *
-     */
     private static final String RESSOURCE_A_CLAZZ_NAME = TESTBUNDLES_RESOURCE_A + ".Clazz";
     private static final String ATOMOS_DEBUG_PROP = "atomos.enable.debug";
     private Framework testFramework;
@@ -250,11 +241,11 @@ public class ModulepathLaunchTest
     }
     private ClassLoader getCLForResourceTests(Path storage) throws BundleException
     {
+        Path[] testBundle = findModulePaths(TESTBUNDLES_RESOURCE_A);
         testFramework = getFramework(
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(),
                 AtomosLauncher.ATOMOS_MODULES_DIR
-                + "=target/modules/" + TESTBUNDLES_RESOURCE_A
-                + "-" + ATOMOS_VERSION + ".jar");
+                + "=" + testBundle[0].toString());
 
         final BundleContext bc = testFramework.getBundleContext();
         final ServiceReference<AtomosRuntime> atomosRef = bc.getServiceReference(
@@ -1040,10 +1031,20 @@ public class ModulepathLaunchTest
             TESTBUNDLES_DEPENDENT_X);
         assertEquals(List.of(layer1, layer2), layer3.getParents(), "Wrong parents.");
 
+        assertEquals(Set.of(layer3), layer1.getChildren(), "Wrong children for layer1.");
+        assertEquals(Set.of(layer3), layer2.getChildren(), "Wrong children for layer2.");
+
+        Bundle dependentX = layer3.getAtomosContents().iterator().next().getBundle();
+
         // uninstall one of the parents
         layer2.uninstall();
 
-        // should result 
+        assertEquals(Bundle.UNINSTALLED, dependentX.getState(),
+            "dependentX bundle should be uninstalled.");
+
+        // should result in uninstalling layer3
+        assertEquals(Set.of(), layer1.getChildren(), "Wrong children for layer1.");
+        assertEquals(Set.of(), layer2.getChildren(), "Wrong children for layer2.");
     }
 
     private AtomosLayer installChild(AtomosRuntime atomos, String layerName,
@@ -1089,7 +1090,7 @@ public class ModulepathLaunchTest
         }
     }
 
-    private Path[] findModulePaths(String[] moduleNames)
+    private Path[] findModulePaths(String... moduleNames)
     {
         final File modules = new File("target/modules");
         assertTrue(modules.isDirectory(), "Modules directory does not exist: " + modules);
