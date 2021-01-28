@@ -106,17 +106,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.atomos.substrate.config</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.apache.felix.atomos.examples</groupId>
             <artifactId>org.apache.felix.atomos.examples.webconsole.bom</artifactId>
             <version>1.0.0-SNAPSHOT</version>

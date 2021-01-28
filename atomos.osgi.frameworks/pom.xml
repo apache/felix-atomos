@@ -11,6 +11,9 @@
     <groupId>org.apache.felix.atomos.osgi.frameworks</groupId>
     <artifactId>atomos.osgi.frameworks</artifactId>
     <name>atomos.osgi.frameworks</name>
+    <properties>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+    </properties>
     <scm>
         <connection>scm:git:https://github.com/apache/felix-atomos.git</connection>
         <developerConnection>scm:git:https://github.com/apache/felix-atomos.git</developerConnection>

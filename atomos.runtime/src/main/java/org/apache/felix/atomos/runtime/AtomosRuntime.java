@@ -188,12 +188,13 @@ public interface AtomosRuntime
      * Adds a layer as a child of the specified parents and loads modules from the specified
      * module paths
      * 
-     * @param parents     the parent layers
+     * @param parents     the parent layers. Must include at least one parent layer
      * @param name        the name of the new layer
      * @param loaderType  the type of class loader to use
      * @param modulePaths the paths to load modules for the new layer
      * @return a newly created layer
-     * @throws UnsupportedOperationException if {@link #isAddLayerSupported()} returns false.
+     * @throws UnsupportedOperationException if the {@link #getBootLayer() boot} layer
+     *  {@link AtomosLayer#isAddLayerSupported()} returns false.
      */
     AtomosLayer addLayer(List<AtomosLayer> parents, String name, LoaderType loaderType,
         Path... modulePaths);

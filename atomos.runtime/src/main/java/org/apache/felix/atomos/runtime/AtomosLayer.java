@@ -88,6 +88,7 @@ public interface AtomosLayer
      * determine the location on disk of the atomos runtime module and look for a
      * folder with the same name as the specified name of the layer.
      * @throws UnsupportedOperationException if {@link #isAddLayerSupported()} returns false.
+     * @return a newly created layer
      */
     AtomosLayer addModules(String name, Path path);
 

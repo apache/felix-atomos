@@ -91,6 +91,10 @@ public class AtomosRuntimeModules extends AtomosRuntimeBase
     protected AtomosLayer addLayer(List<AtomosLayer> parents, String name, long id,
         LoaderType loaderType, Path... paths)
     {
+        if (parents.isEmpty())
+        {
+            throw new IllegalArgumentException("Must specify at least one parent layer.");
+        }
         if (bootLayer.adapt(ModuleLayer.class).isEmpty())
         {
             throw new UnsupportedOperationException(

@@ -18,6 +18,10 @@
         <url>https://github.com/apache/felix-atomos</url>
         <tag>HEAD</tag>
     </scm>
+    <properties>
+        <!-- Before moving to a 1.0.0 release we need javadoc for the APIs -->
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+    </properties>
     <modules>
         <module>atomos.utils.api</module>
         <module>atomos.utils.core</module>
