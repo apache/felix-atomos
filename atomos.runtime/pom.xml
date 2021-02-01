@@ -102,6 +102,15 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <links>
+                        <link>https://docs.osgi.org/javadoc/osgi.core/8.0.0/</link>
+                    </links>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>biz.aQute.bnd</groupId>
                 <artifactId>bnd-maven-plugin</artifactId>
             </plugin>
