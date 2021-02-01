@@ -13,5 +13,4 @@
  */
 @org.osgi.annotation.bundle.Export
 @org.osgi.annotation.versioning.Version("1.0.0")
-@org.osgi.annotation.bundle.Header(name = "Main-Class", value = org.apache.felix.atomos.launch.AtomosLauncher.ATOMOS_LAUNCHER)
 package org.apache.felix.atomos.launch;

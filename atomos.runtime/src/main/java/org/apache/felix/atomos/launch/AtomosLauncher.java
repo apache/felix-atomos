@@ -30,8 +30,10 @@ import org.osgi.framework.launch.Framework;
  * The Atomos launcher contains convenience methods for creating and launching
  * an OSGi {@link Framework} instance with the Atomos runtime.
  */
+@org.osgi.annotation.bundle.Header(name = "Main-Class", value = org.apache.felix.atomos.launch.AtomosLauncher.ATOMOS_LAUNCHER)
 public class AtomosLauncher
 {
+    // package private constant use to specify the main class
     static final String ATOMOS_LAUNCHER = "org.apache.felix.atomos.launch.AtomosLauncher";
     /**
      * A main method that can be used by executable jars to initialize and start an
