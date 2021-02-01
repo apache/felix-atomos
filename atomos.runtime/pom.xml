@@ -39,7 +39,7 @@
             <dependencies>
                 <dependency>
                     <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
-                    <artifactId>atomos.osgi.framework</artifactId>
+                    <artifactId>osgi.core</artifactId>
                     <version>1.0.0-SNAPSHOT</version>
                     <scope>provided</scope>
                 </dependency>
@@ -56,7 +56,7 @@
             <dependencies>
                 <dependency>
                     <groupId>org.apache.felix.atomos.osgi.frameworks.felix</groupId>
-                    <artifactId>atomos.osgi.framework</artifactId>
+                    <artifactId>osgi.core</artifactId>
                     <version>1.0.0-SNAPSHOT</version>
                     <scope>provided</scope>
                 </dependency>

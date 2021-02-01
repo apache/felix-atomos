@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-open module atomos.osgi.framework
+module osgi.core
 {
     requires transitive org.apache.felix.framework;
 }

@@ -14,6 +14,6 @@
 open module org.apache.felix.atomos.tests.testbundles.service.impl.activator
 {
     requires transitive org.apache.felix.atomos.tests.testbundles.service.contract;
-    requires atomos.osgi.framework;
+    requires osgi.core;
     requires static osgi.annotation;
 }

@@ -66,7 +66,7 @@
                 </dependency>
                 <dependency>
                     <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
-                    <artifactId>atomos.osgi.framework</artifactId>
+                    <artifactId>osgi.core</artifactId>
                     <version>1.0.0-SNAPSHOT</version>
                 </dependency>
             </dependencies>
@@ -86,7 +86,7 @@
                 </dependency>
                 <dependency>
                     <groupId>org.apache.felix.atomos.osgi.frameworks.felix</groupId>
-                    <artifactId>atomos.osgi.framework</artifactId>
+                    <artifactId>osgi.core</artifactId>
                     <version>1.0.0-SNAPSHOT</version>
                 </dependency>
             </dependencies>
@@ -339,7 +339,7 @@
                                         requires java.logging;
                                         requires java.management;
                                         requires transitive org.apache.felix.gogo.runtime;
-                                        requires transitive atomos.osgi.framework;
+                                        requires transitive osgi.core;
                                         requires transitive
                                         osgi.promise;
 
@@ -379,7 +379,7 @@
                                     <moduleInfoSource>
                                         module org.apache.felix.gogo.command {
                                         requires transitive org.apache.felix.gogo.runtime;
-                                        requires transitive atomos.osgi.framework;
+                                        requires transitive osgi.core;
 
                                         exports org.apache.felix.gogo.command;
 
@@ -395,7 +395,7 @@
                                         module org.apache.felix.gogo.runtime {
                                         requires java.logging;
 
-                                        requires transitive atomos.osgi.framework;
+                                        requires transitive osgi.core;
 
                                         exports org.apache.felix.gogo.runtime;
                                         exports org.apache.felix.gogo.runtime.activator;
@@ -415,7 +415,7 @@
                                     <moduleInfoSource>
                                         module org.apache.felix.gogo.shell {
                                         requires transitive org.apache.felix.gogo.runtime;
-                                        requires transitive atomos.osgi.framework;
+                                        requires transitive osgi.core;
 
                                         exports org.apache.felix.gogo.options;
                                         exports
@@ -440,7 +440,7 @@
                                 <path>${project.build.directory}/${project.artifactId}-${project.version}.jar</path>
                             </modulePath>
                             <modules>
-                                <module>atomos.osgi.framework</module>
+                                <module>osgi.core</module>
                                 <module>org.apache.felix.atomos.runtime</module>
                                 <module>org.apache.felix.gogo.command</module>
                                 <module>org.apache.felix.gogo.runtime</module>
@@ -481,7 +481,7 @@
                             <overWriteIfNewer>true</overWriteIfNewer>
                             <excludeTransitive>true</excludeTransitive>
                             <includeArtifactIds>
-                                atomos.osgi.framework,
+                                osgi.core,
                                 org.apache.felix.atomos.runtime,
                                 org.apache.felix.atomos.tests.testbundles.service.contract,
                                 org.apache.felix.atomos.tests.testbundles.service.impl,

@@ -9,7 +9,7 @@
     </parent>
     <packaging>pom</packaging>
     <groupId>org.apache.felix.atomos.osgi.frameworks</groupId>
-    <artifactId>atomos.osgi.frameworks</artifactId>
+    <artifactId>osgi.cores</artifactId>
     <name>atomos.osgi.frameworks</name>
     <properties>
         <maven.javadoc.skip>true</maven.javadoc.skip>

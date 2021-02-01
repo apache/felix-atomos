@@ -14,7 +14,7 @@
 open module org.apache.felix.atomos.tests.testbundles.dependent.x
 {
     requires static osgi.annotation;
-    requires atomos.osgi.framework;
+    requires osgi.core;
     requires org.apache.felix.atomos.tests.testbundles.dependency.a;
     requires org.apache.felix.atomos.tests.testbundles.dependency.b;
 
