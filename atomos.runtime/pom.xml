@@ -38,9 +38,15 @@
             <id>equinox</id>
             <dependencies>
                 <dependency>
-                    <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
+                    <groupId>org.eclipse.platform</groupId>
+                    <artifactId>org.eclipse.osgi</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.felix.atomos</groupId>
                     <artifactId>osgi.core</artifactId>
                     <version>1.0.0-SNAPSHOT</version>
+                    <classifier>AtomosEquinox</classifier>
                     <scope>provided</scope>
                 </dependency>
             </dependencies>
@@ -55,9 +61,20 @@
             </properties>
             <dependencies>
                 <dependency>
-                    <groupId>org.apache.felix.atomos.osgi.frameworks.felix</groupId>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>org.apache.felix.framework</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.felix.atomos</groupId>
                     <artifactId>osgi.core</artifactId>
                     <version>1.0.0-SNAPSHOT</version>
+                    <classifier>AtomosFelix</classifier>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>org.apache.felix.log</artifactId>
                     <scope>provided</scope>
                 </dependency>
             </dependencies>

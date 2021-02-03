@@ -65,9 +65,10 @@
                     <artifactId>org.eclipse.osgi</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
+                    <groupId>org.apache.felix.atomos</groupId>
                     <artifactId>osgi.core</artifactId>
                     <version>1.0.0-SNAPSHOT</version>
+                    <classifier>AtomosEquinox</classifier>
                 </dependency>
             </dependencies>
             <activation>
@@ -85,9 +86,10 @@
                     <artifactId>org.apache.felix.framework</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>org.apache.felix.atomos.osgi.frameworks.felix</groupId>
+                    <groupId>org.apache.felix.atomos</groupId>
                     <artifactId>osgi.core</artifactId>
                     <version>1.0.0-SNAPSHOT</version>
+                    <classifier>AtomosFelix</classifier>
                 </dependency>
             </dependencies>
         </profile>

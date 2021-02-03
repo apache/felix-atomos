@@ -23,7 +23,7 @@ open module org.apache.felix.atomos.runtime
     exports org.apache.felix.atomos.runtime;
     exports org.apache.felix.atomos.launch;
 
-    requires transitive osgi.core;
+    requires osgi.core;
     requires static osgi.annotation;
     requires static jdk.unsupported;
     requires static org.apache.felix.gogo.runtime;

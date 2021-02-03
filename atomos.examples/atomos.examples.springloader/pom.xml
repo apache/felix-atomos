@@ -15,9 +15,8 @@
             <id>equinox</id>
             <dependencies>
                 <dependency>
-                    <groupId>org.apache.felix.atomos.osgi.frameworks.equinox</groupId>
-                    <artifactId>osgi.core</artifactId>
-                    <version>1.0.0-SNAPSHOT</version>
+                    <groupId>org.eclipse.platform</groupId>
+                    <artifactId>org.eclipse.osgi</artifactId>
                 </dependency>
             </dependencies>
             <activation>
@@ -31,9 +30,8 @@
             </properties>
             <dependencies>
                 <dependency>
-                    <groupId>org.apache.felix.atomos.osgi.frameworks.felix</groupId>
-                    <artifactId>osgi.core</artifactId>
-                    <version>1.0.0-SNAPSHOT</version>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>org.apache.felix.framework</artifactId>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.felix</groupId>
