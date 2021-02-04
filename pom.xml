@@ -21,7 +21,7 @@
 
     <modules>
         <module>atomos-parent</module>
-        <module>atomos.osgi.frameworks</module>
+        <module>atomos.osgi.core</module>
         <module>atomos.runtime</module>
         <module>atomos.tests</module>
         <module>atomos.utils</module>
