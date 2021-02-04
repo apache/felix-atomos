@@ -29,8 +29,6 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.function.Supplier;
 
-import org.apache.felix.atomos.AtomosContent;
-import org.apache.felix.atomos.Atomos;
 import org.apache.felix.atomos.impl.base.AtomosFrameworkUtilHelper;
 import org.apache.felix.atomos.impl.base.AtomosModuleConnector;
 import org.apache.felix.atomos.impl.base.JavaServiceNamespace;

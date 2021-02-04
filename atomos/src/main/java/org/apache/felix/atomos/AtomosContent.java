@@ -90,8 +90,8 @@ public interface AtomosContent extends Comparable<AtomosContent>
      *     throw new BundleException();
      *   }
      * }
-     * atomosBundle.disconnect();
-     * atomosBundle.connect(osgiLocation);
+     * atomosContent.disconnect();
+     * atomosContent.connect(osgiLocation);
      * b = bc.installBundle(osgiLocation);
      * </pre>
      * @param prefix the prefix to use, if {@code null} then the prefix "atomos" will be used
