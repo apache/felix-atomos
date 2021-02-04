@@ -17,9 +17,9 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
-import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.apache.felix.atomos.runtime.AtomosLayer.LoaderType;
 import org.osgi.framework.Constants;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
@@ -119,11 +119,11 @@ import org.osgi.framework.launch.FrameworkFactory;
  *
  * // The Atomos runtime must be used to create the framework in order
  * // use the additional children layers added
- * Framework framework = AtomosLauncher.newFramework(frameworkConfig, atomosRuntime);
+ * Framework framework = atomosRuntime.newFramework(frameworkConfig);
  * framework.start();
  * </pre>
  * 
- * When using the {@link AtomosLauncher#newFramework(Map, AtomosRuntime)} to create a 
+ * When using the {@link AtomosRuntime#newFramework(Map)} to create a 
  * new Framework the {@link Constants#FRAMEWORK_SYSTEMPACKAGES}
  * is set to the empty value automatically.
  * 
@@ -198,6 +198,19 @@ public interface AtomosRuntime
      */
     AtomosLayer addLayer(List<AtomosLayer> parents, String name, LoaderType loaderType,
         Path... modulePaths);
+
+    /**
+     * Creates a new {@link Framework} instance that uses this Atomos runtime. The
+     * {@link ServiceLoader} is used to load an implementation of a {@link ConnectFrameworkFactory}
+     * which is used to create a new {@link Framework} instance with the specified Atomos runtime.
+     * The supplied framework configuration is used to create the new {@code Framework} instance.
+     * Additional configuration options maybe configured automatically in order to correctly configure
+     * the system packages for the {@code Framework} instance.
+     * @param frameworkConfig The framework configuration options, or {@code null} if the defaults should be used
+     * @param atomosRuntime The Atomos runtime, or {@code null} will create a new Atomos runtime
+     * @return The new uninitialized Framework instance which uses the Atomos runtime
+     */
+    public Framework newFramework(Map<String, String> frameworkConfig);
 
     /**
      * Creates a new AtomosRuntime that can be used to create a new OSGi framework

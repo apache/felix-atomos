@@ -522,9 +522,8 @@ public class ModulepathLaunchTest
         Framework f = null;
         try
         {
-            f = AtomosLauncher.newFramework(
-                Map.of(Constants.FRAMEWORK_STORAGE, storage2.getAbsolutePath()),
-                atomosRuntime);
+            f = atomosRuntime.newFramework(
+                Map.of(Constants.FRAMEWORK_STORAGE, storage2.getAbsolutePath()));
             f.start();
             fail();
         }
@@ -946,8 +945,7 @@ public class ModulepathLaunchTest
         runtime = AtomosRuntime.newAtomosRuntime();
         implContent = runtime.getBootLayer().findAtomosContent(BSN_SERVICE_IMPL).get();
 
-        testFramework = AtomosLauncher.newFramework(AtomosLauncher.getConfiguration(args),
-            runtime);
+        testFramework = runtime.newFramework(AtomosLauncher.getConfiguration(args));
         testFramework.start();
         bc = testFramework.getBundleContext();
 

@@ -17,13 +17,11 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.ServiceLoader;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.launch.Framework;
 
 /**
@@ -91,7 +89,7 @@ public class AtomosLauncher
             atomosRuntime.getBootLayer().addModules("modules", modulesPath);
         }
 
-        Framework framework = newFramework(frameworkConfig, atomosRuntime);
+        Framework framework = atomosRuntime.newFramework(frameworkConfig);
         framework.start();
         return framework;
     }
@@ -120,37 +118,5 @@ public class AtomosLauncher
             }
         }
         return config;
-    }
-
-    /**
-     * Creates a new {@link Framework} instance that uses the specified Atomos runtime,
-     * or creates a new Atomos runtime to use if a runtime is not specified. The
-     * {@link ServiceLoader} is used to load an implementation of a {@link ConnectFrameworkFactory}
-     * which is used to create a new {@link Framework} instance with the specified Atomos runtime.
-     * The supplied framework configuration is used to create the new {@code Framework} instance.
-     * Additional configuration options maybe configured automatically in order to correctly configure
-     * the system packages for the {@code Framework} instance.
-     * @param frameworkConfig The framework configuration options, or {@code null} if the defaults should be used
-     * @param atomosRuntime The Atomos runtime, or {@code null} will create a new Atomos runtime
-     * @return The new uninitialized Framework instance which uses the Atomos runtime
-     */
-    public static Framework newFramework(Map<String, String> frameworkConfig,
-        AtomosRuntime atomosRuntime)
-    {
-        if (atomosRuntime == null)
-        {
-            atomosRuntime = AtomosRuntime.newAtomosRuntime();
-        }
-
-        frameworkConfig = frameworkConfig == null ? new HashMap<>()
-            : new HashMap<>(frameworkConfig);
-
-        ((AtomosRuntimeBase) atomosRuntime).populateConfig(frameworkConfig);
-
-        // Always allow the console to work
-        frameworkConfig.putIfAbsent("osgi.console", "");
-
-        return ((AtomosRuntimeBase) atomosRuntime).findFrameworkFactory().newFramework(
-            frameworkConfig, atomosRuntime.getModuleConnector());
     }
 }

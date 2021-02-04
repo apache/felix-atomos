@@ -32,7 +32,6 @@ import java.util.function.Supplier;
 import org.apache.felix.atomos.impl.runtime.base.AtomosFrameworkUtilHelper;
 import org.apache.felix.atomos.impl.runtime.base.AtomosModuleConnector;
 import org.apache.felix.atomos.impl.runtime.base.JavaServiceNamespace;
-import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -72,7 +71,7 @@ public class AtomosRuntimeTest
         AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
         Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE,
             storage.toFile().getAbsolutePath());
-        testFramework = AtomosLauncher.newFramework(config, runtime);
+        testFramework = runtime.newFramework(config);
         doTestFramework(testFramework);
     }
 
@@ -155,7 +154,7 @@ public class AtomosRuntimeTest
         Map<String, String> config = Map.of( //
             Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath(),
             AtomosRuntime.ATOMOS_CONTENT_INSTALL, "false");
-        testFramework = AtomosLauncher.newFramework(config, runtime);
+        testFramework = runtime.newFramework(config);
         testFramework.start();
         BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No BundleContext found.");
@@ -197,7 +196,7 @@ public class AtomosRuntimeTest
         AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
         Map<String, String> config = Map.of( //
             Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath());
-        testFramework = AtomosLauncher.newFramework(config, runtime);
+        testFramework = runtime.newFramework(config);
         testFramework.start();
 
         AtomosContent atomosContent;
@@ -270,7 +269,7 @@ public class AtomosRuntimeTest
         Map<String, String> config = Map.of( //
             Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath(),
             AtomosRuntime.ATOMOS_CONTENT_INSTALL, "false");
-        testFramework = AtomosLauncher.newFramework(config, runtime);
+        testFramework = runtime.newFramework(config);
         testFramework.start();
         BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No BundleContext found.");
@@ -354,7 +353,7 @@ public class AtomosRuntimeTest
         AtomosRuntime runtime = AtomosRuntime.newAtomosRuntime();
         Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE,
             storage.toFile().getAbsolutePath());
-        testFramework = AtomosLauncher.newFramework(config, runtime);
+        testFramework = runtime.newFramework(config);
         testFramework.init();
         AtomosContent runtimeContent = runtime.getBootLayer().findAtomosContent("org.apache.felix.atomos.runtime").get();
         Bundle b = runtimeContent.getBundle();

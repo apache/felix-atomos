@@ -22,6 +22,7 @@ module org.apache.felix.atomos.tests.modulepath.service
     requires org.apache.felix.atomos.tests.testbundles.service.impl.activator;
     requires org.apache.felix.scr;
     requires osgi.promise;
+    requires osgi.core;
 
     uses AtomosRuntime;
 
