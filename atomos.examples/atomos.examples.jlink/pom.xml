@@ -58,17 +58,11 @@
     </dependencies>
     <profiles>
         <profile>
-            <id>equinox</id>
+            <id>default-compile</id>
             <dependencies>
                 <dependency>
-                    <groupId>org.eclipse.platform</groupId>
-                    <artifactId>org.eclipse.osgi</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.felix.atomos</groupId>
+                   <groupId>org.osgi</groupId>
                     <artifactId>osgi.core</artifactId>
-                    <version>1.0.0-SNAPSHOT</version>
-                    <classifier>AtomosEquinox</classifier>
                 </dependency>
             </dependencies>
             <activation>
@@ -76,20 +70,36 @@
             </activation>
         </profile>
         <profile>
+            <id>equinox</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.eclipse.platform</groupId>
+                    <artifactId>org.eclipse.osgi</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.felix.atomos</groupId>
+                    <artifactId>osgi.core</artifactId>
+                    <version>1.0.0-SNAPSHOT</version>
+                    <classifier>AtomosEquinox</classifier>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
             <id>felix</id>
-            <properties>
-                <buildWithFelix>true</buildWithFelix>
-            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>org.apache.felix.framework</artifactId>
+                    <scope>provided</scope>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.felix.atomos</groupId>
                     <artifactId>osgi.core</artifactId>
                     <version>1.0.0-SNAPSHOT</version>
                     <classifier>AtomosFelix</classifier>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>

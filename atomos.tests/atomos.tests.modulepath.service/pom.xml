@@ -10,6 +10,18 @@
     <name>atomos.tests.modulepath.service</name>
     <profiles>
         <profile>
+            <id>default-compile</id>
+            <dependencies>
+                <dependency>
+                   <groupId>org.osgi</groupId>
+                    <artifactId>osgi.core</artifactId>
+                </dependency>
+            </dependencies>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
             <id>equinox</id>
             <dependencies>
                 <dependency>
@@ -25,15 +37,9 @@
                     <scope>provided</scope>
                 </dependency>
             </dependencies>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
         </profile>
         <profile>
             <id>felix</id>
-            <properties>
-                <buildWithFelix>true</buildWithFelix>
-            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.apache.felix</groupId>

@@ -24,9 +24,6 @@
         </profile>
         <profile>
             <id>felix</id>
-            <properties>
-                <buildWithFelix>true</buildWithFelix>
-            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.apache.felix</groupId>

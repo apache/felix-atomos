@@ -12,11 +12,11 @@
 
     <profiles>
         <profile>
-            <id>equinox</id>
+            <id>default-compile</id>
             <dependencies>
                 <dependency>
-                    <groupId>org.eclipse.platform</groupId>
-                    <artifactId>org.eclipse.osgi</artifactId>
+                   <groupId>org.osgi</groupId>
+                    <artifactId>osgi.core</artifactId>
                 </dependency>
             </dependencies>
             <activation>
@@ -24,18 +24,20 @@
             </activation>
         </profile>
         <profile>
+            <id>equinox</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.eclipse.platform</groupId>
+                    <artifactId>org.eclipse.osgi</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
             <id>felix</id>
-            <properties>
-                <buildWithFelix>true</buildWithFelix>
-            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>org.apache.felix.framework</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.felix</groupId>
-                    <artifactId>org.apache.felix.log</artifactId>
                 </dependency>
             </dependencies>
         </profile>
