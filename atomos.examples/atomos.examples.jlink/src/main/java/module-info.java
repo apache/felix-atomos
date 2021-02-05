@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.apache.felix.atomos.runtime.AtomosRuntime;
+import org.apache.felix.atomos.Atomos;
 module org.apache.felix.atomos.examples.jlink
 {
-    requires org.apache.felix.atomos.runtime;
+    requires org.apache.felix.atomos;
     requires org.apache.felix.atomos.tests.testbundles.service.impl;
     requires org.apache.felix.atomos.tests.testbundles.service.impl.activator;
     requires org.apache.felix.scr;
@@ -24,5 +24,5 @@ module org.apache.felix.atomos.examples.jlink
     requires org.apache.felix.gogo.shell;
     requires jdk.jdwp.agent;
 
-    uses AtomosRuntime;
+    uses Atomos;
 }

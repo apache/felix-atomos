@@ -10,7 +10,7 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.atomos.runtime</artifactId>
+            <artifactId>org.apache.felix.atomos</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>

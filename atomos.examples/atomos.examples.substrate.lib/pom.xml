@@ -52,7 +52,7 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.atomos.runtime</artifactId>
+            <artifactId>org.apache.felix.atomos</artifactId>
             <version>1.0.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
@@ -157,12 +157,12 @@
                 </executions>
                 <configuration>
                     <imageName>atomos</imageName>
-                    <mainClass>org.apache.felix.atomos.runtime.AtomosRuntime</mainClass>
+                    <mainClass>org.apache.felix.atomos.Atomos</mainClass>
                     <buildArgs>
                         --no-server
                         --allow-incomplete-classpath
                         --no-fallback
-                        --initialize-at-build-time=org.eclipse.jetty.util.TypeUtil,org.eclipse.jetty.http.HttpTokens,org.eclipse.jetty.util.log.Log,org.eclipse.jetty.util.log.StdErrLog,org.eclipse.jetty.util.Uptime,org.eclipse.jetty.server.HttpOutput,org.apache.felix.atomos.runtime,org.apache.felix.atomos.runtime.launch,org.apache.felix.atomos.impl,javax.servlet,org.apache.felix.service.command.Converter
+                        --initialize-at-build-time=org.eclipse.jetty.util.TypeUtil,org.eclipse.jetty.http.HttpTokens,org.eclipse.jetty.util.log.Log,org.eclipse.jetty.util.log.StdErrLog,org.eclipse.jetty.util.Uptime,org.eclipse.jetty.server.HttpOutput,org.apache.felix.atomos,javax.servlet,org.apache.felix.service.command.Converter
                         -H:ReflectionConfigurationFiles=${project.basedir}/graal_class_config.json
                         -H:ResourceConfigurationFiles=${project.basedir}/graal_resource_config.json
                         -H:DynamicProxyConfigurationFiles=${project.basedir}/graal_proxy_config.json

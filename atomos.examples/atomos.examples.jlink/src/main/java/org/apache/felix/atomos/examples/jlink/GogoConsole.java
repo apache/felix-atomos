@@ -18,7 +18,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.felix.atomos.runtime.AtomosRuntime;
+import org.apache.felix.atomos.Atomos;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.launch.Framework;
 
@@ -34,17 +34,17 @@ public class GogoConsole
 
     private static void launch(String[] args) throws BundleException
     {
-        Map<String, String> config = AtomosRuntime.getConfiguration(args);
-        AtomosRuntime atomosRuntime = AtomosRuntime.newAtomosRuntime(config);
-        if (atomosRuntime.getBootLayer().isAddLayerSupported())
+        Map<String, String> config = Atomos.getConfiguration(args);
+        Atomos atomos = Atomos.newAtomos(config);
+        if (atomos.getBootLayer().isAddLayerSupported())
         {
             String modulesDirPath = config.get("atomos.modules");
             Path modulesPath = modulesDirPath == null ? null
                 : new File(modulesDirPath).toPath();
-            atomosRuntime.getBootLayer().addModules("modules", modulesPath);
+            atomos.getBootLayer().addModules("modules", modulesPath);
         }
 
-        Framework framework = atomosRuntime.newFramework(config);
+        Framework framework = atomos.newFramework(config);
         framework.start();
     }
 }

@@ -47,7 +47,7 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.atomos.runtime</artifactId>
+            <artifactId>org.apache.felix.atomos</artifactId>
             <version>1.0.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
@@ -79,8 +79,7 @@
                     <nativeImage>
                         <debug>true</debug>
                         <additionalInitializeAtBuildTime>
-                            <additionalInitializeAtBuildTime>org.apache.felix.atomos.runtime</additionalInitializeAtBuildTime>
-                            <additionalInitializeAtBuildTime>org.apache.felix.atomos.impl</additionalInitializeAtBuildTime>
+                            <additionalInitializeAtBuildTime>org.apache.felix.atomos</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>javax.servlet</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>org.apache.felix.service.command.Converter</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>org.eclipse.jetty.util.TypeUtil</additionalInitializeAtBuildTime>
@@ -89,7 +88,6 @@
                             <additionalInitializeAtBuildTime>org.eclipse.jetty.util.log.StdErrLog</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>org.eclipse.jetty.util.Uptime</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>org.eclipse.jetty.server.HttpOutput</additionalInitializeAtBuildTime>
-                            <!-- <additionalInitializeAtBuildTime>org.apache.felix.atomos.impl.runtime.base</additionalInitializeAtBuildTime> -->
                         </additionalInitializeAtBuildTime>
                         <resourceConfigurationFiles>
                             <resourceConfigurationFile>additionalResourceConfig.json</resourceConfigurationFile>
@@ -105,7 +103,7 @@
                             <reflectionConfigurationFile>reflectConfig_jdk.json</reflectionConfigurationFile>
                             <reflectionConfigurationFile>reflectConfig_jetty.json</reflectionConfigurationFile>
                         </reflectionConfigurationFiles>
-                        <!-- <mainClass>org.apache.felix.atomos.runtime.AtomosRuntime</mainClass> -->
+                        <!-- <mainClass>org.apache.felix.atomos.Atomos</mainClass> -->
                     </nativeImage>
                 </configuration>
                 <executions>

@@ -35,13 +35,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.felix.atomos.runtime.AtomosContent;
-import org.apache.felix.atomos.runtime.AtomosLayer;
-import org.apache.felix.atomos.runtime.AtomosLayer.LoaderType;
-import org.apache.felix.atomos.runtime.AtomosRuntime;
+import org.apache.felix.atomos.Atomos;
+import org.apache.felix.atomos.AtomosContent;
+import org.apache.felix.atomos.AtomosLayer;
+import org.apache.felix.atomos.AtomosLayer.LoaderType;
 import org.apache.felix.atomos.tests.testbundles.service.contract.Echo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +55,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.namespace.BundleNamespace;
 import org.osgi.framework.wiring.BundleWiring;
@@ -105,7 +107,7 @@ public class ModulepathLaunchTest
         return result.orElse(null);
     }
 
-    private void checkBundleStates(AtomosRuntime atomos, Bundle[] bundles)
+    private void checkBundleStates(Atomos atomos, Bundle[] bundles)
     {
         assertTrue(bundles.length > 0, "No bundles: " + Arrays.toString(bundles));
         for (final Bundle b : bundles)
@@ -170,7 +172,7 @@ public class ModulepathLaunchTest
         assertEquals(loaderType.toString(), atomosLayer.getName(), "Wrong name.");
     }
 
-    private void checkLoader(AtomosRuntime runtime, AtomosLayer layer,
+    private void checkLoader(Atomos runtime, AtomosLayer layer,
         LoaderType loaderType) throws ClassNotFoundException
     {
         final Set<AtomosContent> atomosBundles = layer.getAtomosContents();
@@ -236,8 +238,8 @@ public class ModulepathLaunchTest
 
     private Framework getFramework(Path modules, String... args) throws BundleException
     {
-        Map<String, String> config = AtomosRuntime.getConfiguration(args);
-        AtomosRuntime atomos = AtomosRuntime.newAtomosRuntime(config);
+        Map<String, String> config = Atomos.getConfiguration(args);
+        Atomos atomos = Atomos.newAtomos(config);
         if (modules != null)
         {
             atomos.getBootLayer().addModules("modules", modules);
@@ -254,9 +256,9 @@ public class ModulepathLaunchTest
             Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath());
 
         final BundleContext bc = testFramework.getBundleContext();
-        final ServiceReference<AtomosRuntime> atomosRef = bc.getServiceReference(
-            AtomosRuntime.class);
-        final AtomosRuntime atomos = bc.getService(atomosRef);
+        final ServiceReference<Atomos> atomosRef = bc.getServiceReference(
+            Atomos.class);
+        final Atomos atomos = bc.getService(atomosRef);
         checkBundleStates(atomos, bc.getBundles());
 
         final AtomosLayer bootLayer = atomos.getBootLayer();
@@ -326,7 +328,7 @@ public class ModulepathLaunchTest
     }
 
     private AtomosLayer installChild(AtomosLayer parent, String name,
-        AtomosRuntime atomosRuntime, LoaderType loaderType) throws BundleException
+        Atomos atomos, LoaderType loaderType) throws BundleException
     {
         final File modules = new File("target/modules");
         assertTrue(modules.isDirectory(), "Modules directory does not exist: " + modules);
@@ -353,18 +355,18 @@ public class ModulepathLaunchTest
 
         checkServices(bc, 4);
 
-        final AtomosRuntime atomosRuntime = bc.getService(
-            bc.getServiceReference(AtomosRuntime.class));
+        final Atomos atomos = bc.getService(
+            bc.getServiceReference(Atomos.class));
 
         final Collection<AtomosLayer> layers = new ArrayList<>();
         for (int i = 0; i < 20; i++)
         {
-            layers.add(installChild(atomosRuntime.getBootLayer(), "services-" + i,
-                atomosRuntime, LoaderType.OSGI));
+            layers.add(installChild(atomos.getBootLayer(), "services-" + i,
+                atomos, LoaderType.OSGI));
         }
         checkServices(bc, 44);
 
-        checkBundleStates(atomosRuntime, bc.getBundles());
+        checkBundleStates(atomos, bc.getBundles());
 
         final List<Bundle> allChildBundles = layers.stream().flatMap(
             (l) -> l.getAtomosContents().stream()).map(
@@ -393,7 +395,7 @@ public class ModulepathLaunchTest
 
         // note that doing a bundle uninstall forces the location to be disconnected
         firstChildBundles.forEach((b) -> {
-            assertNull(atomosRuntime.getConnectedContent(b.getLocation()),
+            assertNull(atomos.getConnectedContent(b.getLocation()),
                 "Atomos content not expected.");
         });
 
@@ -416,11 +418,58 @@ public class ModulepathLaunchTest
         checkServices(bc, 4);
 
         // uninstalling the layer forces all of its content to get disconnected
-        allChildBundles.forEach((b) -> assertNull(atomosRuntime.getConnectedContent(b.getLocation()),
+        allChildBundles.forEach((b) -> assertNull(atomos.getConnectedContent(b.getLocation()),
             "Atomos content not expected."));
 
         assertEquals(originalNum, bc.getBundles().length,
             "Wrong number of final bundles.");
+    }
+
+    @Test
+    void testAddLayerBeforeNewFrameworkAtomos(@TempDir Path storage)
+        throws BundleException
+    {
+        doAddLayerBeforeFramework(storage, true);
+    }
+
+    @Test
+    void testAddLayerBeforeFrameworkFactory(@TempDir Path storage) throws BundleException
+    {
+        doAddLayerBeforeFramework(storage, true);
+    }
+
+    void doAddLayerBeforeFramework(Path storage, boolean useAtomosNewFramework)
+        throws BundleException
+    {
+        Atomos atomos = Atomos.newAtomos();
+        final File modules = new File("target/modules");
+        assertTrue(modules.isDirectory(), "Modules directory does not exist: " + modules);
+        final AtomosLayer child = atomos.getBootLayer().addLayer("SINGLE",
+            LoaderType.SINGLE, modules.toPath());
+
+        if (useAtomosNewFramework)
+        {
+            testFramework = atomos.newFramework(
+                Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        }
+        else
+        {
+            testFramework = ServiceLoader.load(
+                ConnectFrameworkFactory.class).findFirst().map(
+                    f -> f.newFramework( //
+                        Map.of(//
+                            Constants.FRAMEWORK_STORAGE, //
+                            storage.toFile().getAbsolutePath(), //
+                            Constants.FRAMEWORK_SYSTEMPACKAGES, //
+                            ""),
+                        atomos.getModuleConnector())).get();
+        }
+        testFramework.start();
+
+        assertFindBundle("java.base", child, atomos.getBootLayer(), true);
+        assertFindBundle(TESTBUNDLES_SERVICE_IMPL_A, child, child, true);
+        assertFindBundle(TESTBUNDLES_SERVICE_IMPL, child, atomos.getBootLayer(), true);
+        assertFindBundle(TESTBUNDLES_SERVICE_IMPL_A, atomos.getBootLayer(), null, false);
     }
 
     @Test
@@ -431,16 +480,16 @@ public class ModulepathLaunchTest
         final BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
 
-        final AtomosRuntime atomosRuntime = bc.getService(
-            bc.getServiceReference(AtomosRuntime.class));
-        final AtomosLayer child = installChild(atomosRuntime.getBootLayer(), "SINGLE",
-            atomosRuntime, LoaderType.SINGLE);
-        assertFindBundle("java.base", child, atomosRuntime.getBootLayer(), true);
+        final Atomos atomos = bc.getService(
+            bc.getServiceReference(Atomos.class));
+        final AtomosLayer child = installChild(atomos.getBootLayer(), "SINGLE",
+            atomos, LoaderType.SINGLE);
+        assertFindBundle("java.base", child, atomos.getBootLayer(), true);
         assertFindBundle(TESTBUNDLES_SERVICE_IMPL_A, child, child, true);
         assertFindBundle(TESTBUNDLES_SERVICE_IMPL, child,
-            atomosRuntime.getBootLayer(), true);
+            atomos.getBootLayer(), true);
         assertFindBundle(TESTBUNDLES_SERVICE_IMPL_A,
-            atomosRuntime.getBootLayer(), null, false);
+            atomos.getBootLayer(), null, false);
     }
 
     @Test
@@ -452,10 +501,10 @@ public class ModulepathLaunchTest
         final BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
 
-        final AtomosRuntime atomosRuntime = bc.getService(
-            bc.getServiceReference(AtomosRuntime.class));
-        final AtomosLayer child = installChild(atomosRuntime.getBootLayer(), "SINGLE",
-            atomosRuntime, LoaderType.SINGLE);
+        final Atomos atomos = bc.getService(
+            bc.getServiceReference(Atomos.class));
+        final AtomosLayer child = installChild(atomos.getBootLayer(), "SINGLE",
+            atomos, LoaderType.SINGLE);
         final Bundle b = child.findAtomosContent(
             TESTBUNDLES_SERVICE_IMPL_A).get().getBundle();
         assertNotNull(b, "No bundle found.");
@@ -474,10 +523,10 @@ public class ModulepathLaunchTest
         final BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
 
-        final AtomosRuntime atomosRuntime = bc.getService(
-            bc.getServiceReference(AtomosRuntime.class));
-        final AtomosLayer child = installChild(atomosRuntime.getBootLayer(), "SINGLE",
-            atomosRuntime, LoaderType.SINGLE);
+        final Atomos atomos = bc.getService(
+            bc.getServiceReference(Atomos.class));
+        final AtomosLayer child = installChild(atomos.getBootLayer(), "SINGLE",
+            atomos, LoaderType.SINGLE);
         final AtomosContent ab = child.findAtomosContent(
             TESTBUNDLES_SERVICE_IMPL_A).get();
         Bundle b = ab.getBundle();
@@ -522,13 +571,13 @@ public class ModulepathLaunchTest
         final BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
 
-        final AtomosRuntime atomosRuntime = bc.getService(
-            bc.getServiceReference(AtomosRuntime.class));
+        final Atomos atomos = bc.getService(
+            bc.getServiceReference(Atomos.class));
 
         Framework f = null;
         try
         {
-            f = atomosRuntime.newFramework(
+            f = atomos.newFramework(
                 Map.of(Constants.FRAMEWORK_STORAGE, storage2.getAbsolutePath()));
             f.start();
             fail();
@@ -557,14 +606,14 @@ public class ModulepathLaunchTest
         final BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
 
-        final AtomosRuntime atomosRuntime = bc.getService(
-            bc.getServiceReference(AtomosRuntime.class));
-        checkLoader(atomosRuntime, installChild(atomosRuntime.getBootLayer(), "SINGLE",
-            atomosRuntime, LoaderType.SINGLE), LoaderType.SINGLE);
-        checkLoader(atomosRuntime, installChild(atomosRuntime.getBootLayer(), "MANY",
-            atomosRuntime, LoaderType.MANY), LoaderType.MANY);
-        checkLoader(atomosRuntime, installChild(atomosRuntime.getBootLayer(), "OSGI",
-            atomosRuntime, LoaderType.OSGI), LoaderType.OSGI);
+        final Atomos atomos = bc.getService(
+            bc.getServiceReference(Atomos.class));
+        checkLoader(atomos, installChild(atomos.getBootLayer(), "SINGLE",
+            atomos, LoaderType.SINGLE), LoaderType.SINGLE);
+        checkLoader(atomos, installChild(atomos.getBootLayer(), "MANY",
+            atomos, LoaderType.MANY), LoaderType.MANY);
+        checkLoader(atomos, installChild(atomos.getBootLayer(), "OSGI",
+            atomos, LoaderType.OSGI), LoaderType.OSGI);
     }
 
     @Test
@@ -577,11 +626,11 @@ public class ModulepathLaunchTest
 
         final BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
-        final ServiceReference<AtomosRuntime> atomosRef = bc.getServiceReference(
-            AtomosRuntime.class);
+        final ServiceReference<Atomos> atomosRef = bc.getServiceReference(
+            Atomos.class);
         assertNotNull(atomosRef, "No Atomos runtime.");
 
-        final AtomosRuntime atomos = bc.getService(atomosRef);
+        final Atomos atomos = bc.getService(atomosRef);
         checkBundleStates(atomos, bc.getBundles());
 
         assertNotNull(atomos, "Null Atomos runtime.");
@@ -625,11 +674,11 @@ public class ModulepathLaunchTest
 
         final BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
-        final ServiceReference<AtomosRuntime> atomosRef = bc.getServiceReference(
-            AtomosRuntime.class);
+        final ServiceReference<Atomos> atomosRef = bc.getServiceReference(
+            Atomos.class);
         assertNotNull(atomosRef, "No Atomos runtime.");
 
-        final AtomosRuntime atomos = bc.getService(atomosRef);
+        final Atomos atomos = bc.getService(atomosRef);
         checkBundleStates(atomos, bc.getBundles());
 
         checkServices(bc, 4);
@@ -644,11 +693,11 @@ public class ModulepathLaunchTest
 
         final BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
-        final ServiceReference<AtomosRuntime> atomosRef = bc.getServiceReference(
-            AtomosRuntime.class);
+        final ServiceReference<Atomos> atomosRef = bc.getServiceReference(
+            Atomos.class);
         assertNotNull(atomosRef, "No Atomos runtime.");
 
-        final AtomosRuntime atomos = bc.getService(atomosRef);
+        final Atomos atomos = bc.getService(atomosRef);
         checkBundleStates(atomos, bc.getBundles());
 
         checkServices(bc, 2);
@@ -664,16 +713,16 @@ public class ModulepathLaunchTest
         BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
 
-        final AtomosRuntime atomosRuntime1 = bc.getService(
-            bc.getServiceReference(AtomosRuntime.class));
-        installChild(atomosRuntime1.getBootLayer(), "SINGLE", atomosRuntime1,
+        final Atomos atomos1 = bc.getService(
+            bc.getServiceReference(Atomos.class));
+        installChild(atomos1.getBootLayer(), "SINGLE", atomos1,
             LoaderType.SINGLE);
-        installChild(atomosRuntime1.getBootLayer(), "MANY", atomosRuntime1,
+        installChild(atomos1.getBootLayer(), "MANY", atomos1,
             LoaderType.MANY);
-        installChild(atomosRuntime1.getBootLayer(), "OSGI", atomosRuntime1,
+        installChild(atomos1.getBootLayer(), "OSGI", atomos1,
             LoaderType.OSGI);
 
-        checkBundleStates(atomosRuntime1, bc.getBundles());
+        checkBundleStates(atomos1, bc.getBundles());
         checkServices(bc, 8);
 
         testFramework.stop();
@@ -683,8 +732,8 @@ public class ModulepathLaunchTest
         testFramework.start();
         bc = testFramework.getBundleContext();
 
-        final AtomosLayer child1 = installChild(atomosRuntime1.getBootLayer(), "SINGLE2",
-            atomosRuntime1, LoaderType.SINGLE);
+        final AtomosLayer child1 = installChild(atomos1.getBootLayer(), "SINGLE2",
+            atomos1, LoaderType.SINGLE);
 
         checkServices(bc, 10);
 
@@ -710,9 +759,9 @@ public class ModulepathLaunchTest
 
         checkServices(bc, 8);
 
-        final AtomosRuntime atomosRuntime2 = bc.getService(
-            bc.getServiceReference(AtomosRuntime.class));
-        final AtomosLayer bootLayer = atomosRuntime2.getBootLayer();
+        final Atomos atomos2 = bc.getService(
+            bc.getServiceReference(Atomos.class));
+        final AtomosLayer bootLayer = atomos2.getBootLayer();
         assertEquals(3, bootLayer.getChildren().size(), "Wrong number of children.");
 
         final List<AtomosLayer> children = bootLayer.getChildren().stream().sorted(
@@ -736,7 +785,7 @@ public class ModulepathLaunchTest
         // startup with the option not to force install all atomos contents
         testFramework = getFramework(null,
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(),
-            AtomosRuntime.ATOMOS_CONTENT_INSTALL + "=false");
+            Atomos.ATOMOS_CONTENT_INSTALL + "=false");
 
         bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
@@ -754,10 +803,10 @@ public class ModulepathLaunchTest
         final BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
 
-        final AtomosRuntime atomosRuntime = bc.getService(
-            bc.getServiceReference(AtomosRuntime.class));
-        final AtomosLayer child = installChild(atomosRuntime.getBootLayer(), "testRef",
-            atomosRuntime, LoaderType.MANY);
+        final Atomos atomos = bc.getService(
+            bc.getServiceReference(Atomos.class));
+        final AtomosLayer child = installChild(atomos.getBootLayer(), "testRef",
+            atomos, LoaderType.MANY);
         checkServices(bc, 4);
         final AtomosContent ab = child.findAtomosContent(
             TESTBUNDLES_SERVICE_USER).get();
@@ -856,7 +905,7 @@ public class ModulepathLaunchTest
     {
         String[] args = new String[] {
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath(),
-                AtomosRuntime.ATOMOS_CONTENT_INSTALL + "=false" };
+                Atomos.ATOMOS_CONTENT_INSTALL + "=false" };
 
         testFramework = getFramework(null, args);
         BundleContext bc = testFramework.getBundleContext();
@@ -864,8 +913,8 @@ public class ModulepathLaunchTest
         assertNotNull(bc, "No context found.");
         assertEquals(1, bc.getBundles().length, "Wrong number of bundles.");
 
-        AtomosRuntime runtime = bc.getService(
-            bc.getServiceReference(AtomosRuntime.class));
+        Atomos runtime = bc.getService(
+            bc.getServiceReference(Atomos.class));
 
         AtomosContent systemContent = runtime.getConnectedContent(
             Constants.SYSTEM_BUNDLE_LOCATION);
@@ -948,10 +997,10 @@ public class ModulepathLaunchTest
         testFramework.waitForStop(5000);
 
         // start over from persistence
-        runtime = AtomosRuntime.newAtomosRuntime();
+        runtime = Atomos.newAtomos();
         implContent = runtime.getBootLayer().findAtomosContent(BSN_SERVICE_IMPL).get();
 
-        testFramework = runtime.newFramework(AtomosRuntime.getConfiguration(args));
+        testFramework = runtime.newFramework(Atomos.getConfiguration(args));
         testFramework.start();
         bc = testFramework.getBundleContext();
 
@@ -1024,8 +1073,8 @@ public class ModulepathLaunchTest
         final BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
 
-        final AtomosRuntime atomos = bc.getService(
-            bc.getServiceReference(AtomosRuntime.class));
+        final Atomos atomos = bc.getService(
+            bc.getServiceReference(Atomos.class));
         AtomosLayer layer1 = installChild(atomos, "layer1",
             List.of(atomos.getBootLayer()), TESTBUNDLES_DEPENDENCY_A);
         AtomosLayer layer2 = installChild(atomos, "layer2",
@@ -1051,7 +1100,7 @@ public class ModulepathLaunchTest
         assertEquals(Set.of(), layer2.getChildren(), "Wrong children for layer2.");
     }
 
-    private AtomosLayer installChild(AtomosRuntime atomos, String layerName,
+    private AtomosLayer installChild(Atomos atomos, String layerName,
         List<AtomosLayer> parents, String... moduleNames) throws BundleException
     {
         AtomosLayer layer = atomos.addLayer(parents, layerName, LoaderType.SINGLE,
