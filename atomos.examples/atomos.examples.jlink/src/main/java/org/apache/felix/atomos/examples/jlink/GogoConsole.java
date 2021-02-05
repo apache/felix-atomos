@@ -13,18 +13,38 @@
  */
 package org.apache.felix.atomos.examples.jlink;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.felix.atomos.launch.AtomosLauncher;
+import org.apache.felix.atomos.runtime.AtomosRuntime;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.launch.Framework;
 
 public class GogoConsole
 {
     public static void main(String[] args) throws BundleException
     {
         long start = System.nanoTime();
-        AtomosLauncher.main(args);
+        launch(args);
         long total = System.nanoTime() - start;
         System.out.println("Total time: " + TimeUnit.NANOSECONDS.toMillis(total));
+    }
+
+    private static void launch(String[] args) throws BundleException
+    {
+        Map<String, String> config = AtomosRuntime.getConfiguration(args);
+        AtomosRuntime atomosRuntime = AtomosRuntime.newAtomosRuntime(config);
+        if (atomosRuntime.getBootLayer().isAddLayerSupported())
+        {
+            String modulesDirPath = config.get("atomos.modules");
+            Path modulesPath = modulesDirPath == null ? null
+                : new File(modulesDirPath).toPath();
+            atomosRuntime.getBootLayer().addModules("modules", modulesPath);
+        }
+
+        Framework framework = atomosRuntime.newFramework(config);
+        framework.start();
     }
 }

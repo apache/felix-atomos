@@ -31,7 +31,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
-import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.apache.felix.atomos.runtime.AtomosRuntime;
@@ -78,17 +77,21 @@ public class IndexLaunchTest
     private Framework getTestFramework(Path storage, String indexPath)
         throws BundleException
     {
+        Framework f;
         if (indexPath == null)
         {
-            return AtomosLauncher.launch(
+            f = AtomosRuntime.newAtomosRuntime().newFramework(
                 Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
         }
         else
         {
-            return AtomosLauncher.launch(
-                Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath(),
-                    AtomosRuntimeBase.ATOMOS_INDEX_PATH_PROP, indexPath));
+            Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE,
+                storage.toFile().getAbsolutePath(),
+                AtomosRuntimeBase.ATOMOS_INDEX_PATH_PROP, indexPath);
+            f = AtomosRuntime.newAtomosRuntime(config).newFramework(config);
         }
+        f.start();
+        return f;
     }
 
     @Test

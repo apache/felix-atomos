@@ -18,17 +18,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 
-import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.junit.jupiter.api.Test;
 
-public class AtomosLauncherTest
+public class GetConfigurationTest
 {
 
     @Test
     void testRuntimeConfigSimple()
     {
         String[] args = { "a=1", "b=2" };
-        Map<String, String> map = AtomosLauncher.getConfiguration(args);
+        Map<String, String> map = AtomosRuntime.getConfiguration(args);
         assertEquals(2, map.size());
         assertEquals("1", map.get("a"));
         assertEquals("2", map.get("b"));
@@ -38,7 +37,7 @@ public class AtomosLauncherTest
     void testRuntimeConfig()
     {
         String[] args = { "calc=1+1=2", "separator==" };
-        Map<String, String> map = AtomosLauncher.getConfiguration(args);
+        Map<String, String> map = AtomosRuntime.getConfiguration(args);
         assertEquals(2, map.size());
         assertEquals("1+1=2", map.get("calc"));
         assertEquals("=", map.get("separator"));
@@ -48,7 +47,7 @@ public class AtomosLauncherTest
     void testRuntimeConfigFilter()
     {
         String[] args = { "nono", "no:no" };
-        Map<String, String> map = AtomosLauncher.getConfiguration(args);
+        Map<String, String> map = AtomosRuntime.getConfiguration(args);
         assertEquals(0, map.size());
     }
 
@@ -56,7 +55,7 @@ public class AtomosLauncherTest
     void testRuntimeConfigSameKey()
     {
         String[] args = { "a=1", "a=2" };
-        Map<String, String> map = AtomosLauncher.getConfiguration(args);
+        Map<String, String> map = AtomosRuntime.getConfiguration(args);
         assertEquals(1, map.size());
         assertEquals("2", map.get("a"));
     }
@@ -65,7 +64,7 @@ public class AtomosLauncherTest
     void testRuntimeConfigNoValue()
     {
         String[] args = { "a=" };
-        Map<String, String> map = AtomosLauncher.getConfiguration(args);
+        Map<String, String> map = AtomosRuntime.getConfiguration(args);
         assertEquals(1, map.size());
         assertEquals("", map.get("a"));
     }
@@ -74,7 +73,7 @@ public class AtomosLauncherTest
     void testRuntimeConfigEmpty()
     {
         String[] args = {};
-        Map<String, String> map = AtomosLauncher.getConfiguration(args);
+        Map<String, String> map = AtomosRuntime.getConfiguration(args);
         assertTrue(map.isEmpty());
     }
 
@@ -82,7 +81,7 @@ public class AtomosLauncherTest
     void testRuntimeConfigNull()
     {
         String[] args = null;
-        Map<String, String> map = AtomosLauncher.getConfiguration(args);
+        Map<String, String> map = AtomosRuntime.getConfiguration(args);
         assertTrue(map.isEmpty());
     }
 }

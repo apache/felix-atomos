@@ -13,7 +13,7 @@
  */
 package org.apache.felix.atomos.examples.android;
 
-import static org.apache.felix.atomos.launch.AtomosLauncher.getConfiguration;
+import static org.apache.felix.atomos.runtime.AtomosRuntime.getConfiguration;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -23,7 +23,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 
-import org.apache.felix.atomos.launch.AtomosLauncher;
+import org.apache.felix.atomos.runtime.AtomosRuntime;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.launch.Framework;
@@ -67,8 +67,7 @@ public class MainActivity extends AppCompatActivity {
                                         } else {
                                             setText("Starting Atomos!\n", output);
                                         }
-
-                                        f = AtomosLauncher.launch(getConfiguration(args));
+                                        f = AtomosRuntime.newAtomosRuntime().newFramework(getConfiguration(args));
                                         return f;
                                     } catch (InterruptedException | BundleException e) {
                                         throw new RuntimeException(e);

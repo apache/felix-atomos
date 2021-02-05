@@ -224,7 +224,7 @@ public class LauncherBuilderUtil
                 if (nativeImageConfig.mainClass == null
                     || nativeImageConfig.mainClass.isEmpty())
                 {
-                    return "org.apache.felix.atomos.launch.AtomosLauncher";
+                    return "org.apache.felix.atomos.runtime.AtomosRuntime";
                 }
                 return nativeImageConfig.mainClass;
             }

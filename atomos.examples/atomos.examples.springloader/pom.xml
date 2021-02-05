@@ -63,7 +63,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>2.2.5.RELEASE</version>
                 <configuration>
-                    <mainClass>org.apache.felix.atomos.launch.AtomosLauncher</mainClass>
+                    <mainClass>org.apache.felix.atomos.runtime.AtomosRuntime</mainClass>
                 </configuration>
                 <executions>
                   <execution>

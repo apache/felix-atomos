@@ -15,12 +15,14 @@ package org.apache.felix.atomos.runtime;
 
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
 import org.apache.felix.atomos.runtime.AtomosLayer.LoaderType;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.connect.ModuleConnector;
@@ -138,6 +140,7 @@ import org.osgi.framework.launch.FrameworkFactory;
  * system.bundle of the initialized framework will also have an AtomosRuntime
  * service registered with its bundle context.
  */
+@org.osgi.annotation.bundle.Header(name = "Main-Class", value = "org.apache.felix.atomos.runtime.AtomosRuntime")
 public interface AtomosRuntime
 {
     /**
@@ -200,21 +203,68 @@ public interface AtomosRuntime
         Path... modulePaths);
 
     /**
-     * Creates a new {@link Framework} instance that uses this Atomos runtime. The
+     * Creates a new {@link Framework} instance that uses this Atomos instance. The
      * {@link ServiceLoader} is used to load an implementation of a {@link ConnectFrameworkFactory}
      * which is used to create a new {@link Framework} instance with the specified Atomos runtime.
      * The supplied framework configuration is used to create the new {@code Framework} instance.
      * Additional configuration options maybe configured automatically in order to correctly configure
      * the system packages for the {@code Framework} instance.
      * @param frameworkConfig The framework configuration options, or {@code null} if the defaults should be used
-     * @param atomosRuntime The Atomos runtime, or {@code null} will create a new Atomos runtime
-     * @return The new uninitialized Framework instance which uses the Atomos runtime
+     * @return The new uninitialized Framework instance which uses this Atomos instance
      */
     public Framework newFramework(Map<String, String> frameworkConfig);
 
     /**
+     * A main method that can be used by executable jars to initialize and start
+     * Atomos with an available OSGi {@link Framework} implementation.
+     * Each string in the arguments array may contain a key=value
+     * pair that will be used for the framework configuration.
+     * 
+     * @param args the args will be converted into a {@code Map<String, String>} to
+     *             use as configuration parameters for the OSGi Framework.
+     * @throws BundleException when an error occurs
+     * @see #newAtomosRuntime(Map)
+     * @see #newFramework(Map)
+     */
+    static void main(String... args) throws BundleException
+    {
+        Map<String, String> config = getConfiguration(args);
+        // default to reporting resolution issues from main
+        config.putIfAbsent(AtomosRuntimeBase.ATOMOS_REPORT_RESOLUTION_PROP, "true");
+        AtomosRuntime atomosRuntime = AtomosRuntime.newAtomosRuntime(config);
+        Framework framework = atomosRuntime.newFramework(config);
+        framework.start();
+    }
+
+    /**
+     * Converts a string array into a {@code  Map<String,String>}
+     * 
+     * @param args the arguments where each element has key=string value, the key
+     *             cannot contain an '=' (equals) character.
+     * @return a map of the configuration specified by the args
+     */
+    public static Map<String, String> getConfiguration(String... args)
+    {
+        Map<String, String> config = new HashMap<>();
+        if (args != null)
+        {
+            for (String arg : args)
+            {
+                int equals = arg.indexOf('=');
+                if (equals != -1)
+                {
+                    String key = arg.substring(0, equals);
+                    String value = arg.substring(equals + 1);
+                    config.put(key, value);
+                }
+            }
+        }
+        return config;
+    }
+
+    /**
      * Creates a new AtomosRuntime that can be used to create a new OSGi framework
-     * instance. Same as calling {@code newAtomosRuntime(Map)} with a {@code null} 
+     * instance. Same as calling {@code newAtomosRuntime(Map)} with an empty 
      * configuration.
      * 
      * @return a new AtomosRuntime.

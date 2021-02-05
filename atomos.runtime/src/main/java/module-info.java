@@ -21,9 +21,8 @@ import org.osgi.framework.connect.ModuleConnector;
 open module org.apache.felix.atomos.runtime
 {
     exports org.apache.felix.atomos.runtime;
-    exports org.apache.felix.atomos.launch;
 
-    requires osgi.core;
+    requires transitive osgi.core;
     requires static osgi.annotation;
     requires static jdk.unsupported;
     requires static org.apache.felix.gogo.runtime;

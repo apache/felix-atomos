@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.felix.atomos.impl.runtime.base.AtomosCommands;
-import org.apache.felix.atomos.launch.AtomosLauncher;
 import org.apache.felix.atomos.runtime.AtomosContent;
 import org.apache.felix.atomos.runtime.AtomosLayer;
 import org.apache.felix.atomos.runtime.AtomosLayer.LoaderType;
@@ -76,8 +75,9 @@ public class ClasspathLaunchTest
     void testClassPathGogo(@TempDir Path storage)
         throws BundleException, InvalidSyntaxException
     {
-        testFramework = AtomosLauncher.launch(Collections.singletonMap(
-            Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework = AtomosRuntime.newAtomosRuntime().newFramework(
+            Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
         BundleContext bc = testFramework.getBundleContext();
 
         String filter = "(osgi.command.scope=atomos)";
@@ -96,8 +96,9 @@ public class ClasspathLaunchTest
     void testClassPathServices(@TempDir Path storage)
         throws BundleException, InvalidSyntaxException
     {
-        testFramework = AtomosLauncher.launch(Collections.singletonMap(
-            Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework = AtomosRuntime.newAtomosRuntime().newFramework(
+            Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
         BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
         checkBundleStates(bc.getBundles());
@@ -135,8 +136,9 @@ public class ClasspathLaunchTest
     @Test
     void testFindBundle(@TempDir Path storage) throws BundleException
     {
-        testFramework = AtomosLauncher.launch(Collections.singletonMap(
-            Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework = AtomosRuntime.newAtomosRuntime().newFramework(
+            Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
         BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
 
@@ -153,8 +155,9 @@ public class ClasspathLaunchTest
     @Test
     void testGetEntry(@TempDir Path storage) throws BundleException
     {
-        testFramework = AtomosLauncher.launch(Collections.singletonMap(
-            Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework = AtomosRuntime.newAtomosRuntime().newFramework(
+            Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
         BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
 
@@ -268,8 +271,9 @@ public class ClasspathLaunchTest
     @Test
     void testSystemPackages(@TempDir Path storage) throws BundleException
     {
-        testFramework = AtomosLauncher.launch(Collections.singletonMap(
-            Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework = AtomosRuntime.newAtomosRuntime().newFramework(
+            Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
         // this test assumes it is running on Java 11+
         Collection<BundleCapability> javaLangPackages = testFramework.adapt(
             FrameworkWiring.class).findProviders(new Requirement()

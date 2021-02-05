@@ -157,7 +157,7 @@
                 </executions>
                 <configuration>
                     <imageName>atomos</imageName>
-                    <mainClass>org.apache.felix.atomos.launch.AtomosLauncher</mainClass>
+                    <mainClass>org.apache.felix.atomos.runtime.AtomosRuntime</mainClass>
                     <buildArgs>
                         --no-server
                         --allow-incomplete-classpath
