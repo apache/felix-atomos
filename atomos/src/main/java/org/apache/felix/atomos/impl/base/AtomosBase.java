@@ -1624,7 +1624,7 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
                     debug("Installing AtomosContent: %s", atomosContent);
                     try
                     {
-                        Bundle b = atomosContent.install("atomos");
+                        Bundle b = atomosContent.install();
                         if (b != null && b.getBundleId() != 0)
                         {
                             bundles.add(b);

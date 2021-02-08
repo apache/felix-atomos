@@ -129,10 +129,9 @@ As mentioned, `AtomosContent` is contained with an `AtomosLayer`. The following 
     framework.init();
     List<Bundle> bundles = new ArrayList<>();
     for (AtomosContent content: atomos.getBootLayer().getAtomosContents()) {
-        // The parameter to install is a prefix that will be used for the bundle
-        // location Atomos designates for the installed bundle.  If null
-        // is used then the prefix of "atomos" is used.
-        bundles.add(content.install(null));
+        // The resulting bundle will use a bundle location of
+        // "atomos:" + atomosContent.getAtomosLocation();
+        bundles.add(content.install());
     }
     for (Bundle b : bundles) {
         b.start();

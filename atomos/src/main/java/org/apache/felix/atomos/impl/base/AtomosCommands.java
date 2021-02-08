@@ -136,7 +136,7 @@ public class AtomosCommands
         List<Bundle> bundles = new ArrayList<>();
         for (final AtomosContent atomosBundle : layer.getAtomosContents())
         {
-            bundles.add(atomosBundle.install(null));
+            bundles.add(atomosBundle.install());
         }
         for (final Bundle b : bundles)
         {

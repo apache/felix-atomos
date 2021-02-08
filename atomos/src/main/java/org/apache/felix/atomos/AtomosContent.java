@@ -100,6 +100,16 @@ public interface AtomosContent extends Comparable<AtomosContent>
      */
     Bundle install(String prefix) throws BundleException;
 
+    /**
+     * Same as {@link #install(String)} using a null prefix.
+     * @return the installed connected bundle
+     * @throws BundleException if an error occurs installing the Atomos content
+     */
+    default Bundle install() throws BundleException
+    {
+        return install(null);
+    }
+
     /** 
      * Returns the connect content for this Atomos content. The returned {@link ConnectContent} can
      * be used to lookup entries from the content directly. If possible, it is preferred to used the bundle
