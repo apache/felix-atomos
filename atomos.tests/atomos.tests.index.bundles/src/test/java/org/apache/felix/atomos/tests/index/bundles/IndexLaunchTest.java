@@ -30,11 +30,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.felix.atomos.impl.runtime.base.AtomosRuntimeBase;
-import org.apache.felix.atomos.launch.AtomosLauncher;
-import org.apache.felix.atomos.runtime.AtomosContent;
-import org.apache.felix.atomos.runtime.AtomosLayer;
-import org.apache.felix.atomos.runtime.AtomosRuntime;
+import org.apache.felix.atomos.Atomos;
+import org.apache.felix.atomos.AtomosContent;
+import org.apache.felix.atomos.AtomosLayer;
+import org.apache.felix.atomos.impl.base.AtomosBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -66,11 +65,11 @@ public class IndexLaunchTest
         }
     }
 
-    private AtomosRuntime getRuntime(BundleContext bc)
+    private Atomos getRuntime(BundleContext bc)
     {
-        ServiceReference<AtomosRuntime> ref = bc.getServiceReference(AtomosRuntime.class);
+        ServiceReference<Atomos> ref = bc.getServiceReference(Atomos.class);
         assertNotNull(ref, "No reference found.");
-        AtomosRuntime runtime = bc.getService(ref);
+        Atomos runtime = bc.getService(ref);
         assertNotNull(runtime, "No service found.");
         return runtime;
     }
@@ -78,26 +77,30 @@ public class IndexLaunchTest
     private Framework getTestFramework(Path storage, String indexPath)
         throws BundleException
     {
+        Framework f;
         if (indexPath == null)
         {
-            return AtomosLauncher.launch(
+            f = Atomos.newAtomos().newFramework(
                 Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
         }
         else
         {
-            return AtomosLauncher.launch(
-                Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath(),
-                    AtomosRuntimeBase.ATOMOS_INDEX_PATH_PROP, indexPath));
+            Map<String, String> config = Map.of(Constants.FRAMEWORK_STORAGE,
+                storage.toFile().getAbsolutePath(),
+                AtomosBase.ATOMOS_INDEX_PATH_PROP, indexPath);
+            f = Atomos.newAtomos(config).newFramework(config);
         }
+        f.start();
+        return f;
     }
 
     @Test
     void testIgnoreIndex(@TempDir Path storage) throws BundleException
     {
-        testFramework = getTestFramework(storage, AtomosRuntimeBase.ATOMOS_IGNORE_INDEX);
+        testFramework = getTestFramework(storage, AtomosBase.ATOMOS_IGNORE_INDEX);
         BundleContext bc = testFramework.getBundleContext();
 
-        AtomosRuntime runtime = getRuntime(bc);
+        Atomos runtime = getRuntime(bc);
         assertFindBundle("java.base", runtime.getBootLayer(), runtime.getBootLayer(),
             true);
         assertFindBundle(TESTBUNDLES_SERVICE_IMPL, runtime.getBootLayer(),
@@ -132,7 +135,7 @@ public class IndexLaunchTest
         BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
 
-        AtomosRuntime runtime = getRuntime(bc);
+        Atomos runtime = getRuntime(bc);
         assertFindBundle("java.base", runtime.getBootLayer(), runtime.getBootLayer(),
             true);
         assertFindBundle(TESTBUNDLES_SERVICE_IMPL, runtime.getBootLayer(),
@@ -210,7 +213,7 @@ public class IndexLaunchTest
         BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
 
-        AtomosRuntime runtime = getRuntime(bc);
+        Atomos runtime = getRuntime(bc);
         Bundle b = assertFindBundle(TESTBUNDLES_SERVICE_IMPL,
             runtime.getBootLayer(),
             runtime.getBootLayer(), true).getBundle();
@@ -258,7 +261,7 @@ public class IndexLaunchTest
         testFramework = getTestFramework(storage, indexPath);
         BundleContext bc = testFramework.getBundleContext();
         assertNotNull(bc, "No context found.");
-        AtomosRuntime runtime = getRuntime(bc);
+        Atomos runtime = getRuntime(bc);
 
         for (int i : expected)
         {

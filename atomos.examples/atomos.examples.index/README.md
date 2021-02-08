@@ -2,7 +2,7 @@
 
 This example uses the `atomos-maven-plugin` to create an Atomos index. An Atomos index contains all the bundle entry resources of the bundles that are required by the example.  For this example the necessary bundles are included to have a functional Felix Gogo console and a Felix WebConsole.  The Atomos index can then be included into the final JAR along with all the required packages from all the bundles included in the JAR.
 
-This example uses `maven-assembly-plugin` to package all the dependent bundles into a single executable JAR which also includes the Atomos index. The Atomos launcher class `org.apache.felix.atomos.launch.AtomosLauncher` is used as the `main-class` for the executable JAR. If you introspect the JAR produced by this example you will notice it includes an `atomos/` folder which includes all the bundle entry resources for all the dependent bundles. This allows for duplicate bundle entry paths to be included in the JAR which Atomos can discover for each bundle included in the single JAR.
+This example uses `maven-assembly-plugin` to package all the dependent bundles into a single executable JAR which also includes the Atomos index. The Atomos class `org.apache.felix.atomos.Atomos` is used as the `main-class` for the executable JAR. If you introspect the JAR produced by this example you will notice it includes an `atomos/` folder which includes all the bundle entry resources for all the dependent bundles. This allows for duplicate bundle entry paths to be included in the JAR which Atomos can discover for each bundle included in the single JAR.
 
 The following command should produce a gogo shell prompt:
 

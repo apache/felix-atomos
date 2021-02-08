@@ -15,7 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.atomos.runtime</artifactId>
+            <artifactId>org.apache.felix.atomos</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -109,7 +109,7 @@
             <plugin>
                 <groupId>org.moditect</groupId>
                 <artifactId>moditect-maven-plugin</artifactId>
-                <version>1.0.0.Beta2</version>
+                <version>1.0.0.RC1</version>
                 <executions>
                     <execution>
                         <id>add-module-infos</id>
@@ -453,7 +453,7 @@
                             </modulePath>
                             <modules>
                                 <module>osgi.core</module>
-                                <module>org.apache.felix.atomos.runtime</module>
+                                <module>org.apache.felix.atomos</module>
                                 <module>org.apache.felix.gogo.command</module>
                                 <module>org.apache.felix.gogo.runtime</module>
                                 <module>org.apache.felix.gogo.shell</module>
@@ -494,7 +494,7 @@
                             <excludeTransitive>true</excludeTransitive>
                             <includeArtifactIds>
                                 osgi.core,
-                                org.apache.felix.atomos.runtime,
+                                org.apache.felix.atomos,
                                 org.apache.felix.atomos.tests.testbundles.service.contract,
                                 org.apache.felix.atomos.tests.testbundles.service.impl,
                                 org.apache.felix.atomos.tests.testbundles.service.impl.activator

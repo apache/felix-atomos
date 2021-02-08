@@ -4,7 +4,7 @@ This example uses the `spring-boot-maven-plugin` to create an executable JAR tha
 
 This is not a Spring Boot example itself. It only Spring Boot loader which understands how to discover and load all the included JAR files with a single class loader. This class loader is able to load content from the embedded JAR files without requiring them to be extracted to disk first.
 
-The Atomos launcher class `org.apache.felix.atomos.launch.AtomosLauncher` is used as the `Start-Class` for the executable JAR. If you introspect the JAR produced by this example you will notice it includes a `BOOT-INF/lib/` folder which includes all the embedded JARs for all the dependent bundles. Atomos is able to discover all the included JARs and load the bundle entry resources from them.
+The Atomos class `org.apache.felix.atomos.Atomos` is used as the `Start-Class` for the executable JAR. If you introspect the JAR produced by this example you will notice it includes a `BOOT-INF/lib/` folder which includes all the embedded JARs for all the dependent bundles. Atomos is able to discover all the included JARs and load the bundle entry resources from them.
 
 The following command should produce a gogo shell prompt:
 

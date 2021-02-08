@@ -12,18 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.apache.felix.atomos.runtime.AtomosRuntime;
+import org.osgi.framework.connect.ConnectFrameworkFactory;
 
 module org.apache.felix.atomos.tests.modulepath.service
 {
-    requires org.apache.felix.atomos.runtime;
+    requires org.apache.felix.atomos;
     requires org.apache.felix.atomos.tests.testbundles.service.contract;
     requires org.apache.felix.atomos.tests.testbundles.service.impl;
     requires org.apache.felix.atomos.tests.testbundles.service.impl.activator;
     requires org.apache.felix.scr;
     requires osgi.promise;
 
-    uses AtomosRuntime;
+    uses ConnectFrameworkFactory;
 
     opens org.apache.felix.atomos.tests.modulepath.service;
 

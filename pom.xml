@@ -22,7 +22,7 @@
     <modules>
         <module>atomos-parent</module>
         <module>atomos.osgi.core</module>
-        <module>atomos.runtime</module>
+        <module>atomos</module>
         <module>atomos.tests</module>
         <module>atomos.utils</module>
         <module>atomos.maven</module>
