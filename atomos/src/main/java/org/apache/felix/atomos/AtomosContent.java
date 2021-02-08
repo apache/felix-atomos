@@ -60,7 +60,7 @@ public interface AtomosContent extends Comparable<AtomosContent>
      * @param type Class object for the type to which this Atomos content is to be
      *        adapted.
      * @return The object, of the specified type, to which this Atomos content has been
-     *         adapted or {@code null} if this content cannot be adapted to the
+     *         adapted or {@code empty} if this content cannot be adapted to the
      *         specified type.
      */
     <T> Optional<T> adapt(Class<T> type);

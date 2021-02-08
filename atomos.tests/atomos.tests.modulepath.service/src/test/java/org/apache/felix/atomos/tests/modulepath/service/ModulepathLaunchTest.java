@@ -435,7 +435,7 @@ public class ModulepathLaunchTest
     @Test
     void testAddLayerBeforeFrameworkFactory(@TempDir Path storage) throws BundleException
     {
-        doAddLayerBeforeFramework(storage, true);
+        doAddLayerBeforeFramework(storage, false);
     }
 
     void doAddLayerBeforeFramework(Path storage, boolean useAtomosNewFramework)

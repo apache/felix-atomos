@@ -55,6 +55,7 @@ public interface AtomosLayer
          */
         MANY
     }
+    
     /**
      * Adapt this Atomos layer to the specified type. For example,
      * if running in a module layer then the layer can be adapted
@@ -63,7 +64,7 @@ public interface AtomosLayer
      * @param type Class object for the type to which this Atomos layer is to be
      *        adapted.
      * @return The object, of the specified type, to which this Atomos layer has been
-     *         adapted or {@code null} if this layer cannot be adapted to the
+     *         adapted or {@code empty} if this layer cannot be adapted to the
      *         specified type.
      */
     <T> Optional<T> adapt(Class<T> type);

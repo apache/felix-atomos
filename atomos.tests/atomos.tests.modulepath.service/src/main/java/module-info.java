@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.apache.felix.atomos.Atomos;
+import org.osgi.framework.connect.ConnectFrameworkFactory;
 
 module org.apache.felix.atomos.tests.modulepath.service
 {
@@ -23,7 +23,7 @@ module org.apache.felix.atomos.tests.modulepath.service
     requires org.apache.felix.scr;
     requires osgi.promise;
 
-    uses Atomos;
+    uses ConnectFrameworkFactory;
 
     opens org.apache.felix.atomos.tests.modulepath.service;
 
