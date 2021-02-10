@@ -91,7 +91,7 @@ implemenation that can be used to create a [Framework](https://docs.osgi.org/jav
      Framework framework = factory.newFramework(
                                Map.of(
                                   Constants.FRAMEWORK_SYSTEMPACKAGES, ""),
-                               AtomosRuntime.newAtomos().getModuleConnector())
+                               Atomos.newAtomos().getModuleConnector());
 ```
 
 The framework must be configured with `org.osgi.framework.system.packages=""` when running on Java 9+ to configure the `system.bundle` to not export any of the packages provided by the JVM boot layer. Alternatively, a framework can be constructed using the `Atomos.newFramework` method like the following:
