@@ -6,5 +6,4 @@ github:
     - modules
     - jlink
     - substrate
-  ghp_branch: master
-  ghp_path: /docs
+  ghp_branch: gh-pages
