@@ -1,5 +1,3 @@
-# Atomos [![Java CI](https://github.com/apache/felix-atomos/workflows/Java%20CI/badge.svg)](https://github.com/apache/felix-atomos/actions?query=workflow%3A%22Java%20CI%22) [![Felix Atomos Chat](.github/asf-slack-felix-atomos-yellow.svg)](https://join.slack.com/share/IV58N2A1L/2uiZ00qrH7wuBi1Dpgdv263g/enQtOTkxMjk0MDc4MDU0LWU3M2ZiYTczZGY5ZTNhZjI5M2NhMzNjYTdmN2VlMzg0NTU3NzEyOGI0MWJmYzU1YjI1ZjNhMTMzMzg4Y2RmNDk) [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/apache/felix-atomos)
-
 Atomos - A Java Module Runtime using OSGi Connect
 
 With the release of [OSGi Core Release 8](https://docs.osgi.org/specification/osgi.core/8.0.0/), the [Connect](https://docs.osgi.org/specification/osgi.core/8.0.0/framework.connect.html) Specification enables OSGi frameworks to be extended to support environments not previously possible in a standard way. Atomos uses the Connect specification to extend the use of the OSGi framework into many different environments.
