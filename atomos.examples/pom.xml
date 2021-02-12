@@ -17,8 +17,8 @@
     <modules>
         <module>atomos.examples.webconsole.bom</module>
         <module>atomos.examples.index</module>
-        <module>atomos.examples.jlink</module>
         <module>atomos.examples.springloader</module>
+        <module>atomos.examples.jlink</module>
     </modules>
     <profiles>
         <profile>
@@ -28,10 +28,10 @@
                 <module>atomos.examples.index</module>
                 <module>atomos.examples.jaxrs.bundle</module>
                 <module>atomos.examples.jaxrs</module>
-                <module>atomos.examples.jlink</module>
                 <module>atomos.examples.springloader</module>
                 <module>atomos.examples.substrate.lib</module>
                 <module>atomos.examples.substrate.maven</module>
+                <module>atomos.examples.jlink</module>
             </modules>
         </profile>
     </profiles>

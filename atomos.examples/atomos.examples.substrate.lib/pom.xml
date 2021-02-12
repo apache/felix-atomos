@@ -150,7 +150,7 @@
             <plugin>
                 <groupId>org.graalvm.nativeimage</groupId>
                 <artifactId>native-image-maven-plugin</artifactId>
-                <version>20.2.0</version>
+                <version>21.0.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -166,7 +166,15 @@
                         --no-server
                         --allow-incomplete-classpath
                         --no-fallback
-                        --initialize-at-build-time=org.eclipse.jetty.util.TypeUtil,org.eclipse.jetty.http.HttpTokens,org.eclipse.jetty.util.log.Log,org.eclipse.jetty.util.log.StdErrLog,org.eclipse.jetty.util.Uptime,org.eclipse.jetty.server.HttpOutput,org.apache.felix.atomos,javax.servlet,org.apache.felix.service.command.Converter
+                        --initialize-at-build-time=org.eclipse.jetty.util.TypeUtil
+                        --initialize-at-build-time=org.eclipse.jetty.http.HttpTokens
+                        --initialize-at-build-time=org.eclipse.jetty.util.log.Log
+                        --initialize-at-build-time=org.eclipse.jetty.util.log.StdErrLog
+                        --initialize-at-build-time=org.eclipse.jetty.util.Uptime
+                        --initialize-at-build-time=org.eclipse.jetty.server.HttpOutput
+                        --initialize-at-build-time=org.apache.felix.atomos
+                        --initialize-at-build-time=javax.servlet
+                        --initialize-at-build-time=org.apache.felix.service.command.Converter
                         -H:ReflectionConfigurationFiles=${project.basedir}/graal_class_config.json
                         -H:ResourceConfigurationFiles=${project.basedir}/graal_resource_config.json
                         -H:DynamicProxyConfigurationFiles=${project.basedir}/graal_proxy_config.json
