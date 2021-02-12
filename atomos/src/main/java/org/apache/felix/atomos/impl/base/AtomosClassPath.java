@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.Optional;
 
 import org.apache.felix.atomos.AtomosContent;
 import org.apache.felix.atomos.AtomosLayer;
@@ -34,9 +36,9 @@ public class AtomosClassPath extends AtomosBase
 
     private final AtomosLayer bootLayer = createBootLayer();
 
-    public AtomosClassPath(Map<String, String> config)
+    public AtomosClassPath(Map<String, String> config, BiFunction<String, Map<String, String>, Optional<Map<String, String>>> headerProvider)
     {
-        super(config);
+        super(config, headerProvider);
     }
 
     private AtomosLayer createBootLayer()

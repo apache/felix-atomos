@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.osgi.framework.connect.ConnectContent;
@@ -77,9 +78,12 @@ public class ConnectContentFile implements ConnectContent
 
     final File root;
 
-    public ConnectContentFile(File root)
+    final Supplier<Optional<Map<String, String>>> headers;
+
+    public ConnectContentFile(File root, Supplier<Optional<Map<String, String>>> headers)
     {
         this.root = root;
+        this.headers = headers;
     }
 
     @Override
@@ -152,7 +156,7 @@ public class ConnectContentFile implements ConnectContent
     @Override
     public Optional<Map<String, String>> getHeaders()
     {
-        return Optional.empty();
+        return headers.get();
     }
 
 }

@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.Optional;
+import java.util.function.BiFunction;
 
 import org.apache.felix.atomos.AtomosLayer.LoaderType;
 import org.apache.felix.atomos.impl.base.AtomosBase;
@@ -205,7 +207,7 @@ public interface Atomos
      * @param frameworkConfig The framework configuration options, or {@code null} if the defaults should be used
      * @return The new uninitialized Framework instance which uses this Atomos instance
      */
-    public Framework newFramework(Map<String, String> frameworkConfig);
+    Framework newFramework(Map<String, String> frameworkConfig);
 
     /**
      * A main method that can be used by executable jars to initialize and start
@@ -236,7 +238,7 @@ public interface Atomos
      *             cannot contain an '=' (equals) character.
      * @return a map of the configuration specified by the args
      */
-    public static Map<String, String> getConfiguration(String... args)
+    static Map<String, String> getConfiguration(String... args)
     {
         Map<String, String> config = new HashMap<>();
         if (args != null)
@@ -262,9 +264,21 @@ public interface Atomos
      * 
      * @return a new Atomos.
      */
-    static Atomos newAtomos()
+     static Atomos newAtomos()
     {
-        return newAtomos(Collections.emptyMap());
+        return newAtomos((location, headers) -> Optional.empty());
+    }
+
+    /**
+     * Creates a new Atomos that can be used to create a new OSGi framework
+     * instance. Same as calling {@code newAtomos(Map)} with an empty
+     * configuration.
+     *
+     * @return a new Atomos.
+     */
+    static Atomos newAtomos(BiFunction<String, Map<String, String>, Optional<Map<String, String>>> headerProvider)
+    {
+        return newAtomos(Collections.emptyMap(), headerProvider);
     }
 
     /**
@@ -286,6 +300,28 @@ public interface Atomos
      */
     static Atomos newAtomos(Map<String, String> configuration)
     {
-        return AtomosBase.newAtomos(configuration);
+        return newAtomos(configuration, (location, headers) -> Optional.empty());
+    }
+
+    /**
+     * Creates a new Atomos that can be used to create a new OSGi framework
+     * instance. If Atomos is running as a Java Module then this Atomos can
+     * be used to create additional layers by using the
+     * {@link AtomosLayer#addLayer(String, AtomosLayer.LoaderType, Path...)} method. If the additional layers are added
+     * before {@link ConnectFrameworkFactory#newFramework(Map, ModuleConnector)}  creating} and {@link Framework#init()
+     * initializing} the framework then the Atomos contents found in the added layers
+     * will be automatically installed and started according to the
+     * {@link #ATOMOS_CONTENT_INSTALL} and {@link #ATOMOS_CONTENT_START} options.
+     * <p>
+     * Note that this {@code Atomos} must be used for creating a new
+     * {@link ConnectFrameworkFactory#newFramework(Map, ModuleConnector)} instance to use
+     * the layers added to this {@code Atomos}.
+     *
+     * @param configuration the properties to configure the new runtime
+     * @return a new Atomos.
+     */
+    static Atomos newAtomos(Map<String, String> configuration, BiFunction<String, Map<String, String>, Optional<Map<String, String>>> headerProvider)
+    {
+        return AtomosBase.newAtomos(configuration, headerProvider);
     }
 }

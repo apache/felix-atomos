@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -42,6 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.BiFunction;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -132,47 +134,57 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
 
     protected final AtomicLong nextLayerId = new AtomicLong(0);
 
+    protected final BiFunction<String, Map<String, String>, Optional<Map<String, String>>> headerProvider;
+
     public static enum Index
     {
         IGNORE, FIRST
     }
 
-    public static Atomos newAtomos(Map<String, String> config)
+    public static Atomos newAtomos(Map<String, String> config, BiFunction<String, Map<String, String>, Optional<Map<String, String>>> headerProvider)
     {
         String runtimeClass = config.get(ATOMOS_CLASS_PROP);
         if (runtimeClass != null)
         {
-            return loadRuntime(runtimeClass, config);
+            return loadRuntime(runtimeClass, config, headerProvider);
         }
         if (config.get(
             ATOMOS_LIB_DIR_PROP) != null
             || System.getProperty(GRAAL_NATIVE_IMAGE_KIND) != null)
         {
-            return new AtomosClassPath(config);
+            return new AtomosClassPath(config, headerProvider);
         }
         try
         {
             Class.forName("java.lang.Module");
-            return loadRuntime(ATOMOS_RUNTIME_MODULES_CLASS, config);
+            return loadRuntime(ATOMOS_RUNTIME_MODULES_CLASS, config, headerProvider);
         }
         catch (ClassNotFoundException e)
         {
             // ignore
         }
         // default to classpath
-        return new AtomosClassPath(config);
+        return new AtomosClassPath(config, headerProvider);
     }
 
     private static Atomos loadRuntime(String runtimeClass,
-        Map<String, String> config)
+        Map<String, String> config, BiFunction<String, Map<String, String>, Optional<Map<String, String>>> manifestProvider)
     {
         try
         {
             return (AtomosBase) Class.forName(
-                runtimeClass).getConstructor(Map.class).newInstance(config);
+                runtimeClass).getConstructor(Map.class, BiFunction.class).newInstance(config, manifestProvider);
         }
         catch (Exception e)
         {
+            if (e instanceof InvocationTargetException)
+            {
+                Throwable cause = e.getCause();
+                if (cause instanceof Exception)
+                {
+                    e = (Exception) cause;
+                }
+            }
             throw e instanceof RuntimeException ? (RuntimeException) e
                 : new RuntimeException(e);
         }
@@ -184,9 +196,10 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
         return new File(libDirProp, ATOMOS_LIB_DIR);
     }
 
-    protected AtomosBase(Map<String, String> config)
+    protected AtomosBase(Map<String, String> config, BiFunction<String, Map<String, String>, Optional<Map<String, String>>> headerProvider)
     {
         saveConfig(config);
+        this.headerProvider = headerProvider;
         DEBUG = Boolean.parseBoolean(this.config.get(ATOMOS_DEBUG_PROP));
         REPORT_RESOLUTION_ERRORS = Boolean.parseBoolean(
             this.config.get(ATOMOS_REPORT_RESOLUTION_PROP));
@@ -734,64 +747,70 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
                     JarFile.MANIFEST_NAME);
                 while (classpathManifests.hasMoreElements())
                 {
-                    URL manifest = classpathManifests.nextElement();
-                    if (parentManifests.contains(manifest))
+                    URL manifestURL = classpathManifests.nextElement();
+                    if (parentManifests.contains(manifestURL))
                     {
                         // ignore parent manifests
                         continue;
                     }
-                    Attributes headers = new Manifest(
-                        manifest.openStream()).getMainAttributes();
-                    String symbolicName = headers.getValue(Constants.BUNDLE_SYMBOLICNAME);
-                    if (symbolicName != null)
+
+                    Object content = getBundleContent(manifestURL);
+                    if (content != null)
                     {
-                        int semiColon = symbolicName.indexOf(';');
-                        if (semiColon != -1)
+                        ManifestHolder holder = new ManifestHolder();
+
+                        ConnectContent connectContent;
+                        URL url;
+                        if (content instanceof File)
                         {
-                            symbolicName = symbolicName.substring(0, semiColon);
+                            connectContent = new ConnectContentFile((File) content, holder::getHeaders);
+                            url = ((File) content).toURI().toURL();
                         }
-                        symbolicName = symbolicName.trim();
-
-                        Object content = getBundleContent(manifest);
-                        if (content != null)
+                        else
                         {
-                            ConnectContent connectContent;
-                            URL url;
-                            if (content instanceof File)
-                            {
-                                connectContent = new ConnectContentFile((File) content);
-                                url = ((File) content).toURI().toURL();
-
-                            }
-                            else
-                            {
-                                connectContent = new ConnectContentJar(
-                                    () -> ((JarFile) content), null);
-                                url = new File(
+                            connectContent = new ConnectContentJar(
+                                    () -> ((JarFile) content), null, holder::getHeaders);
+                            url = new File(
                                     ((JarFile) content).getName()).toURI().toURL();
-                            }
+                        }
 
-                            String location;
-                            if (connectContent.getEntry(
+                        String location;
+                        if (connectContent.getEntry(
                                 "META-INF/services/org.osgi.framework.launch.FrameworkFactory").isPresent())
-                            {
-                                location = Constants.SYSTEM_BUNDLE_LOCATION;
-                            }
-                            else
-                            {
-                                location = content instanceof File
+                        {
+                            location = Constants.SYSTEM_BUNDLE_LOCATION;
+                        }
+                        else
+                        {
+                            location = content instanceof File
                                     ? ((File) content).getPath()
                                     : ((JarFile) content).getName();
-                                if (!getName().isEmpty())
-                                {
-                                    location = getName() + ":" + location;
-                                }
+                            if (!getName().isEmpty())
+                            {
+                                location = getName() + ":" + location;
                             }
-                            Version version = Version.parseVersion(
-                                headers.getValue(Constants.BUNDLE_VERSION));
+                        }
+
+                        Map<String, String> headers = toMap(new Manifest(manifestURL.openStream()));
+
+                        headers = headerProvider.apply(location, headers).orElse(headers);
+
+                        holder.setHeaders(Optional.of(headers));
+
+                        String symbolicName = headers.get(Constants.BUNDLE_SYMBOLICNAME);
+                        if (symbolicName != null)
+                        {
+                            int semiColon = symbolicName.indexOf(';');
+                            if (semiColon != -1)
+                            {
+                                symbolicName = symbolicName.substring(0, semiColon);
+                            }
+                            symbolicName = symbolicName.trim();
+
+                            Version version = Version.parseVersion(headers.get(Constants.BUNDLE_VERSION));
 
                             result.add(new AtomosContentClassPath(location, symbolicName,
-                                version, connectContent, url));
+                                    version, connectContent, url));
                         }
                     }
                 }
@@ -831,20 +850,10 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
                 {
                     try (JarFile jar = new JarFile(f))
                     {
-                        Attributes headers = jar.getManifest().getMainAttributes();
-                        String symbolicName = headers.getValue(
-                            Constants.BUNDLE_SYMBOLICNAME);
-                        if (symbolicName != null)
-                        {
-                            int semiColon = symbolicName.indexOf(';');
-                            if (semiColon != -1)
-                            {
-                                symbolicName = symbolicName.substring(0, semiColon);
-                            }
-                            symbolicName = symbolicName.trim();
+                            ManifestHolder holder = new ManifestHolder();
 
                             ConnectContent connectContent = new ConnectContentCloseableJar(
-                                f.getName(), () -> atomosLibDir);
+                                f.getName(), () -> atomosLibDir, holder::getHeaders);
                             connectContent.open();
                             String location;
                             if (connectContent.getEntry(
@@ -860,12 +869,29 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
                                     location = getName() + ":" + location;
                                 }
                             }
-                            Version version = Version.parseVersion(
-                                headers.getValue(Constants.BUNDLE_VERSION));
-                            AtomosContentBase bundle = new AtomosContentIndexed(location,
-                                symbolicName, version, connectContent);
-                            bootBundles.add(bundle);
-                        }
+                            Map<String, String> headers = toMap(jar.getManifest());
+
+                            headers = headerProvider.apply(location, headers).orElse(headers);
+
+                            holder.setHeaders(Optional.of(headers));
+
+                            String symbolicName = headers.get(
+                                    Constants.BUNDLE_SYMBOLICNAME);
+                            if (symbolicName != null)
+                            {
+                                int semiColon = symbolicName.indexOf(';');
+                                if (semiColon != -1)
+                                {
+                                    symbolicName = symbolicName.substring(0, semiColon);
+                                }
+                                symbolicName = symbolicName.trim();
+
+                                Version version = Version.parseVersion(
+                                    headers.get(Constants.BUNDLE_VERSION));
+                                AtomosContentBase bundle = new AtomosContentIndexed(location,
+                                    symbolicName, version, connectContent);
+                                bootBundles.add(bundle);
+                            }
                     }
                     catch (IOException e)
                     {
@@ -1395,6 +1421,30 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
                 return this;
             }
         }
+
+        public final class ManifestHolder {
+            private volatile Optional<Map<String, String>> headers = Optional.empty();
+
+            public void setHeaders(Optional<Map<String, String>> headers) {
+                this.headers = headers;
+            }
+
+            public Optional<Map<String, String>> getHeaders() {
+                return headers;
+            }
+        }
+    }
+
+    protected Map<String, String> toMap(Manifest manifest)
+    {
+        Map<String, String> result = new HashMap<>();
+        Attributes attributes = manifest.getMainAttributes();
+        for (Object key : attributes.keySet())
+        {
+            String keyString = key.toString();
+            result.put(keyString, manifest.getMainAttributes().getValue(keyString));
+        }
+        return result;
     }
 
     @Override

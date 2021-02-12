@@ -30,11 +30,13 @@ public class ConnectContentJar implements ConnectContent
 {
     final Supplier<ZipFile> zipSupplier;
     final Consumer<Supplier<ZipFile>> closer;
+    final Supplier<Optional<Map<String, String>>> headers;
 
-    public ConnectContentJar(Supplier<ZipFile> zipSupplier, Consumer<Supplier<ZipFile>> closer)
+    public ConnectContentJar(Supplier<ZipFile> zipSupplier, Consumer<Supplier<ZipFile>> closer, Supplier<Optional<Map<String, String>>> headers)
     {
         this.zipSupplier = zipSupplier;
         this.closer = closer;
+        this.headers = headers;
     }
 
     @Override
@@ -93,7 +95,7 @@ public class ConnectContentJar implements ConnectContent
     @Override
     public Optional<Map<String, String>> getHeaders()
     {
-        return Optional.empty();
+        return headers.get();
     }
 
     class JarConnectEntry implements ConnectEntry

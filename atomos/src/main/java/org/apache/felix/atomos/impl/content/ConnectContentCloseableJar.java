@@ -17,6 +17,8 @@ import static org.apache.felix.atomos.impl.base.AtomosBase.sneakyThrow;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.zip.ZipFile;
@@ -81,9 +83,9 @@ public class ConnectContentCloseableJar extends ConnectContentJar
 
     }
 
-    public ConnectContentCloseableJar(String fileName, Supplier<File> rootSupplier)
+    public ConnectContentCloseableJar(String fileName, Supplier<File> rootSupplier, Supplier<Optional<Map<String, String>>> headers)
     {
         super(new ZipFileHolder(fileName, rootSupplier),
-            z -> ((ZipFileHolder) z).accept(z));
+            z -> ((ZipFileHolder) z).accept(z), headers);
     }
 }
