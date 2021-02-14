@@ -271,7 +271,7 @@ public interface Atomos
 
     /**
      * Creates a new Atomos that can be used to create a new OSGi framework
-     * instance. Same as calling {@code newAtomos(Map)} with an empty
+     * instance. Same as calling {@code newAtomos(BiFunction,Map)} with an empty
      * configuration.
      *
      * @return a new Atomos.
@@ -294,7 +294,7 @@ public interface Atomos
      * Note that this {@code Atomos} must be used for creating a new
      * {@link ConnectFrameworkFactory#newFramework(Map, ModuleConnector)} instance to use
      * the layers added to this {@code Atomos}.
-     * 
+     *
      * @param configuration the properties to configure the new runtime
      * @return a new Atomos.
      */
@@ -318,6 +318,8 @@ public interface Atomos
      * the layers added to this {@code Atomos}.
      *
      * @param configuration the properties to configure the new runtime
+     * @param headerProvider a Bifunction that will be called with the location and the calculated headers for each module.
+     *                       The resulting map of invoking this funtion will be used as the headers of the module.
      * @return a new Atomos.
      */
     static Atomos newAtomos(Map<String, String> configuration, BiFunction<String, Map<String, String>, Optional<Map<String, String>>> headerProvider)
