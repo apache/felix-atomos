@@ -15,16 +15,14 @@ package org.apache.felix.atomos.impl.modules;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.lang.module.Configuration;
 import java.lang.module.ModuleDescriptor;
+import java.lang.module.ModuleDescriptor.Requires;
 import java.lang.module.ModuleFinder;
-import java.lang.module.ModuleReader;
 import java.lang.module.ResolvedModule;
 import java.net.URI;
 import java.nio.file.Path;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,14 +31,12 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -342,44 +338,14 @@ public class AtomosModules extends AtomosBase
                 a -> a.adapt(Module.class).isPresent()).collect(
                     Collectors.toUnmodifiableMap((k) -> k.adapt(Module.class).get(),
                         (v) -> v));
-            atomosBundles.stream().filter(bundle -> bundle instanceof AtomosContentModule && ((AtomosContentModule) bundle).requiresBSN).forEach(bundle -> {
-                bundle.getConnectContent().getHeaders().ifPresent(headers -> {
-                    // only do requires for non bundle modules
-                    // map requires to require bundle
-                    StringBuilder requireBundleHeader = new StringBuilder();
-                    for (ModuleDescriptor.Requires requires : ((AtomosContentModule) bundle).module.getDescriptor().requires())
-                    {
-                        if (requireBundleHeader.length() > 0)
-                        {
-                            requireBundleHeader.append(", ");
-                        }
-
-                        // before requiring based on the name make sure the required
-                        // module has a BSN that is the same
-                        String requiresBSN = ((AtomosContentModule) bundle).module.getLayer().findModule(requires.name()).map(
-                            m -> AtomosLayerModules.this.getAtomosContent(m).getSymbolicName()).orElse(requires.name());
-
-                        requireBundleHeader.append(requiresBSN).append("; ");
-                        // determine the resolution value based on the STATIC modifier
-                        String resolution = requires.modifiers().contains(
-                                ModuleDescriptor.Requires.Modifier.STATIC) ? Namespace.RESOLUTION_OPTIONAL
-                                : Namespace.RESOLUTION_MANDATORY;
-                        requireBundleHeader.append(Constants.RESOLUTION_DIRECTIVE).append(
-                                ":=").append(resolution).append("; ");
-                        // determine the visibility value based on the TRANSITIVE modifier
-                        String visibility = requires.modifiers().contains(
-                                ModuleDescriptor.Requires.Modifier.TRANSITIVE) ? BundleNamespace.VISIBILITY_REEXPORT
-                                : BundleNamespace.VISIBILITY_PRIVATE;
-                        requireBundleHeader.append(Constants.VISIBILITY_DIRECTIVE).append(
-                                ":=").append(visibility);
-
-                    }
-                    if (requireBundleHeader.length() > 0)
-                    {
-                        headers.put(Constants.REQUIRE_BUNDLE, requireBundleHeader.toString());
-                    }
-                });
-            });
+            atomosBundles.stream().filter(bundle -> bundle instanceof AtomosContentModule)
+                    .filter(bundle -> ((AtomosContentModule) bundle).requiresBSN)
+                    .forEach(bundle -> bundle.getConnectContent().getHeaders()
+                            .ifPresent(headers -> calculateRequires(headers, ((AtomosContentModule) bundle).module.getDescriptor(),
+                                    requires ->
+                                        ((AtomosContentModule) bundle).module.getLayer().findModule(requires)
+                                                .map(m -> AtomosLayerModules.this.getAtomosContent(m).getSymbolicName())
+                                                .orElse(requires))));
         }
 
         @Override
@@ -527,7 +493,6 @@ public class AtomosModules extends AtomosBase
                 boolean requiresBSN = false;
                 if (bsn == null)
                 {
-                    requiresBSN = true;
                     // NOTE that we depend on the framework connect implementation to allow connect bundles
                     // to export java.* packages
                     headers.put(Constants.BUNDLE_MANIFESTVERSION, "2");
@@ -555,6 +520,8 @@ public class AtomosModules extends AtomosBase
                     {
                         headers.put(Constants.EXPORT_PACKAGE, exportPackageHeader.toString());
                     }
+
+                    requiresBSN = calculateRequires(headers, desc, Function.identity());
                 }
                 else
                 {
@@ -639,6 +606,45 @@ public class AtomosModules extends AtomosBase
             }
 
             return Collections.unmodifiableSet(found);
+        }
+
+        private boolean calculateRequires(Map<String, String> headers, ModuleDescriptor desc, Function<String, String> mapper) {
+            // only do requires for non bundle modules
+            // map requires to require bundle
+            StringBuilder requireBundleHeader = new StringBuilder();
+            for (Requires requires : desc.requires())
+            {
+                if (requireBundleHeader.length() > 0)
+                {
+                    requireBundleHeader.append(", ");
+                }
+                // before requiring based on the name make sure the required
+                // module has a BSN that is the same
+                String mapping = mapper.apply(requires.name());
+                requireBundleHeader.append(mapping).append("; ");
+                // determine the resolution value based on the STATIC modifier
+                String resolution = requires.modifiers().contains(
+                        Requires.Modifier.STATIC) ? Namespace.RESOLUTION_OPTIONAL
+                        : Namespace.RESOLUTION_MANDATORY;
+                requireBundleHeader.append(Constants.RESOLUTION_DIRECTIVE).append(
+                        ":=").append(resolution).append("; ");
+                // determine the visibility value based on the TRANSITIVE modifier
+                String visibility = requires.modifiers().contains(
+                        Requires.Modifier.TRANSITIVE) ? BundleNamespace.VISIBILITY_REEXPORT
+                        : BundleNamespace.VISIBILITY_PRIVATE;
+                requireBundleHeader.append(Constants.VISIBILITY_DIRECTIVE).append(
+                        ":=").append(visibility);
+
+            }
+            if (requireBundleHeader.length() > 0)
+            {
+                headers.put(Constants.REQUIRE_BUNDLE, requireBundleHeader.toString());
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         @SuppressWarnings("unchecked")

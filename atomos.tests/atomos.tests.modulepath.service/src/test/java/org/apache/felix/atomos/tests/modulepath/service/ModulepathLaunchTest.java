@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.function.BiFunction;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -240,6 +242,19 @@ public class ModulepathLaunchTest
     {
         Map<String, String> config = Atomos.getConfiguration(args);
         Atomos atomos = Atomos.newAtomos(config);
+        if (modules != null)
+        {
+            atomos.getBootLayer().addModules("modules", modules);
+        }
+        Framework framework = atomos.newFramework(config);
+        framework.start();
+        return framework;
+    }
+
+    private Framework getFramework(Path modules, BiFunction<String, Map<String, String>, Optional<Map<String, String>>> provider, String... args) throws BundleException
+    {
+        Map<String, String> config = Atomos.getConfiguration(args);
+        Atomos atomos = Atomos.newAtomos(config, provider);
         if (modules != null)
         {
             atomos.getBootLayer().addModules("modules", modules);
@@ -1063,6 +1078,27 @@ public class ModulepathLaunchTest
                         BundleNamespace.BUNDLE_NAMESPACE))) //
                 .findFirst().isPresent(),
             "No wire for " + BSN_CONTRACT);
+    }
+
+    @Test
+    void testModuleWithCustomerHeader(@TempDir Path storage) throws BundleException
+    {
+        testFramework = getFramework(null, (location, headers) -> {
+                headers = new HashMap<>(headers);
+                headers.put("X-TEST", location);
+                return Optional.of(headers);
+                },
+                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath());
+
+        // make sure the contract names are correct
+        Module contractModule = Echo.class.getModule();
+        Bundle contractBundle = FrameworkUtil.getBundle(Echo.class);
+        assertEquals(BSN_CONTRACT, contractBundle.getSymbolicName(),
+                "Wrong BSN for contract bundle.");
+        assertEquals(Echo.class.getPackageName(), contractModule.getName(),
+                "Wrong module name for contract module.");
+
+        assertEquals(contractBundle.getLocation(), "atomos:" + contractBundle.getHeaders().get("X-TEST"));
     }
 
     @Test

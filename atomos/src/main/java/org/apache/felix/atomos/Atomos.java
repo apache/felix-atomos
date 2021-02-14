@@ -264,7 +264,7 @@ public interface Atomos
      * 
      * @return a new Atomos.
      */
-     static Atomos newAtomos()
+    static Atomos newAtomos()
     {
         return newAtomos((location, headers) -> Optional.empty());
     }

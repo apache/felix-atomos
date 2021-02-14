@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -169,6 +170,25 @@ public class ClasspathLaunchTest
         assertNotNull(mf, "No manifest found.");
         mf = b.getEntry("META-INF/MANIFEST.MF");
         assertNotNull(mf, "No manifest found.");
+    }
+
+    @Test
+    void testBundleWithCustomHeader(@TempDir Path storage) throws BundleException
+    {
+        testFramework = Atomos.newAtomos((location, headers) -> {
+            headers = new HashMap<>(headers);
+            headers.put("X-TEST", location);
+            return Optional.of(headers);
+        }).newFramework(
+                Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
+        BundleContext bc = testFramework.getBundleContext();
+        assertNotNull(bc, "No context found.");
+
+        Atomos runtime = getRuntime(bc);
+        Bundle b = assertFindBundle(TESTBUNDLES_SERVICE_IMPL_A, runtime.getBootLayer(),
+                runtime.getBootLayer(), true).getBundle();
+        assertEquals(b.getLocation(), "atomos:" + b.getHeaders().get("X-TEST"));
     }
 
     private AtomosContent assertFindBundle(String name, AtomosLayer layer,
