@@ -48,10 +48,7 @@ public class ConnectContentJar implements ConnectContent
     @Override
     public void close() throws IOException
     {
-        if (closer != null)
-        {
-            closer.accept(zipSupplier);
-        }
+        closer.accept(zipSupplier);
     }
 
     @Override

@@ -13,13 +13,15 @@
  */
 package org.apache.felix.atomos;
 
+import static org.apache.felix.atomos.impl.base.AtomosBase.NO_OP_HEADER_PROVIDER;
+
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ServiceLoader;
 import java.util.Optional;
+import java.util.ServiceLoader;
 import java.util.function.BiFunction;
 
 import org.apache.felix.atomos.AtomosLayer.LoaderType;
@@ -266,7 +268,7 @@ public interface Atomos
      */
     static Atomos newAtomos()
     {
-        return newAtomos((location, headers) -> Optional.empty());
+        return newAtomos(NO_OP_HEADER_PROVIDER);
     }
 
     /**
@@ -300,7 +302,7 @@ public interface Atomos
      */
     static Atomos newAtomos(Map<String, String> configuration)
     {
-        return newAtomos(configuration, (location, headers) -> Optional.empty());
+        return newAtomos(configuration, NO_OP_HEADER_PROVIDER);
     }
 
     /**
@@ -319,7 +321,7 @@ public interface Atomos
      *
      * @param configuration the properties to configure the new runtime
      * @param headerProvider a Bifunction that will be called with the location and the calculated headers for each module.
-     *                       The resulting map of invoking this funtion will be used as the headers of the module.
+     *                       The resulting map of invoking this function will be used as the headers of the module.
      * @return a new Atomos.
      */
     static Atomos newAtomos(Map<String, String> configuration, BiFunction<String, Map<String, String>, Optional<Map<String, String>>> headerProvider)

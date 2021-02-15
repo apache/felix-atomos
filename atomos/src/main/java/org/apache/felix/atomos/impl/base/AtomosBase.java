@@ -16,6 +16,7 @@ package org.apache.felix.atomos.impl.base;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.lang.reflect.InvocationTargetException;
@@ -69,6 +70,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.framework.Version;
 import org.osgi.framework.connect.ConnectContent;
+import org.osgi.framework.connect.ConnectContent.ConnectEntry;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.connect.FrameworkUtilHelper;
 import org.osgi.framework.connect.ModuleConnector;
@@ -100,6 +102,8 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
     public static final String ATOMOS_RUNTIME_MODULES_CLASS = "org.apache.felix.atomos.impl.modules.AtomosModules";
     public static final String ATOMOS_LIB_DIR = "atomos_lib";
     public static final String GRAAL_NATIVE_IMAGE_KIND = "org.graalvm.nativeimage.kind";
+    public static final BiFunction<String, Map<String, String>, Optional<Map<String, String>>> NO_OP_HEADER_PROVIDER = (
+        l, h) -> Optional.empty();
 
     private final boolean DEBUG;
     private final boolean REPORT_RESOLUTION_ERRORS;
@@ -769,7 +773,9 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
                         else
                         {
                             connectContent = new ConnectContentJar(
-                                    () -> ((JarFile) content), null, holder::getHeaders);
+                                    () -> ((JarFile) content), //
+                                    (dontClose) -> {}, //
+                                    holder::getHeaders);
                             url = new File(
                                     ((JarFile) content).getName()).toURI().toURL();
                         }
@@ -791,10 +797,8 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
                             }
                         }
 
-                        Map<String, String> headers = toMap(new Manifest(manifestURL.openStream()));
-
+                        Map<String, String> headers = getRawHeaders(connectContent);
                         headers = headerProvider.apply(location, headers).orElse(headers);
-
                         holder.setHeaders(Optional.of(headers));
 
                         String symbolicName = headers.get(Constants.BUNDLE_SYMBOLICNAME);
@@ -856,18 +860,25 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
                                 f.getName(), () -> atomosLibDir, holder::getHeaders);
                             connectContent.open();
                             String location;
-                            if (connectContent.getEntry(
-                                "META-INF/services/org.osgi.framework.launch.FrameworkFactory").isPresent())
+                            try
                             {
-                                location = Constants.SYSTEM_BUNDLE_LOCATION;
-                            }
-                            else
-                            {
-                                location = f.getName();
-                                if (!getName().isEmpty())
+                                if (connectContent.getEntry(
+                                    "META-INF/services/org.osgi.framework.launch.FrameworkFactory").isPresent())
                                 {
-                                    location = getName() + ":" + location;
+                                    location = Constants.SYSTEM_BUNDLE_LOCATION;
                                 }
+                                else
+                                {
+                                    location = f.getName();
+                                    if (!getName().isEmpty())
+                                    {
+                                        location = getName() + ":" + location;
+                                    }
+                                }
+                            }
+                            finally
+                            {
+                                connectContent.close();
                             }
                             Map<String, String> headers = toMap(jar.getManifest());
 
@@ -905,13 +916,19 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
             String currentIndex,
             String currentBSN, Version currentVersion, List<String> currentPaths)
         {
+            ManifestHolder holder = new ManifestHolder();
             String bundleIndexPath = indexRoot + currentIndex;
             ConnectContentIndexed content = new ConnectContentIndexed(bundleIndexPath,
-                currentPaths);
+                currentPaths, holder::getHeaders);
             debug("Found indexed content: %s %s %s %s", currentIndex, currentBSN,
                 currentVersion, currentPaths);
-            return new AtomosContentIndexed(getIndexedLocation(content, currentBSN),
-                currentBSN, currentVersion, content);
+            String location = getIndexedLocation(content, currentBSN);
+            if (headerProvider != NO_OP_HEADER_PROVIDER)
+            {
+                holder.setHeaders(headerProvider.apply(location, getRawHeaders(content)));
+            }
+            return new AtomosContentIndexed(location, currentBSN, currentVersion,
+                content);
         }
 
         private void findAtomosIndexedContent(URL index,
@@ -1435,8 +1452,28 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
         }
     }
 
-    protected Map<String, String> toMap(Manifest manifest)
+    static protected Map<String, String> getRawHeaders(ConnectContent content)
     {
+        return content.getEntry("META-INF/MANIFEST.MF").map(
+            AtomosBase::getRawHeaders).orElse(new HashMap<>());
+    }
+
+    static protected Map<String, String> getRawHeaders(ConnectEntry mfEntry)
+    {
+        try (InputStream in = mfEntry.getInputStream())
+        {
+            return toMap(new Manifest(in));
+        }
+        catch (IOException e)
+        {
+            sneakyThrow(e);
+            return null;
+        }
+    }
+
+    static protected Map<String, String> toMap(Manifest manifest)
+    {
+
         Map<String, String> result = new HashMap<>();
         Attributes attributes = manifest.getMainAttributes();
         for (Object key : attributes.keySet())

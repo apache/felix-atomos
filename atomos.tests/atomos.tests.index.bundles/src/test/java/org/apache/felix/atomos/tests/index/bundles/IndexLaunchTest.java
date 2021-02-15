@@ -25,6 +25,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -326,5 +327,29 @@ public class IndexLaunchTest
             assertFalse(result.isPresent(), "Found unexpected bundle: " + name);
         }
         return result.orElse(null);
+    }
+
+    @Test
+    void testBundleWithCustomHeader(@TempDir Path storage) throws BundleException
+    {
+        testFramework = Atomos.newAtomos((location, headers) -> {
+            headers = new HashMap<>(headers);
+            headers.put("X-TEST", location);
+            return Optional.of(headers);
+        }).newFramework(
+            Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
+        BundleContext bc = testFramework.getBundleContext();
+        assertNotNull(bc, "No context found.");
+
+        Atomos runtime = getRuntime(bc);
+        runtime.getBootLayer().getAtomosContents().forEach(c -> {
+            if (c.getBundle().getBundleId() == 0)
+            {
+                return;
+            }
+            String customHeader = c.getBundle().getHeaders(null).get("X-TEST");
+            assertEquals(c.getAtomosLocation(), customHeader, "Wrong header value");
+        });
     }
 }

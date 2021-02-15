@@ -37,13 +37,11 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
+import org.apache.felix.atomos.Atomos;
 import org.apache.felix.atomos.AtomosContent;
 import org.apache.felix.atomos.AtomosLayer;
-import org.apache.felix.atomos.Atomos;
 import org.apache.felix.atomos.AtomosLayer.LoaderType;
 import org.apache.felix.atomos.impl.base.AtomosBase;
 import org.apache.felix.atomos.impl.base.JavaServiceNamespace;
@@ -60,6 +58,7 @@ import org.osgi.resource.Namespace;
 
 public class AtomosModules extends AtomosBase
 {
+    private final static String ATOMOS_GENERATED = "Atomos-GeneratedManifest";
     private final Module thisModule = AtomosModules.class.getModule();
     private final Configuration thisConfig = thisModule.getLayer() == null ? null
         : thisModule.getLayer().configuration();
@@ -338,17 +337,26 @@ public class AtomosModules extends AtomosBase
                 a -> a.adapt(Module.class).isPresent()).collect(
                     Collectors.toUnmodifiableMap((k) -> k.adapt(Module.class).get(),
                         (v) -> v));
-            atomosBundles.stream().filter(bundle ->
-                    "true".equals(bundle.getConnectContent().getHeaders().orElse(Collections.emptyMap())
-                        .get("Atomos-Require-BSN")))
-                    .forEach(bundle -> bundle.getConnectContent().getHeaders()
-                            .ifPresent(headers -> bundle.adapt(Module.class).ifPresent(module -> {
-                                calculateRequires(headers, module.getDescriptor(),
-                                    requires -> module.getLayer().findModule(requires)
-                                                .map(m -> AtomosLayerModules.this.getAtomosContent(m).getSymbolicName())
-                                                .orElse(requires));
-                                headers.remove("Atomos-Require-BSN");
-                            })));
+            for (AtomosContentBase content : atomosBundles)
+            {
+                final Module m = content.adapt(Module.class).orElse(null);
+                if (m == null)
+                {
+                    continue;
+                }
+                content.getConnectContent().getHeaders().ifPresent(headers -> {
+                    if (Boolean.parseBoolean(headers.get(ATOMOS_GENERATED)))
+                    {
+                        calculateRequires(headers, m, (requires) -> {
+                            return m.getLayer().findModule(requires).map(
+                                requiredModule -> {
+                                    return getAtomosContent(
+                                        requiredModule).getSymbolicName();
+                                }).orElse(requires);
+                        });
+                    }
+                });
+            }
         }
 
         @Override
@@ -444,154 +452,30 @@ public class AtomosModules extends AtomosBase
                 try
                 {
                     content.open();
-
-                    Optional<ConnectContent.ConnectEntry> entry = content.getEntry(JarFile.MANIFEST_NAME);
-
-                    if (entry.isPresent())
+                    try
                     {
-                        headers = toMap(new Manifest(entry.get().getInputStream()));
+                        headers = getRawHeaders(content);
                     }
-                    else
+                    finally
                     {
-                        headers = new HashMap<>();
+                        content.close();
                     }
-
-                    content.close();
                 }
                 catch (IOException e)
                 {
                     throw new UncheckedIOException("Error reading connect manifest.", e);
                 }
 
-                String symbolicName = headers.get(Constants.BUNDLE_SYMBOLICNAME);
-                if (symbolicName == null)
-                {
-                    symbolicName = resolved.name();
-                }
-                int bsnEnd = symbolicName.indexOf(';');
-                symbolicName = bsnEnd < 0 ? symbolicName.trim() : symbolicName.substring(0, bsnEnd).trim();
 
-                Version version;
 
-                String sVersion = headers.get(Constants.BUNDLE_VENDOR);
-
-                if (sVersion == null)
-                {
-                    sVersion = resolved.reference().descriptor().version().map(
-                            java.lang.module.ModuleDescriptor.Version::toString).orElse("0");
-                }
-                try
-                {
-                    version = Version.valueOf(sVersion);
-                }
-                catch (IllegalArgumentException e)
-                {
-                    version = Version.emptyVersion;
-                }
-
-                ModuleDescriptor desc = m.getDescriptor();
-                StringBuilder capabilities = new StringBuilder();
-                StringBuilder requirements = new StringBuilder();
-                String bsn = headers.get(Constants.BUNDLE_SYMBOLICNAME);
-                boolean requiresBSN = false;
-                if (bsn == null)
-                {
-                    // NOTE that we depend on the framework connect implementation to allow connect bundles
-                    // to export java.* packages
-                    headers.put(Constants.BUNDLE_MANIFESTVERSION, "2");
-                    // set the symbolic name for the module; don't allow fragments to attach
-                    headers.put(Constants.BUNDLE_SYMBOLICNAME,
-                            symbolicName + "; " + Constants.FRAGMENT_ATTACHMENT_DIRECTIVE + ":="
-                                    + Constants.FRAGMENT_ATTACHMENT_NEVER);
-
-                    // set the version
-                    headers.put(Constants.BUNDLE_VERSION, version.toString());
-
-                    // only do exports for non bundle modules
-                    // real OSGi bundles already have good export capabilities
-                    StringBuilder exportPackageHeader = new StringBuilder();
-                    desc.exports().stream().sorted().forEach((exports) ->
-                    {
-                        if (exportPackageHeader.length() > 0)
-                        {
-                            exportPackageHeader.append(", ");
-                        }
-                        exportPackageHeader.append(exports.source());
-                        // TODO map targets to x-friends directive?
-                    });
-                    if (exportPackageHeader.length() > 0)
-                    {
-                        headers.put(Constants.EXPORT_PACKAGE, exportPackageHeader.toString());
-                    }
-
-                    requiresBSN = calculateRequires(headers, desc, Function.identity());
-                }
-                else
-                {
-                    String origCaps = headers.get(Constants.PROVIDE_CAPABILITY);
-                    if (origCaps != null)
-                    {
-                        capabilities.append(origCaps);
-                    }
-                    String origReqs = headers.get(Constants.REQUIRE_CAPABILITY);
-                    if (origReqs != null)
-                    {
-                        requirements.append(origReqs);
-                    }
-                }
-                // map provides to a made up namespace only to give proper resolution errors
-                // (although JPMS will likely complain first
-                for (ModuleDescriptor.Provides provides : desc.provides())
-                {
-                    if (capabilities.length() > 0)
-                    {
-                        capabilities.append(", ");
-                    }
-                    capabilities.append(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE).append("; ");
-                    capabilities.append(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE).append(
-                            "=").append(provides.service()).append("; ");
-                    capabilities.append(
-                            JavaServiceNamespace.CAPABILITY_PROVIDES_WITH_ATTRIBUTE).append(
-                            "=\"").append(String.join(",", provides.providers())).append("\"");
-                }
-
-                // map uses to a made up namespace only to give proper resolution errors
-                // (although JPMS will likely complain first)
-                for (String uses : desc.uses())
-                {
-                    if (requirements.length() > 0)
-                    {
-                        requirements.append(", ");
-                    }
-                    requirements.append(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE).append("; ");
-                    requirements.append(Constants.RESOLUTION_DIRECTIVE).append(":=").append(
-                            Constants.RESOLUTION_OPTIONAL).append("; ");
-                    requirements.append(Constants.FILTER_DIRECTIVE).append(":=").append(
-                            "\"(").append(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE).append(
-                            "=").append(uses).append(")\"");
-                }
-
-                if (capabilities.length() > 0)
-                {
-                    headers.put(Constants.PROVIDE_CAPABILITY, capabilities.toString());
-                }
-                if (requirements.length() > 0)
-                {
-                    headers.put(Constants.REQUIRE_CAPABILITY, requirements.toString());
-                }
-
+                generateHeaders(headers, m);
 
                 Optional<Map<String,String>> provided = headerProvider.apply(location, headers);
 
                 headers = new HashMap<>(provided.orElse(headers));
-
-                if (provided.isEmpty() && requiresBSN) {
-                    headers.put("Atomos-Require-BSN", "true");
-                }
-
                 holder.setHeaders(Optional.of(headers));
 
-                symbolicName = headers.get(Constants.BUNDLE_SYMBOLICNAME);
+                String symbolicName = headers.get(Constants.BUNDLE_SYMBOLICNAME);
                 if (symbolicName != null)
                 {
                     int semiColon = symbolicName.indexOf(';');
@@ -601,7 +485,8 @@ public class AtomosModules extends AtomosBase
                     }
                     symbolicName = symbolicName.trim();
 
-                    version = Version.parseVersion(headers.get(Constants.BUNDLE_VERSION));
+                    Version version = Version.parseVersion(
+                        headers.get(Constants.BUNDLE_VERSION));
 
                     found.add(new AtomosContentModule(m, location,
                             symbolicName, version, content));
@@ -611,11 +496,121 @@ public class AtomosModules extends AtomosBase
             return Collections.unmodifiableSet(found);
         }
 
-        private boolean calculateRequires(Map<String, String> headers, ModuleDescriptor desc, Function<String, String> mapper) {
+        private void generateHeaders(Map<String, String> headers, Module m)
+        {
+            ModuleDescriptor desc = m.getDescriptor();
+            StringBuilder capabilities = new StringBuilder();
+            StringBuilder requirements = new StringBuilder();
+            String bsn = headers.get(Constants.BUNDLE_SYMBOLICNAME);
+            if (bsn == null)
+            {
+                // NOTE that we depend on the framework connect implementation to allow connect bundles
+                // to export java.* packages
+                headers.put(Constants.BUNDLE_MANIFESTVERSION, "2");
+                // set the symbolic name for the module; don't allow fragments to attach
+                headers.put(Constants.BUNDLE_SYMBOLICNAME,
+                    desc.name() + "; " + Constants.FRAGMENT_ATTACHMENT_DIRECTIVE + ":="
+                        + Constants.FRAGMENT_ATTACHMENT_NEVER);
+
+                // set the version
+                Version v;
+                try
+                {
+                    v = Version.parseVersion(desc.version().map(
+                        java.lang.module.ModuleDescriptor.Version::toString).orElse("0"));
+                }
+                catch (IllegalArgumentException e)
+                {
+                    v = Version.emptyVersion;
+                }
+                headers.put(Constants.BUNDLE_VERSION, v.toString());
+
+                // only do exports for non bundle modules
+                // real OSGi bundles already have good export capabilities
+                StringBuilder exportPackageHeader = new StringBuilder();
+                desc.exports().stream().sorted().forEach((exports) -> {
+                    if (exportPackageHeader.length() > 0)
+                    {
+                        exportPackageHeader.append(", ");
+                    }
+                    exportPackageHeader.append(exports.source());
+                    // TODO map targets to x-friends directive?
+                });
+                if (exportPackageHeader.length() > 0)
+                {
+                    headers.put(Constants.EXPORT_PACKAGE, exportPackageHeader.toString());
+                }
+
+                // Note that for generated manifests based of module descriptor
+                // will have their requires calculated later.
+                // Place a header indicating this is generated
+                headers.put(ATOMOS_GENERATED, Boolean.TRUE.toString());
+            }
+            else
+            {
+                String origCaps = headers.get(Constants.PROVIDE_CAPABILITY);
+                if (origCaps != null)
+                {
+                    capabilities.append(origCaps);
+                }
+                String origReqs = headers.get(Constants.REQUIRE_CAPABILITY);
+                if (origReqs != null)
+                {
+                    requirements.append(origReqs);
+                }
+            }
+            // map provides to a made up namespace only to give proper resolution errors
+            // (although JPMS will likely complain first
+            for (ModuleDescriptor.Provides provides : desc.provides())
+            {
+                if (capabilities.length() > 0)
+                {
+                    capabilities.append(", ");
+                }
+                capabilities.append(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE).append(
+                    "; ");
+                capabilities.append(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE).append(
+                    "=").append(provides.service()).append("; ");
+                capabilities.append(
+                    JavaServiceNamespace.CAPABILITY_PROVIDES_WITH_ATTRIBUTE).append(
+                        "=\"").append(String.join(",", provides.providers())).append(
+                            "\"");
+            }
+
+            // map uses to a made up namespace only to give proper resolution errors
+            // (although JPMS will likely complain first)
+            for (String uses : desc.uses())
+            {
+                if (requirements.length() > 0)
+                {
+                    requirements.append(", ");
+                }
+                requirements.append(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE).append(
+                    "; ");
+                requirements.append(Constants.RESOLUTION_DIRECTIVE).append(":=").append(
+                    Constants.RESOLUTION_OPTIONAL).append("; ");
+                requirements.append(Constants.FILTER_DIRECTIVE).append(":=").append(
+                    "\"(").append(JavaServiceNamespace.JAVA_SERVICE_NAMESPACE).append(
+                        "=").append(uses).append(")\"");
+            }
+
+            if (capabilities.length() > 0)
+            {
+                headers.put(Constants.PROVIDE_CAPABILITY, capabilities.toString());
+            }
+            if (requirements.length() > 0)
+            {
+                headers.put(Constants.REQUIRE_CAPABILITY, requirements.toString());
+            }
+        }
+
+        private boolean calculateRequires(Map<String, String> headers, Module m,
+            Function<String, String> mapper)
+        {
             // only do requires for non bundle modules
             // map requires to require bundle
             StringBuilder requireBundleHeader = new StringBuilder();
-            for (Requires requires : desc.requires())
+            for (Requires requires : m.getDescriptor().requires())
             {
                 if (requireBundleHeader.length() > 0)
                 {
