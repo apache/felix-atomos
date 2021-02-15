@@ -338,14 +338,17 @@ public class AtomosModules extends AtomosBase
                 a -> a.adapt(Module.class).isPresent()).collect(
                     Collectors.toUnmodifiableMap((k) -> k.adapt(Module.class).get(),
                         (v) -> v));
-            atomosBundles.stream().filter(bundle -> bundle instanceof AtomosContentModule)
-                    .filter(bundle -> ((AtomosContentModule) bundle).requiresBSN)
+            atomosBundles.stream().filter(bundle ->
+                    "true".equals(bundle.getConnectContent().getHeaders().orElse(Collections.emptyMap())
+                        .get("Atomos-Require-BSN")))
                     .forEach(bundle -> bundle.getConnectContent().getHeaders()
-                            .ifPresent(headers -> calculateRequires(headers, ((AtomosContentModule) bundle).module.getDescriptor(),
-                                    requires ->
-                                        ((AtomosContentModule) bundle).module.getLayer().findModule(requires)
+                            .ifPresent(headers -> bundle.adapt(Module.class).ifPresent(module -> {
+                                calculateRequires(headers, module.getDescriptor(),
+                                    requires -> module.getLayer().findModule(requires)
                                                 .map(m -> AtomosLayerModules.this.getAtomosContent(m).getSymbolicName())
-                                                .orElse(requires))));
+                                                .orElse(requires));
+                                headers.remove("Atomos-Require-BSN");
+                            })));
         }
 
         @Override
@@ -580,13 +583,13 @@ public class AtomosModules extends AtomosBase
 
                 Optional<Map<String,String>> provided = headerProvider.apply(location, headers);
 
-                if (provided.isPresent()) {
-                    requiresBSN = false;
+                headers = new HashMap<>(provided.orElse(headers));
+
+                if (provided.isEmpty() && requiresBSN) {
+                    headers.put("Atomos-Require-BSN", "true");
                 }
 
-                headers = provided.orElse(headers);
-
-                holder.setHeaders(Optional.of(new HashMap<>(headers)));
+                holder.setHeaders(Optional.of(headers));
 
                 symbolicName = headers.get(Constants.BUNDLE_SYMBOLICNAME);
                 if (symbolicName != null)
@@ -601,7 +604,7 @@ public class AtomosModules extends AtomosBase
                     version = Version.parseVersion(headers.get(Constants.BUNDLE_VERSION));
 
                     found.add(new AtomosContentModule(m, location,
-                            symbolicName, version, content, requiresBSN));
+                            symbolicName, version, content));
                 }
             }
 
@@ -671,13 +674,10 @@ public class AtomosModules extends AtomosBase
              */
             private final Module module;
 
-            final boolean requiresBSN;
-
-            public AtomosContentModule(Module module, String location, String symbolicName, Version version, ConnectContent content, boolean requiresBSN)
+            public AtomosContentModule(Module module, String location, String symbolicName, Version version, ConnectContent content)
             {
                 super(location, symbolicName, version, content);
                 this.module = module;
-                this.requiresBSN = requiresBSN;
             }
 
             @Override
