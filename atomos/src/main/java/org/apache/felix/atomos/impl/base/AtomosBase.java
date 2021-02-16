@@ -54,6 +54,7 @@ import org.apache.felix.atomos.AtomosLayer;
 import org.apache.felix.atomos.AtomosLayer.LoaderType;
 import org.apache.felix.atomos.impl.base.AtomosBase.AtomosLayerBase.AtomosContentBase;
 import org.apache.felix.atomos.impl.base.AtomosBase.AtomosLayerBase.AtomosContentIndexed;
+import org.apache.felix.atomos.impl.base.AtomosBase.AtomosLayerBase.ManifestHolder;
 import org.apache.felix.atomos.impl.content.ConnectContentCloseableJar;
 import org.apache.felix.atomos.impl.content.ConnectContentFile;
 import org.apache.felix.atomos.impl.content.ConnectContentIndexed;
@@ -799,8 +800,7 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
                         }
 
                         Map<String, String> headers = getRawHeaders(connectContent);
-                        headers = headerProvider.apply(location, headers).orElse(headers);
-                        holder.setHeaders(Optional.of(headers));
+                        headers = applyHeaderProvider(holder, location, headers);
 
                         String symbolicName = headers.get(Constants.BUNDLE_SYMBOLICNAME);
                         if (symbolicName != null)
@@ -882,10 +882,7 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
                                 connectContent.close();
                             }
                             Map<String, String> headers = toMap(jar.getManifest());
-
-                            headers = headerProvider.apply(location, headers).orElse(headers);
-
-                            holder.setHeaders(Optional.of(headers));
+                            headers = applyHeaderProvider(holder, location, headers);
 
                             String symbolicName = headers.get(
                                     Constants.BUNDLE_SYMBOLICNAME);
@@ -926,7 +923,23 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
             String location = getIndexedLocation(content, currentBSN);
             if (headerProvider != NO_OP_HEADER_PROVIDER)
             {
-                holder.setHeaders(headerProvider.apply(location, getRawHeaders(content)));
+                Map<String, String> headers = applyHeaderProvider(holder, location,
+                    getRawHeaders(content));
+                String symbolicName = headers.get(Constants.BUNDLE_SYMBOLICNAME);
+                if (symbolicName == null)
+                {
+                    throw new IllegalStateException(
+                        "Expecting a symbolic name for index bundle: " + currentBSN);
+                }
+                int semiColon = symbolicName.indexOf(';');
+                if (semiColon != -1)
+                {
+                    symbolicName = symbolicName.substring(0, semiColon);
+                }
+                symbolicName = symbolicName.trim();
+                currentBSN = symbolicName;
+                currentVersion = Version.parseVersion(
+                    headers.get(Constants.BUNDLE_VERSION));
             }
             return new AtomosContentIndexed(location, currentBSN, currentVersion,
                 content);
@@ -1443,8 +1456,10 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
         public final class ManifestHolder {
             private volatile Optional<Map<String, String>> headers = Optional.empty();
 
-            public void setHeaders(Optional<Map<String, String>> headers) {
+            public Map<String, String> setHeaders(Optional<Map<String, String>> headers)
+            {
                 this.headers = headers;
+                return headers.get();
             }
 
             public Optional<Map<String, String>> getHeaders() {
@@ -1813,5 +1828,13 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
     public void populateConfig(Map<String, String> frameworkConfig)
     {
         // do nothing by default
+    }
+
+    protected Map<String, String> applyHeaderProvider(ManifestHolder holder,
+        String location,
+        Map<String, String> existingHeaders)
+    {
+        return holder.setHeaders(Optional.of(headerProvider.apply(location,
+            Collections.unmodifiableMap(existingHeaders)).orElse(existingHeaders)));
     }
 }

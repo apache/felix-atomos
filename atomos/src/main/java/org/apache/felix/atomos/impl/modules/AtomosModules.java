@@ -469,10 +469,7 @@ public class AtomosModules extends AtomosBase
 
                 generateHeaders(headers, m);
 
-                Optional<Map<String,String>> provided = headerProvider.apply(location, headers);
-
-                headers = new HashMap<>(provided.orElse(headers));
-                holder.setHeaders(Optional.of(headers));
+                headers = applyHeaderProvider(holder, location, headers);
 
                 String symbolicName = headers.get(Constants.BUNDLE_SYMBOLICNAME);
                 if (symbolicName != null)
