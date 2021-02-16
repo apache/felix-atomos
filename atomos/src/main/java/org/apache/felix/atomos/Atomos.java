@@ -26,6 +26,8 @@ import java.util.function.BiFunction;
 
 import org.apache.felix.atomos.AtomosLayer.LoaderType;
 import org.apache.felix.atomos.impl.base.AtomosBase;
+import org.osgi.annotation.versioning.ConsumerType;
+import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.connect.ConnectContent;
@@ -139,6 +141,7 @@ import org.osgi.framework.launch.Framework;
  * service registered with its bundle context.
  */
 @org.osgi.annotation.bundle.Header(name = "Main-Class", value = "org.apache.felix.atomos.Atomos")
+@ProviderType
 public interface Atomos
 {
     /**
@@ -277,9 +280,10 @@ public interface Atomos
      * instance. Same as calling {@code newAtomos(BiFunction,Map)} with an empty
      * configuration.
      *
+     * @param headerProvider the header provider function
      * @return a new Atomos.
      */
-    static Atomos newAtomos(BiFunction<String, Map<String, String>, Optional<Map<String, String>>> headerProvider)
+    static Atomos newAtomos(HeaderProvider headerProvider)
     {
         return newAtomos(Collections.emptyMap(), headerProvider);
     }
@@ -289,6 +293,7 @@ public interface Atomos
      * instance. Same as calling {@code newAtomos(BiFunction,Map)} with a
      * no-op {@code headerProvider} function.
      *
+     * @param configuration the properties to configure the new Atomos
      * @return a new Atomos.
      */
     static Atomos newAtomos(Map<String, String> configuration)
@@ -313,17 +318,54 @@ public interface Atomos
      * <p>
      * The given headerProvider function maps each Atomos content
      * {@link AtomosContent#getAtomosLocation() location}
-     * and calculated headers of the content to a new optional map of headers.
+     * and existing headers of the content to a new optional map of headers.
      * The resulting map will be used as the headers for the {@link ConnectContent#getHeaders()}.
-     * If the function returns an empty optional then the original calculated
+     * If the function returns an empty optional then the existing
      * headers will be used.
      *
-     * @param configuration the properties to configure the new runtime
-     * @param headerProvider a function that will be called with the location and the calculated headers for each module.
+     * @param configuration the properties to configure the new Atomos
+     * @param headerProvider a function that will be called with the location and the existing headers for each Atomos content.
      * @return a new Atomos.
      */
-    static Atomos newAtomos(Map<String, String> configuration, BiFunction<String, Map<String, String>, Optional<Map<String, String>>> headerProvider)
+    static Atomos newAtomos(Map<String, String> configuration,
+        HeaderProvider headerProvider)
     {
         return AtomosBase.newAtomos(configuration, headerProvider);
+    }
+
+    /**
+     * A function that maps each {@code AtomosContent} {@link AtomosContent#getAtomosLocation() location}
+     * and its existing headers to a new optional map of headers to be used for the 
+     * {@link ConnectContent#getHeaders() headers} of the {@link AtomosContent#getConnectContent() ConnectContent}. 
+     */
+    @FunctionalInterface
+    @ConsumerType
+    interface HeaderProvider extends BiFunction<String, Map<String, String>, Optional<Map<String, String>>>
+    {
+
+        /**
+         * Applies this header provider function to the specified 
+         * {@code AtomosContent} {@link AtomosContent#getAtomosLocation() location} and
+         * map of existing headers.  The returned {@code Optional} map of headers will
+         * be used by the {@link ConnectContent#getHeaders()} method for the
+         * {@code ConnectContent} {@link AtomosContent#getConnectContent() associated}
+         * with the {@code AtomosContent} that has the specified 
+         * {@link AtomosContent#getAtomosLocation() location}.
+         * <p>
+         * This method allows a header provider to augment existing bundle manifest
+         * headers or add completely new bundle manifest headers that are not present
+         * in the existing headers.
+         * <p>
+         * This function may be applied before the instance of the {@code AtomosContent}
+         * instance is created which may result in the symbolic name and or version
+         * of the {@code AtomosContent} to be influenced by this function.
+         * @param location The {@code AtomosContent} {@link AtomosContent#getAtomosLocation() location}
+         * @param existingHeaders The existing headers found for the {@code AtomosContent}
+         * @return the {@code Optional} map of headers to use instead of the {@code existingHeaders}. If 
+         * the existing headers should be used then an empty {@code Optional} may be returned.
+         */
+        @Override
+        Optional<Map<String, String>> apply(String location,
+            Map<String, String> existingHeaders);
     }
 }

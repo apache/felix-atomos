@@ -44,7 +44,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.BiFunction;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -102,7 +101,7 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
     public static final String ATOMOS_RUNTIME_MODULES_CLASS = "org.apache.felix.atomos.impl.modules.AtomosModules";
     public static final String ATOMOS_LIB_DIR = "atomos_lib";
     public static final String GRAAL_NATIVE_IMAGE_KIND = "org.graalvm.nativeimage.kind";
-    public static final BiFunction<String, Map<String, String>, Optional<Map<String, String>>> NO_OP_HEADER_PROVIDER = (
+    public static final HeaderProvider NO_OP_HEADER_PROVIDER = (
         l, h) -> Optional.empty();
 
     private final boolean DEBUG;
@@ -138,14 +137,15 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
 
     protected final AtomicLong nextLayerId = new AtomicLong(0);
 
-    protected final BiFunction<String, Map<String, String>, Optional<Map<String, String>>> headerProvider;
+    protected final HeaderProvider headerProvider;
 
     public static enum Index
     {
         IGNORE, FIRST
     }
 
-    public static Atomos newAtomos(Map<String, String> config, BiFunction<String, Map<String, String>, Optional<Map<String, String>>> headerProvider)
+    public static Atomos newAtomos(Map<String, String> config,
+        HeaderProvider headerProvider)
     {
         String runtimeClass = config.get(ATOMOS_CLASS_PROP);
         if (runtimeClass != null)
@@ -172,12 +172,13 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
     }
 
     private static Atomos loadRuntime(String runtimeClass,
-        Map<String, String> config, BiFunction<String, Map<String, String>, Optional<Map<String, String>>> manifestProvider)
+        Map<String, String> config, HeaderProvider manifestProvider)
     {
         try
         {
             return (AtomosBase) Class.forName(
-                runtimeClass).getConstructor(Map.class, BiFunction.class).newInstance(config, manifestProvider);
+                runtimeClass).getConstructor(Map.class, HeaderProvider.class).newInstance(
+                    config, manifestProvider);
         }
         catch (Exception e)
         {
@@ -200,7 +201,7 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
         return new File(libDirProp, ATOMOS_LIB_DIR);
     }
 
-    protected AtomosBase(Map<String, String> config, BiFunction<String, Map<String, String>, Optional<Map<String, String>>> headerProvider)
+    protected AtomosBase(Map<String, String> config, HeaderProvider headerProvider)
     {
         saveConfig(config);
         this.headerProvider = headerProvider;

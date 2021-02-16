@@ -15,6 +15,7 @@ package org.apache.felix.atomos.tests.modulepath.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.function.BiFunction;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +42,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.felix.atomos.Atomos;
+import org.apache.felix.atomos.Atomos.HeaderProvider;
 import org.apache.felix.atomos.AtomosContent;
 import org.apache.felix.atomos.AtomosLayer;
 import org.apache.felix.atomos.AtomosLayer.LoaderType;
@@ -251,7 +252,8 @@ public class ModulepathLaunchTest
         return framework;
     }
 
-    private Framework getFramework(Path modules, BiFunction<String, Map<String, String>, Optional<Map<String, String>>> provider, String... args) throws BundleException
+    private Framework getFramework(Path modules, HeaderProvider provider, String... args)
+        throws BundleException
     {
         Map<String, String> config = Atomos.getConfiguration(args);
         Atomos atomos = Atomos.newAtomos(config, provider);
@@ -1083,11 +1085,12 @@ public class ModulepathLaunchTest
     @Test
     void testModuleWithCustomerHeader(@TempDir Path storage) throws BundleException
     {
-        testFramework = getFramework(null, (location, headers) -> {
-                headers = new HashMap<>(headers);
-                headers.put("X-TEST", location);
-                return Optional.of(headers);
-                },
+        HeaderProvider provider = (location, headers) -> {
+            headers = new HashMap<>(headers);
+            headers.put("X-TEST", location);
+            return Optional.of(headers);
+        };
+        testFramework = getFramework(null, provider,
                 Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath());
 
         // make sure the contract names are correct
@@ -1099,6 +1102,20 @@ public class ModulepathLaunchTest
                 "Wrong module name for contract module.");
 
         assertEquals(contractBundle.getLocation(), "atomos:" + contractBundle.getHeaders().get("X-TEST"));
+
+        testFramework.stop();
+
+        // Bundles should already be installed, disable auto-install option
+        // and check the provider is still used to provide the custom header
+        // for the already installed bundle from persistence
+        testFramework = Atomos.newAtomos(Map.of(Atomos.ATOMOS_CONTENT_INSTALL, "false"),
+            provider).newFramework(
+                Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
+        Bundle contractBundle2 = FrameworkUtil.getBundle(Echo.class);
+        assertNotEquals(contractBundle, contractBundle2, "Expecting new bundle.");
+        assertEquals(contractBundle.getLocation(),
+            "atomos:" + contractBundle.getHeaders().get("X-TEST"));
     }
 
     @Test

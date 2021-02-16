@@ -35,7 +35,6 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -65,7 +64,7 @@ public class AtomosModules extends AtomosBase
     private final Map<Configuration, AtomosLayerBase> byConfig = new HashMap<>();
     private final AtomosLayer bootLayer = createBootLayer();
 
-    public AtomosModules(Map<String, String> config, BiFunction<String, Map<String, String>, Optional<Map<String, String>>> headerProvider)
+    public AtomosModules(Map<String, String> config, HeaderProvider headerProvider)
     {
         super(config, headerProvider);
     }

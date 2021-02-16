@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.felix.atomos.Atomos;
+import org.apache.felix.atomos.Atomos.HeaderProvider;
 import org.apache.felix.atomos.AtomosContent;
 import org.apache.felix.atomos.AtomosLayer;
 import org.apache.felix.atomos.AtomosLayer.LoaderType;
@@ -175,11 +176,13 @@ public class ClasspathLaunchTest
     @Test
     void testBundleWithCustomHeader(@TempDir Path storage) throws BundleException
     {
-        testFramework = Atomos.newAtomos((location, headers) -> {
+        HeaderProvider headerProvider = (
+            location, headers) -> {
             headers = new HashMap<>(headers);
             headers.put("X-TEST", location);
             return Optional.of(headers);
-        }).newFramework(
+        };
+        testFramework = Atomos.newAtomos(headerProvider).newFramework(
                 Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
         testFramework.start();
         BundleContext bc = testFramework.getBundleContext();
@@ -188,6 +191,22 @@ public class ClasspathLaunchTest
         Atomos runtime = getRuntime(bc);
         Bundle b = assertFindBundle(TESTBUNDLES_SERVICE_IMPL_A, runtime.getBootLayer(),
                 runtime.getBootLayer(), true).getBundle();
+        assertEquals(b.getLocation(), "atomos:" + b.getHeaders().get("X-TEST"));
+
+        testFramework.stop();
+
+        // Bundles should already be installed, disable auto-install option
+        // and check the provider is still used to provide the custom header
+        // for the already installed bundle from persistence
+        testFramework = Atomos.newAtomos(Map.of(Atomos.ATOMOS_CONTENT_INSTALL, "false"),
+            headerProvider).newFramework(
+                Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
+        bc = testFramework.getBundleContext();
+        assertNotNull(bc, "No context found.");
+        runtime = getRuntime(bc);
+        b = assertFindBundle(TESTBUNDLES_SERVICE_IMPL_A, runtime.getBootLayer(),
+            runtime.getBootLayer(), true).getBundle();
         assertEquals(b.getLocation(), "atomos:" + b.getHeaders().get("X-TEST"));
     }
 
