@@ -28,6 +28,7 @@ import org.apache.felix.atomos.AtomosLayer.LoaderType;
 import org.apache.felix.atomos.impl.base.AtomosBase;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.connect.ConnectContent;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.connect.ModuleConnector;
 import org.osgi.framework.launch.Framework;
@@ -285,19 +286,9 @@ public interface Atomos
 
     /**
      * Creates a new Atomos that can be used to create a new OSGi framework
-     * instance. If Atomos is running as a Java Module then this Atomos can
-     * be used to create additional layers by using the
-     * {@link AtomosLayer#addLayer(String, AtomosLayer.LoaderType, Path...)} method. If the additional layers are added
-     * before {@link ConnectFrameworkFactory#newFramework(Map, ModuleConnector)}  creating} and {@link Framework#init()
-     * initializing} the framework then the Atomos contents found in the added layers
-     * will be automatically installed and started according to the
-     * {@link #ATOMOS_CONTENT_INSTALL} and {@link #ATOMOS_CONTENT_START} options.
-     * <p>
-     * Note that this {@code Atomos} must be used for creating a new
-     * {@link ConnectFrameworkFactory#newFramework(Map, ModuleConnector)} instance to use
-     * the layers added to this {@code Atomos}.
+     * instance. Same as calling {@code newAtomos(BiFunction,Map)} with a
+     * no-op {@code headerProvider} function.
      *
-     * @param configuration the properties to configure the new runtime
      * @return a new Atomos.
      */
     static Atomos newAtomos(Map<String, String> configuration)
@@ -315,13 +306,20 @@ public interface Atomos
      * will be automatically installed and started according to the
      * {@link #ATOMOS_CONTENT_INSTALL} and {@link #ATOMOS_CONTENT_START} options.
      * <p>
-     * Note that this {@code Atomos} must be used for creating a new
-     * {@link ConnectFrameworkFactory#newFramework(Map, ModuleConnector)} instance to use
-     * the layers added to this {@code Atomos}.
+     * Note that this {@code Atomos} must be used for creating a new framework instance
+     * with the method {@link ConnectFrameworkFactory#newFramework(Map, ModuleConnector)} to use
+     * the layers added to this {@code Atomos} or the {@link #newFramework(Map)} method can
+     * be called on this {@code Atomos}.
+     * <p>
+     * The given headerProvider function maps each Atomos content
+     * {@link AtomosContent#getAtomosLocation() location}
+     * and calculated headers of the content to a new optional map of headers.
+     * The resulting map will be used as the headers for the {@link ConnectContent#getHeaders()}.
+     * If the function returns an empty optional then the original calculated
+     * headers will be used.
      *
      * @param configuration the properties to configure the new runtime
-     * @param headerProvider a Bifunction that will be called with the location and the calculated headers for each module.
-     *                       The resulting map of invoking this function will be used as the headers of the module.
+     * @param headerProvider a function that will be called with the location and the calculated headers for each module.
      * @return a new Atomos.
      */
     static Atomos newAtomos(Map<String, String> configuration, BiFunction<String, Map<String, String>, Optional<Map<String, String>>> headerProvider)
