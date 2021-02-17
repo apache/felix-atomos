@@ -1112,7 +1112,7 @@ public class ModulepathLaunchTest
     }
 
     @Test
-    void testModuleWithCustomerHeader(@TempDir Path storage) throws BundleException
+    void testModuleWithCustomerHeader(@TempDir Path storage) throws BundleException, InterruptedException
     {
         HeaderProvider provider = (location, headers) -> {
             headers = new HashMap<>(headers);
@@ -1133,6 +1133,7 @@ public class ModulepathLaunchTest
         assertEquals(contractBundle.getLocation(), "atomos:" + contractBundle.getHeaders().get("X-TEST"));
 
         testFramework.stop();
+        testFramework.waitForStop(10000);
 
         // Bundles should already be installed, disable auto-install option
         // and check the provider is still used to provide the custom header
