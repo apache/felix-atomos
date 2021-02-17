@@ -46,6 +46,14 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
         </profile>
+        <!-- This profile is only to enable running unit tests in IDEs
+             The artifact does actually exist.
+             The actual org.apache.felix.atomos:osgi.core confuses
+             IDEs because it has no module-info.java file in
+             the source therefore the IDE does not know it is
+             supposed to transitively require the osgi implementation.
+             This effectively causes the IDE to refuse to grant access
+             to the org.osgi packages for compilation.
         <profile>
             <id>unit-test</id>
             <dependencies>
@@ -57,11 +65,12 @@
                 <dependency>
                     <groupId>org.apache.felix.atomos.equinox</groupId>
                     <artifactId>osgi.core</artifactId>
-                    <version>8.0.0-SNAPSHOT</version>
+                    <version>8.0.0</version>
                     <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
+        -->
         <profile>
             <id>equinox</id>
             <dependencies>
