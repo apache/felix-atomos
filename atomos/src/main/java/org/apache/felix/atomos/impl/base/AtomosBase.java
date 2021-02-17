@@ -173,13 +173,13 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
     }
 
     private static Atomos loadRuntime(String runtimeClass,
-        Map<String, String> config, HeaderProvider manifestProvider)
+        Map<String, String> config, HeaderProvider headerProvider)
     {
         try
         {
             return (AtomosBase) Class.forName(
                 runtimeClass).getConstructor(Map.class, HeaderProvider.class).newInstance(
-                    config, manifestProvider);
+                    config, headerProvider);
         }
         catch (Exception e)
         {
@@ -1834,7 +1834,13 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
         String location,
         Map<String, String> existingHeaders)
     {
-        return holder.setHeaders(Optional.of(headerProvider.apply(location,
-            Collections.unmodifiableMap(existingHeaders)).orElse(existingHeaders)));
+        Optional<Map<String,String>> provided = headerProvider.apply(location,
+                Collections.unmodifiableMap(existingHeaders));
+        Map<String, String> headers = existingHeaders;
+        if (provided.isPresent())
+        {
+            headers = new HashMap<>(provided.get());
+        }
+        return holder.setHeaders(Optional.of(headers));
     }
 }
