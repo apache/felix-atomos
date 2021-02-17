@@ -362,7 +362,7 @@ public class IndexLaunchTest
     }
 
     @Test
-    void testBundleWithCustomHeader(@TempDir Path storage) throws BundleException
+    void testBundleWithCustomHeader(@TempDir Path storage) throws BundleException, InterruptedException
     {
         HeaderProvider provider = (location, headers) -> {
             headers = new HashMap<>(headers);
@@ -388,6 +388,7 @@ public class IndexLaunchTest
         atomos.getBootLayer().getAtomosContents().forEach(verifyHeader);
 
         testFramework.stop();
+        testFramework.waitForStop(10000);
 
         // Bundles should already be installed, disable auto-install option
         // and check the provider is still used to provide the custom header

@@ -277,7 +277,7 @@ public interface Atomos
 
     /**
      * Creates a new Atomos that can be used to create a new OSGi framework
-     * instance. Same as calling {@code newAtomos(BiFunction,Map)} with an empty
+     * instance. Same as calling {@code newAtomos(Map,HeaderProvider)} with an empty
      * configuration.
      *
      * @param headerProvider the header provider function
@@ -290,7 +290,7 @@ public interface Atomos
 
     /**
      * Creates a new Atomos that can be used to create a new OSGi framework
-     * instance. Same as calling {@code newAtomos(BiFunction,Map)} with a
+     * instance. Same as calling {@code newAtomos(Map,HeaderProvider)} with a
      * no-op {@code headerProvider} function.
      *
      * @param configuration the properties to configure the new Atomos
