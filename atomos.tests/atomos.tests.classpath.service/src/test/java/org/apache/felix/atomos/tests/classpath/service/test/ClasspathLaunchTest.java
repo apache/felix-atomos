@@ -203,7 +203,7 @@ public class ClasspathLaunchTest
     }
 
     @Test
-    void testBundleWithCustomHeader(@TempDir Path storage) throws BundleException
+    void testBundleWithCustomHeader(@TempDir Path storage) throws BundleException, InterruptedException
     {
         HeaderProvider headerProvider = (
             location, headers) -> {
@@ -223,6 +223,7 @@ public class ClasspathLaunchTest
         assertEquals(b.getLocation(), "atomos:" + b.getHeaders().get("X-TEST"));
 
         testFramework.stop();
+        testFramework.waitForStop(10000);
 
         // Bundles should already be installed, disable auto-install option
         // and check the provider is still used to provide the custom header

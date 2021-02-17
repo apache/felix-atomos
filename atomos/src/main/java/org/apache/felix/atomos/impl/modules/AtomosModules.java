@@ -58,6 +58,7 @@ import org.osgi.resource.Namespace;
 public class AtomosModules extends AtomosBase
 {
     private final static String ATOMOS_GENERATED = "Atomos-GeneratedManifest";
+    private final static String ATOMOS_TEMPORARY_GENERATED_REQUIRES = "Atomos-TemporaryGeneratedRequires";
     private final Module thisModule = AtomosModules.class.getModule();
     private final Configuration thisConfig = thisModule.getLayer() == null ? null
         : thisModule.getLayer().configuration();
@@ -344,7 +345,8 @@ public class AtomosModules extends AtomosBase
                     continue;
                 }
                 content.getConnectContent().getHeaders().ifPresent(headers -> {
-                    if (Boolean.parseBoolean(headers.get(ATOMOS_GENERATED)))
+                    if (Boolean.parseBoolean(headers.get(ATOMOS_GENERATED)) &&
+                        Boolean.parseBoolean(headers.get(ATOMOS_TEMPORARY_GENERATED_REQUIRES)))
                     {
                         calculateRequires(headers, m, (requires) -> {
                             return m.getLayer().findModule(requires).map(
@@ -353,6 +355,7 @@ public class AtomosModules extends AtomosBase
                                         requiredModule).getSymbolicName();
                                 }).orElse(requires);
                         });
+                        headers.remove(ATOMOS_TEMPORARY_GENERATED_REQUIRES);
                     }
                 });
             }
@@ -541,6 +544,11 @@ public class AtomosModules extends AtomosBase
                 // will have their requires calculated later.
                 // Place a header indicating this is generated
                 headers.put(ATOMOS_GENERATED, Boolean.TRUE.toString());
+                if (calculateRequires(headers, m, Function.identity()))
+                {
+                    // Set a temporary header if we need to recalculate later
+                    headers.put(ATOMOS_TEMPORARY_GENERATED_REQUIRES, Boolean.TRUE.toString());
+                }
             }
             else
             {
