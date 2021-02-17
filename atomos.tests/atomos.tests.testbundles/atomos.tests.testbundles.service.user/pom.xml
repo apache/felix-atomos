@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.apache.felix.atomos.tests</groupId>
         <artifactId>org.apache.felix.atomos.tests.testbundles</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
     <artifactId>org.apache.felix.atomos.tests.testbundles.service.user</artifactId>
     <name>atomos.tests.testbundles.service.user</name>
@@ -11,12 +11,12 @@
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.atomos</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.contract</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
