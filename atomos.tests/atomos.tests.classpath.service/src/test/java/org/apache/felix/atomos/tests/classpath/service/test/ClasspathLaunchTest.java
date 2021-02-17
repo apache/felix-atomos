@@ -26,16 +26,20 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.felix.atomos.Atomos;
+import org.apache.felix.atomos.Atomos.HeaderProvider;
 import org.apache.felix.atomos.AtomosContent;
 import org.apache.felix.atomos.AtomosLayer;
 import org.apache.felix.atomos.AtomosLayer.LoaderType;
 import org.apache.felix.atomos.impl.base.AtomosCommands;
 import org.apache.felix.atomos.tests.testbundles.service.contract.Echo;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.osgi.framework.Bundle;
@@ -45,6 +49,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.namespace.PackageNamespace;
 import org.osgi.framework.wiring.BundleCapability;
@@ -169,6 +174,104 @@ public class ClasspathLaunchTest
         assertNotNull(mf, "No manifest found.");
         mf = b.getEntry("META-INF/MANIFEST.MF");
         assertNotNull(mf, "No manifest found.");
+    }
+
+    @Test
+    void testUnmodifiableExistingHeaders(@TempDir Path storage) throws BundleException
+    {
+        AtomicBoolean fail = new AtomicBoolean(true);
+        HeaderProvider attemptModification = (location, headers) -> {
+            try
+            {
+                headers.put(Constants.BUNDLE_SYMBOLICNAME, "should.fail");
+                fail.set(true);
+            }
+            catch (UnsupportedOperationException e)
+            {
+                // expected
+                fail.set(false);
+            }
+            return Optional.empty();
+        };
+        testFramework = Atomos.newAtomos(attemptModification).newFramework(
+            Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
+        if (fail.get())
+        {
+            Assertions.fail("Was able to modify the existing headers");
+        }
+    }
+
+    @Test
+    void testBundleWithCustomHeader(@TempDir Path storage) throws BundleException, InterruptedException
+    {
+        HeaderProvider headerProvider = (
+            location, headers) -> {
+            headers = new HashMap<>(headers);
+            headers.put("X-TEST", location);
+            return Optional.of(headers);
+        };
+        testFramework = Atomos.newAtomos(headerProvider).newFramework(
+                Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
+        BundleContext bc = testFramework.getBundleContext();
+        assertNotNull(bc, "No context found.");
+
+        Atomos runtime = getRuntime(bc);
+        Bundle b = assertFindBundle(TESTBUNDLES_SERVICE_IMPL_A, runtime.getBootLayer(),
+                runtime.getBootLayer(), true).getBundle();
+        assertEquals(b.getLocation(), "atomos:" + b.getHeaders().get("X-TEST"));
+
+        testFramework.stop();
+        testFramework.waitForStop(10000);
+
+        // Bundles should already be installed, disable auto-install option
+        // and check the provider is still used to provide the custom header
+        // for the already installed bundle from persistence
+        testFramework = Atomos.newAtomos(Map.of(Atomos.ATOMOS_CONTENT_INSTALL, "false"),
+            headerProvider).newFramework(
+                Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
+        bc = testFramework.getBundleContext();
+        assertNotNull(bc, "No context found.");
+        runtime = getRuntime(bc);
+        b = assertFindBundle(TESTBUNDLES_SERVICE_IMPL_A, runtime.getBootLayer(),
+            runtime.getBootLayer(), true).getBundle();
+        assertEquals(b.getLocation(), "atomos:" + b.getHeaders().get("X-TEST"));
+    }
+
+    @Test
+    void testHeaderProviderChangeBSN(@TempDir Path storage) throws BundleException
+    {
+        final String BSN_CONTRACT = "atomos.service.contract";
+        final String CHANGED_BSN = "changed.bsn";
+        HeaderProvider changeBSN = (location, headers) -> {
+            if (BSN_CONTRACT.equals(headers.get(Constants.BUNDLE_SYMBOLICNAME)))
+            {
+                headers = new HashMap<>(headers);
+                headers.put(Constants.BUNDLE_SYMBOLICNAME, CHANGED_BSN);
+                headers.put(Constants.BUNDLE_VERSION, "100");
+                return Optional.of(headers);
+            }
+            return Optional.empty();
+        };
+        Atomos atomos = Atomos.newAtomos(changeBSN);
+        testFramework = atomos.newFramework(
+            Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
+
+        // make sure the contract names are correct
+        Bundle contractBundle = FrameworkUtil.getBundle(Echo.class);
+        assertEquals(CHANGED_BSN, contractBundle.getSymbolicName(),
+            "Wrong BSN for contract bundle.");
+        assertEquals(Version.valueOf("100"), contractBundle.getVersion());
+
+        atomos.getBootLayer().findAtomosContent(CHANGED_BSN).ifPresentOrElse((c) -> {
+            assertEquals(CHANGED_BSN, c.getSymbolicName());
+            assertEquals(Version.valueOf("100"), c.getVersion());
+        }, () -> {
+            fail("Could not find the content: " + CHANGED_BSN);
+        });
     }
 
     private AtomosContent assertFindBundle(String name, AtomosLayer layer,

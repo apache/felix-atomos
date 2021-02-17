@@ -15,6 +15,7 @@ package org.apache.felix.atomos;
 
 import java.util.Optional;
 
+import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -26,6 +27,7 @@ import org.osgi.framework.connect.ConnectContent;
  * by the Atomos runtime which can be installed as a connected
  * bundle into an OSGi Framework.
  */
+@ProviderType
 public interface AtomosContent extends Comparable<AtomosContent>
 {
 

@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,16 +26,21 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.felix.atomos.Atomos;
+import org.apache.felix.atomos.Atomos.HeaderProvider;
 import org.apache.felix.atomos.AtomosContent;
 import org.apache.felix.atomos.AtomosLayer;
 import org.apache.felix.atomos.impl.base.AtomosBase;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.osgi.framework.Bundle;
@@ -44,6 +50,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.wiring.BundleWiring;
 
@@ -326,5 +333,102 @@ public class IndexLaunchTest
             assertFalse(result.isPresent(), "Found unexpected bundle: " + name);
         }
         return result.orElse(null);
+    }
+
+    @Test
+    void testUnmodifiableExistingHeaders(@TempDir Path storage) throws BundleException
+    {
+        AtomicBoolean fail = new AtomicBoolean(true);
+        HeaderProvider attemptModification = (location, headers) -> {
+            try
+            {
+                headers.put(Constants.BUNDLE_SYMBOLICNAME, "should.fail");
+                fail.set(true);
+            }
+            catch (UnsupportedOperationException e)
+            {
+                // expected
+                fail.set(false);
+            }
+            return Optional.empty();
+        };
+        testFramework = Atomos.newAtomos(attemptModification).newFramework(
+            Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
+        if (fail.get())
+        {
+            Assertions.fail("Was able to modify the existing headers");
+        }
+    }
+
+    @Test
+    void testBundleWithCustomHeader(@TempDir Path storage) throws BundleException, InterruptedException
+    {
+        HeaderProvider provider = (location, headers) -> {
+            headers = new HashMap<>(headers);
+            headers.put("X-TEST", location);
+            return Optional.of(headers);
+        };
+        testFramework = Atomos.newAtomos(provider).newFramework(
+            Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
+        BundleContext bc = testFramework.getBundleContext();
+        assertNotNull(bc, "No context found.");
+
+        Consumer<AtomosContent> verifyHeader = c -> {
+            if (c.getBundle().getBundleId() == 0)
+            {
+                return;
+            }
+            String customHeader = c.getBundle().getHeaders(null).get("X-TEST");
+            assertEquals(c.getAtomosLocation(), customHeader, "Wrong header value");
+        };
+
+        Atomos atomos = getRuntime(bc);
+        atomos.getBootLayer().getAtomosContents().forEach(verifyHeader);
+
+        testFramework.stop();
+        testFramework.waitForStop(10000);
+
+        // Bundles should already be installed, disable auto-install option
+        // and check the provider is still used to provide the custom header
+        // for the already installed bundle from persistence
+        atomos = Atomos.newAtomos(Map.of(Atomos.ATOMOS_CONTENT_INSTALL, "false"),
+            provider);
+        testFramework = atomos.newFramework(
+                Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
+        atomos.getBootLayer().getAtomosContents().forEach(verifyHeader);
+    }
+
+    @Test
+    void testHeaderProviderChangeBSN(@TempDir Path storage) throws BundleException
+    {
+        final String BSN_BUNDLE_1 = "bundle.1";
+        final String CHANGED_BSN = "changed.bsn";
+        HeaderProvider changeBSN = (location, headers) -> {
+            if (BSN_BUNDLE_1.equals(headers.get(Constants.BUNDLE_SYMBOLICNAME)))
+            {
+                headers = new HashMap<>(headers);
+                headers.put(Constants.BUNDLE_SYMBOLICNAME, CHANGED_BSN);
+                headers.put(Constants.BUNDLE_VERSION, "100");
+                return Optional.of(headers);
+            }
+            return Optional.empty();
+        };
+        Atomos atomos = Atomos.newAtomos(changeBSN);
+        testFramework = atomos.newFramework(
+            Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
+
+        atomos.getBootLayer().findAtomosContent(CHANGED_BSN).ifPresentOrElse((c) -> {
+            assertEquals(CHANGED_BSN, c.getBundle().getSymbolicName(),
+                "Bundle symbolic name is incorrect.");
+            assertEquals(CHANGED_BSN, c.getSymbolicName(),
+                "Atomos content symbolic name is incorrect.");
+            assertEquals(Version.valueOf("100"), c.getVersion());
+        }, () -> {
+            fail("Could not find the content: " + CHANGED_BSN);
+        });
     }
 }

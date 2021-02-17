@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.osgi.framework.connect.ConnectContent;
 
@@ -80,17 +81,19 @@ public class ConnectContentIndexed implements ConnectContent
 
     private final String index;
     private final Set<String> entries;
+    final Supplier<Optional<Map<String, String>>> headers;
 
-    public ConnectContentIndexed(String index, List<String> entries)
+    public ConnectContentIndexed(String index, List<String> entries, Supplier<Optional<Map<String, String>>> headers)
     {
         this.index = index;
         this.entries = Collections.unmodifiableSet(new LinkedHashSet<>(entries));
+        this.headers = headers;
     }
 
     @Override
     public Optional<Map<String, String>> getHeaders()
     {
-        return Optional.empty();
+        return headers.get();
     }
 
     @Override

@@ -34,9 +34,9 @@ public class AtomosClassPath extends AtomosBase
 
     private final AtomosLayer bootLayer = createBootLayer();
 
-    public AtomosClassPath(Map<String, String> config)
+    public AtomosClassPath(Map<String, String> config, HeaderProvider headerProvider)
     {
-        super(config);
+        super(config, headerProvider);
     }
 
     private AtomosLayer createBootLayer()

@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.connect.ModuleConnector;
@@ -31,11 +32,13 @@ import org.osgi.framework.connect.ModuleConnector;
  * then be used to {@link AtomosContent#install(String) install } them as OSGi connected bundles into the
  * {@link ConnectFrameworkFactory#newFramework(Map, ModuleConnector)}  framework}.
  */
+@ProviderType
 public interface AtomosLayer
 {
     /**
      * The loader type used for the class loaders of an Atomos layer.
      */
+    @ProviderType
     enum LoaderType
     {
         /**

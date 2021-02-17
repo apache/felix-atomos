@@ -15,6 +15,7 @@ package org.apache.felix.atomos.tests.modulepath.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,14 +39,17 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.apache.felix.atomos.Atomos;
+import org.apache.felix.atomos.Atomos.HeaderProvider;
 import org.apache.felix.atomos.AtomosContent;
 import org.apache.felix.atomos.AtomosLayer;
 import org.apache.felix.atomos.AtomosLayer.LoaderType;
 import org.apache.felix.atomos.tests.testbundles.service.contract.Echo;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.osgi.framework.Bundle;
@@ -55,6 +60,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.Version;
 import org.osgi.framework.connect.ConnectFrameworkFactory;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.namespace.BundleNamespace;
@@ -240,6 +246,20 @@ public class ModulepathLaunchTest
     {
         Map<String, String> config = Atomos.getConfiguration(args);
         Atomos atomos = Atomos.newAtomos(config);
+        if (modules != null)
+        {
+            atomos.getBootLayer().addModules("modules", modules);
+        }
+        Framework framework = atomos.newFramework(config);
+        framework.start();
+        return framework;
+    }
+
+    private Framework getFramework(Path modules, HeaderProvider provider, String... args)
+        throws BundleException
+    {
+        Map<String, String> config = Atomos.getConfiguration(args);
+        Atomos atomos = Atomos.newAtomos(config, provider);
         if (modules != null)
         {
             atomos.getBootLayer().addModules("modules", modules);
@@ -897,8 +917,8 @@ public class ModulepathLaunchTest
         }
     }
 
-    private static String BSN_CONTRACT = "atomos.service.contract";
-    private static String BSN_SERVICE_IMPL = "org.apache.felix.atomos.tests.testbundles.service.impl";
+    private static final String BSN_CONTRACT = "atomos.service.contract";
+    private static final String BSN_SERVICE_IMPL = "org.apache.felix.atomos.tests.testbundles.service.impl";
     @Test
     void testConnectLocation(@TempDir Path storage)
         throws BundleException, InterruptedException
@@ -1063,6 +1083,114 @@ public class ModulepathLaunchTest
                         BundleNamespace.BUNDLE_NAMESPACE))) //
                 .findFirst().isPresent(),
             "No wire for " + BSN_CONTRACT);
+    }
+
+    @Test
+    void testUnmodifiableExistingHeaders(@TempDir Path storage) throws BundleException
+    {
+        AtomicBoolean fail = new AtomicBoolean(true);
+        HeaderProvider attemptModification = (location, headers) -> {
+            try
+            {
+                headers.put(Constants.BUNDLE_SYMBOLICNAME, "should.fail");
+                fail.set(true);
+            }
+            catch (UnsupportedOperationException e)
+            {
+                // expected
+                fail.set(false);
+            }
+            return Optional.empty();
+        };
+        testFramework = Atomos.newAtomos(attemptModification).newFramework(
+            Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
+        if (fail.get())
+        {
+            Assertions.fail("Was able to modify the existing headers");
+        }
+    }
+
+    @Test
+    void testModuleWithCustomerHeader(@TempDir Path storage) throws BundleException, InterruptedException
+    {
+        HeaderProvider provider = (location, headers) -> {
+            headers = new HashMap<>(headers);
+            headers.put("X-TEST", location);
+            return Optional.of(headers);
+        };
+        testFramework = getFramework(null, provider,
+                Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath());
+
+        // make sure the contract names are correct
+        Module contractModule = Echo.class.getModule();
+        Bundle contractBundle = FrameworkUtil.getBundle(Echo.class);
+        assertEquals(BSN_CONTRACT, contractBundle.getSymbolicName(),
+                "Wrong BSN for contract bundle.");
+        assertEquals(Echo.class.getPackageName(), contractModule.getName(),
+                "Wrong module name for contract module.");
+
+        assertEquals(contractBundle.getLocation(), "atomos:" + contractBundle.getHeaders().get("X-TEST"));
+
+        testFramework.stop();
+        testFramework.waitForStop(10000);
+
+        // Bundles should already be installed, disable auto-install option
+        // and check the provider is still used to provide the custom header
+        // for the already installed bundle from persistence
+        testFramework = Atomos.newAtomos(Map.of(Atomos.ATOMOS_CONTENT_INSTALL, "false"),
+            provider).newFramework(
+                Map.of(Constants.FRAMEWORK_STORAGE, storage.toFile().getAbsolutePath()));
+        testFramework.start();
+        Bundle contractBundle2 = FrameworkUtil.getBundle(Echo.class);
+        assertNotEquals(contractBundle, contractBundle2, "Expecting new bundle.");
+        assertEquals(contractBundle.getLocation(),
+            "atomos:" + contractBundle.getHeaders().get("X-TEST"));
+    }
+
+    @Test
+    void testHeaderProviderChangeBSN(@TempDir Path storage) throws BundleException
+    {
+        final String CHANGED_BSN = "changed.bsn";
+        HeaderProvider changeBSN = (location, headers) -> {
+            if (BSN_CONTRACT.equals(headers.get(Constants.BUNDLE_SYMBOLICNAME)))
+            {
+                headers = new HashMap<>(headers);
+                headers.put(Constants.BUNDLE_SYMBOLICNAME, CHANGED_BSN);
+                headers.put(Constants.BUNDLE_VERSION, "100");
+                return Optional.of(headers);
+            }
+            return Optional.empty();
+        };
+        testFramework = getFramework(null, changeBSN,
+            Constants.FRAMEWORK_STORAGE + '=' + storage.toFile().getAbsolutePath());
+        BundleContext bc = testFramework.getBundleContext();
+        Atomos atomos = bc.getService(bc.getServiceReference(Atomos.class));
+
+        // make sure the contract names are correct
+        Module contractModule = Echo.class.getModule();
+        Bundle contractBundle = FrameworkUtil.getBundle(Echo.class);
+        assertEquals(CHANGED_BSN, contractBundle.getSymbolicName(),
+            "Wrong BSN for contract bundle.");
+        assertEquals(Version.valueOf("100"), contractBundle.getVersion());
+        assertEquals(Echo.class.getPackageName(), contractModule.getName(),
+            "Wrong module name for contract module.");
+
+        // make sure the bundle wiring reflect the mapping correctly using the BSN
+        Bundle testBundle = FrameworkUtil.getBundle(ModulepathLaunch.class);
+        BundleWiring testWiring = testBundle.adapt(BundleWiring.class);
+        assertTrue(testWiring.getRequiredWires(BundleNamespace.BUNDLE_NAMESPACE).stream() //
+            .filter((w) -> CHANGED_BSN.equals( //
+                w.getCapability().getAttributes().get( //
+                    BundleNamespace.BUNDLE_NAMESPACE))) //
+            .findFirst().isPresent(), "No wire for " + CHANGED_BSN);
+
+        atomos.getBootLayer().findAtomosContent(CHANGED_BSN).ifPresentOrElse((c) -> {
+            assertEquals(CHANGED_BSN, c.getSymbolicName());
+            assertEquals(Version.valueOf("100"), c.getVersion());
+        }, () -> {
+            fail("Could not find the content: " + CHANGED_BSN);
+        });
     }
 
     @Test
