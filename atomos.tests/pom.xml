@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.apache.felix</groupId>
         <artifactId>atomos-parent</artifactId>
-        <version>1.0.1-SNAPSHOT</version>
+        <version>1.0.0</version>
         <relativePath>../atomos-parent/pom.xml</relativePath>
     </parent>
     <packaging>pom</packaging>

@@ -4,19 +4,19 @@
     <parent>
         <groupId>org.apache.felix</groupId>
         <artifactId>atomos-parent</artifactId>
-        <version>1.0.1-SNAPSHOT</version>
+        <version>1.0.0</version>
         <relativePath>../atomos-parent/pom.xml</relativePath>
     </parent>
     <groupId>org.apache.felix.atomos</groupId>
     <packaging>jar</packaging>
     <artifactId>osgi.core</artifactId>
-    <version>8.0.1-SNAPSHOT</version>
+    <version>8.0.0</version>
     <name>osgi.core</name>
     <scm>
         <connection>scm:git:https://github.com/apache/felix-atomos.git</connection>
         <developerConnection>scm:git:https://github.com/apache/felix-atomos.git</developerConnection>
         <url>https://github.com/apache/felix-atomos</url>
-        <tag>HEAD</tag>
+        <tag>atomos-1.0.0</tag>
     </scm>
     <build>
         <plugins>
