@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.apache.felix.atomos.tests</groupId>
         <artifactId>org.apache.felix.atomos.tests.testbundles</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
     <artifactId>org.apache.felix.atomos.tests.testbundles.service.impl</artifactId>
     <name>atomos.tests.testbundles.service.impl</name>
@@ -29,7 +29,7 @@
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.contract</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>

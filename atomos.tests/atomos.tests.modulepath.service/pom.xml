@@ -18,12 +18,12 @@
      under the License.
  -->
 
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.felix.atomos.tests</groupId>
         <artifactId>org.apache.felix.atomos.tests</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
     <artifactId>org.apache.felix.atomos.tests.modulepath.service</artifactId>
     <name>atomos.tests.modulepath.service</name>
@@ -51,7 +51,7 @@
                 <dependency>
                     <groupId>org.apache.felix.atomos</groupId>
                     <artifactId>osgi.core</artifactId>
-                    <version>8.0.0-SNAPSHOT</version>
+                    <version>8.0.0</version>
                     <classifier>AtomosEquinox</classifier>
                     <scope>provided</scope>
                 </dependency>
@@ -68,7 +68,7 @@
                 <dependency>
                     <groupId>org.apache.felix.atomos</groupId>
                     <artifactId>osgi.core</artifactId>
-                    <version>8.0.0-SNAPSHOT</version>
+                    <version>8.0.0</version>
                     <classifier>AtomosFelix</classifier>
                     <scope>provided</scope>
                 </dependency>
@@ -79,57 +79,57 @@
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.atomos</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.impl</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.impl.a</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.impl.b</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.impl.activator</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.library</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.user</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.resource.a</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.dependency.a</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.dependency.b</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.dependent.x</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.felix</groupId>
