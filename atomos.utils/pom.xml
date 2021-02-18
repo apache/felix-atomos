@@ -23,19 +23,19 @@
     <parent>
         <groupId>org.apache.felix</groupId>
         <artifactId>atomos-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
         <relativePath>../atomos-parent/pom.xml</relativePath>
     </parent>
     <packaging>pom</packaging>
     <groupId>org.apache.felix.atomos.utils</groupId>
     <artifactId>org.apache.felix.atomos.utils</artifactId>
     <name>atomos.utils</name>
-    <version>0.9.0</version>
+    <version>0.9.1-SNAPSHOT</version>
     <scm>
         <connection>scm:git:https://github.com/apache/felix-atomos.git</connection>
         <developerConnection>scm:git:https://github.com/apache/felix-atomos.git</developerConnection>
         <url>https://github.com/apache/felix-atomos</url>
-        <tag>atomos-distribution-1.0.0</tag>
+        <tag>HEAD</tag>
     </scm>
     <properties>
         <!-- Before moving to a 1.0.0 release we need javadoc for the APIs -->
