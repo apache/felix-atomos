@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.felix.atomos.examples</groupId>
         <artifactId>org.apache.felix.atomos.examples</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>org.apache.felix.atomos.examples.substrate.lib</artifactId>
     <name>atomos.examples.substrate.lib</name>
@@ -12,7 +12,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
         <felix.java.version>8</felix.java.version>
-        <maven.compiler.release combine.self="override" />
+        <maven.compiler.release combine.self="override"></maven.compiler.release>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
     </properties>
@@ -57,7 +57,7 @@
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.atomos</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -68,7 +68,7 @@
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.contract</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -79,7 +79,7 @@
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.impl</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -90,7 +90,7 @@
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.impl.activator</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -101,7 +101,7 @@
         <dependency>
             <groupId>org.apache.felix.atomos.tests</groupId>
             <artifactId>org.apache.felix.atomos.tests.testbundles.service.user</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -112,7 +112,7 @@
         <dependency>
             <groupId>org.apache.felix.atomos.examples</groupId>
             <artifactId>org.apache.felix.atomos.examples.webconsole.bom</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.0-SNAPSHOT</version>
             <type>pom</type>
         </dependency>
     </dependencies>

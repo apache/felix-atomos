@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.apache.felix.atomos.tests</groupId>
         <artifactId>org.apache.felix.atomos.tests.testbundles</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>org.apache.felix.atomos.tests.testbundles.reflect.command</artifactId>
     <name>atomos.tests.testbundles.reflect.command</name>
