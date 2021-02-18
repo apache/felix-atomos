@@ -26,10 +26,10 @@
         <version>7</version>
         <relativePath/>
     </parent>
-    <artifactId>atomos-reactor</artifactId>
+    <artifactId>atomos-distribution</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>atomos-reactor</name>
+    <name>atomos-distribution</name>
 
     <scm>
         <connection>scm:git:https://github.com/apache/felix-atomos.git</connection>
