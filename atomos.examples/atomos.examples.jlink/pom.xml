@@ -369,36 +369,18 @@
                                         module org.apache.felix.scr {
                                         requires java.logging;
                                         requires java.management;
+                                        requires java.xml;
                                         requires transitive org.apache.felix.gogo.runtime;
                                         requires transitive osgi.core;
-                                        requires transitive
-                                        osgi.promise;
+                                        requires transitive osgi.promise;
 
-                                        exports
-                                        org.apache.felix.scr.component;
-                                        exports org.apache.felix.scr.impl;
-                                        exports org.apache.felix.scr.impl.config;
-                                        exports org.apache.felix.scr.impl.helper;
-                                        exports org.apache.felix.scr.impl.inject;
-                                        exports
-                                        org.apache.felix.scr.impl.inject.field;
-                                        exports org.apache.felix.scr.impl.inject.methods;
-                                        exports org.apache.felix.scr.impl.logger;
-                                        exports org.apache.felix.scr.impl.manager;
-                                        exports
-                                        org.apache.felix.scr.impl.metadata;
-                                        exports
-                                        org.apache.felix.scr.impl.parser;
-                                        exports org.apache.felix.scr.impl.runtime;
-                                        exports org.apache.felix.scr.impl.xml;
+                                        exports org.apache.felix.scr.component;
                                         exports org.apache.felix.scr.info;
-                                        exports org.kxml2.io;
                                         exports org.osgi.service.component;
-                                        exports
-                                        org.osgi.service.component.runtime;
+                                        exports org.osgi.service.component.runtime;
                                         exports org.osgi.service.component.runtime.dto;
-                                        exports org.xmlpull.v1;
 
+                                        opens org.apache.felix.scr.impl;
                                         }
                                     </moduleInfoSource>
                                 </module>

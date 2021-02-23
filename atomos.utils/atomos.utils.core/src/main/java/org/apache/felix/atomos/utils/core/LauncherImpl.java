@@ -33,6 +33,9 @@ import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
 import org.apache.felix.atomos.utils.api.Context;
 import org.apache.felix.atomos.utils.api.FileType;
 import org.apache.felix.atomos.utils.api.Launcher;
@@ -52,7 +55,6 @@ import org.apache.felix.atomos.utils.core.scr.mock.EmptyBundeLogger;
 import org.apache.felix.atomos.utils.core.scr.mock.PathBundle;
 import org.apache.felix.scr.impl.logger.BundleLogger;
 import org.apache.felix.scr.impl.metadata.ComponentMetadata;
-import org.apache.felix.scr.impl.parser.KXml2SAXParser;
 import org.apache.felix.scr.impl.xml.XmlHandler;
 import org.osgi.framework.Constants;
 
@@ -110,27 +112,15 @@ public class LauncherImpl implements Launcher
                     XmlHandler handler = new XmlHandler(new PathBundle(jar), logger, true,
                         true);
 
-                    KXml2SAXParser parser = new KXml2SAXParser(in);
-                    parser.parseXML(handler);
+                    final SAXParserFactory factory = SAXParserFactory.newInstance();
+                    factory.setNamespaceAware(true);
+                    final SAXParser parser = factory.newSAXParser();
+
+                    parser.parse(stream, handler);
                     list.addAll(handler.getComponentMetadataList());
                 }
 
             }
-
-            //      //Felix SCR Version-> 2.1.17-SNAPSHOT
-            //      //https://github.com/apache/felix-dev/commit/2d035e21d69c2bb8892d5d5d3e1027befcc3c50b#diff-dad1c7cc45e5c46bca969c95ac501546
-            //      while (st.hasMoreTokens())
-            //      {
-            //          String descriptorLocation = st.nextToken();
-            //          InputStream stream = jar.getInputStream(jar.getEntry(descriptorLocation));
-            //          XmlHandler handler = new XmlHandler(new PathBundle(jar), logger, true, true);
-            //
-            //          final SAXParserFactory factory = SAXParserFactory.newInstance();
-            //          factory.setNamespaceAware(true);
-            //          final SAXParser parser = factory.newSAXParser();
-            //          parser.parse( stream, handler );
-            //          list.addAll(handler.getComponentMetadataList());
-            //      }
         }
 
         List<ComponentDescription> cds = list.stream().map(cmd -> {
