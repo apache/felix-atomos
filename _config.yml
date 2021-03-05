@@ -4,6 +4,16 @@ email: dev@felix.apache.org
 description: > # this means to ignore newlines until "baseurl:"
   A Java Module Runtime that uses OSGi Connect to represent Java modules
   and other content as bundles in an OSGi framework instance.
-show_excerpts: false # set to false to remove excerpts on the homepage
+baseurl: ""
+url: ""
+
+show_excerpts: true # set to false to remove excerpts on the homepage
 theme: minima
+header_pages:
+  - README.md
+  - atomos.examples/README.md 
+  - about.markdown
+plugins:
+  - jekyll-feed
+
 
