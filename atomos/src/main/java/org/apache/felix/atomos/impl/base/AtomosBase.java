@@ -19,7 +19,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -82,8 +85,6 @@ import org.osgi.framework.namespace.PackageNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.FrameworkWiring;
-
-import sun.misc.Signal;
 
 public abstract class AtomosBase implements Atomos, SynchronousBundleListener, FrameworkUtilHelper, FrameworkListener
 {
@@ -215,7 +216,22 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
         {
             // substrate native image does not run shutdown hooks on ctrl-c
             // this works around it by using our own signal handler
-            Signal.handle(new Signal("INT"), sig -> System.exit(0));
+            Class<?> signalClass = Class.forName("sun.misc.Signal");
+            Class<?> signalHandlerClass = Class.forName("sun.misc.SignalHandler");
+
+            class SignalHandlerInvocationHandler implements InvocationHandler {
+                @Override
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    System.exit(0);
+                    return null;
+                }
+            }
+
+            Object proxy = Proxy.newProxyInstance(
+                getClass().getClassLoader(), new Class<?> [] {signalHandlerClass},
+                new SignalHandlerInvocationHandler());
+            Method method = signalClass.getMethod("handle", signalClass, signalHandlerClass);
+            method.invoke("null", signalClass.getConstructor(String.class).newInstance("INT"), proxy);
         }
         catch (Throwable t)
         {
