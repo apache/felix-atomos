@@ -277,78 +277,6 @@
                                 </module>
                                 <module>
                                     <artifact>
-                                        <groupId>org.apache.felix</groupId>
-                                        <artifactId>org.apache.felix.framework</artifactId>
-                                    </artifact>
-                                    <moduleInfoSource>
-                                        open module org.apache.felix.framework {
-                                        requires jdk.unsupported;
-
-                                        exports org.apache.felix.framework;
-                                        exports org.apache.felix.framework.cache;
-                                        exports
-                                        org.apache.felix.framework.capabilityset;
-                                        exports
-                                        org.apache.felix.framework.ext;
-                                        exports
-                                        org.apache.felix.framework.resolver;
-                                        exports org.apache.felix.framework.util;
-                                        exports
-                                        org.apache.felix.framework.util.manifestparser;
-                                        exports
-                                        org.apache.felix.framework.wiring;
-                                        exports org.apache.felix.resolver;
-                                        exports
-                                        org.apache.felix.resolver.util;
-
-                                        exports org.osgi.dto;
-                                        exports org.osgi.framework;
-                                        exports org.osgi.framework.connect;
-                                        exports
-                                        org.osgi.framework.dto;
-                                        exports org.osgi.framework.hooks.bundle;
-                                        exports
-                                        org.osgi.framework.hooks.resolver;
-                                        exports org.osgi.framework.hooks.service;
-                                        exports
-                                        org.osgi.framework.hooks.weaving;
-                                        exports
-                                        org.osgi.framework.launch;
-                                        exports org.osgi.framework.namespace;
-                                        exports
-                                        org.osgi.framework.startlevel;
-                                        exports
-                                        org.osgi.framework.startlevel.dto;
-                                        exports
-                                        org.osgi.framework.wiring;
-                                        exports
-                                        org.osgi.framework.wiring.dto;
-                                        exports org.osgi.resource;
-                                        exports org.osgi.resource.dto;
-                                        exports
-                                        org.osgi.service.packageadmin;
-                                        exports
-                                        org.osgi.service.resolver;
-                                        exports
-                                        org.osgi.service.startlevel;
-                                        exports
-                                        org.osgi.service.url;
-                                        exports org.osgi.util.tracker;
-
-                                        provides org.osgi.framework.launch.FrameworkFactory with
-                                        org.apache.felix.framework.FrameworkFactory;
-                                        provides
-                                        org.osgi.framework.connect.ConnectFrameworkFactory
-                                        with org.apache.felix.framework.FrameworkFactory;
-
-                                        uses org.apache.felix.framework.ext.ClassPathExtenderFactory;
-                                        uses
-                                        org.osgi.framework.connect.FrameworkUtilHelper;
-                                        }
-                                    </moduleInfoSource>
-                                </module>
-                                <module>
-                                    <artifact>
                                         <groupId>org.osgi</groupId>
                                         <artifactId>osgi.promise</artifactId>
                                     </artifact>
@@ -498,7 +426,8 @@
                                 org.apache.felix.atomos,
                                 org.apache.felix.atomos.tests.testbundles.service.contract,
                                 org.apache.felix.atomos.tests.testbundles.service.impl,
-                                org.apache.felix.atomos.tests.testbundles.service.impl.activator
+                                org.apache.felix.atomos.tests.testbundles.service.impl.activator,
+                                org.apache.felix.framework
                             </includeArtifactIds>
                         </configuration>
                     </execution>
