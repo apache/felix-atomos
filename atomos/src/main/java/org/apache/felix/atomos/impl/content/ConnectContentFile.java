@@ -136,21 +136,37 @@ public class ConnectContentFile implements ConnectContent
         {
             return Optional.empty();
         }
-        if (path.contains(POINTER_UPPER_DIRECTORY))
+        if (path.contains(POINTER_UPPER_DIRECTORY) && !isInContent(file))
         {
-            try
-            {
-                if (!file.getCanonicalPath().startsWith(root.getCanonicalPath()))
-                {
-                    return Optional.empty();
-                }
-            }
-            catch (IOException e)
-            {
-                return Optional.empty();
-            }
+            return Optional.empty();
         }
         return Optional.of(file);
+    }
+
+    boolean isInContent(File file)
+    {
+        try
+        {
+            String canonicalizedRoot = root.getCanonicalPath();
+            if (!canonicalizedRoot.endsWith(File.separator))
+            {
+                canonicalizedRoot += File.separator;
+            }
+            String canonicalizedChild = file.getCanonicalPath();
+            if (file.isDirectory() && !canonicalizedChild.endsWith(File.separator))
+            {
+                canonicalizedChild += File.separator;
+            }
+            if (!canonicalizedChild.startsWith(canonicalizedRoot))
+            {
+                return false;
+            }
+        }
+        catch (IOException e)
+        {
+            return false;
+        }
+        return true;
     }
 
     @Override
