@@ -7,4 +7,6 @@ github:
     - jlink
     - substrate
   ghp_branch: gh-pages
+  features:
+    issues: true
 
