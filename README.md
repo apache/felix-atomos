@@ -24,7 +24,9 @@ The `Atomos` class provides a convenient way to launch an OSGi framework impleme
 
 The following `java` command can be run using the module path:
 
-`java -p bundles -m org.apache.felix.atomos`
+`java --add-modules=ALL-MODULE-PATH -p bundles -m org.apache.felix.atomos`
+
+Note that for module path usage the Java option `--add-modules=ALL-MODULE-PATH` is used to enable all modules found in the `bundles/` directory to be loaded into the Java module system.
 
 In both cases Atomos will discover all the JARs contained in the `bundles/` directory.  For each bundle JAR included in `bundles/` the launcher will install and start each bundle in an OSGi framework instance. The bundles are loaded using the class loader provided by the JVM itself. In this case the framework is not in control of the class loading for the bundles contained on the class path or the module path. 
 
