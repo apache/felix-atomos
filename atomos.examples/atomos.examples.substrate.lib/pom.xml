@@ -167,13 +167,14 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.graalvm.nativeimage</groupId>
-                <artifactId>native-image-maven-plugin</artifactId>
-                <version>21.0.0</version>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <version>0.9.11</version>
                 <executions>
                     <execution>
+                        <id>build-native</id>
                         <goals>
-                            <goal>native-image</goal>
+                            <goal>build</goal>
                         </goals>
                         <phase>package</phase>
                     </execution>
@@ -190,6 +191,7 @@
                         --initialize-at-build-time=org.eclipse.jetty.util.log.Log
                         --initialize-at-build-time=org.eclipse.jetty.util.log.StdErrLog
                         --initialize-at-build-time=org.eclipse.jetty.util.Uptime
+			--initialize-at-build-time=org.eclipse.jetty.util.ModuleLocation
                         --initialize-at-build-time=org.eclipse.jetty.server.HttpOutput
                         --initialize-at-build-time=org.apache.felix.atomos
                         --initialize-at-build-time=javax.servlet
