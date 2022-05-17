@@ -154,7 +154,7 @@ public class NativeImageCliUtil
                 new InputStreamReader(versionProcess.getInputStream())).lines())
             {
                 final Optional<String> versionLine = lines.filter(
-                    l -> l.contains("GraalVM Version")).findFirst();
+                    l -> l.contains("GraalVM")).findFirst();
                 if (versionLine.isPresent())
                 {
                     return versionLine.get();
