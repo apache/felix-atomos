@@ -106,6 +106,7 @@
                             <additionalInitializeAtBuildTime>org.eclipse.jetty.util.log.StdErrLog</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>org.eclipse.jetty.util.Uptime</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>org.eclipse.jetty.server.HttpOutput</additionalInitializeAtBuildTime>
+                            <additionalInitializeAtBuildTime>org.eclipse.jetty.util.ModuleLocation</additionalInitializeAtBuildTime>
                         </additionalInitializeAtBuildTime>
                         <resourceConfigurationFiles>
                             <resourceConfigurationFile>additionalResourceConfig.json</resourceConfigurationFile>
