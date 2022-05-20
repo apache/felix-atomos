@@ -359,16 +359,6 @@
   "allPublicConstructors":true
 },
 {
-  "name":"org.apache.felix.atomos.impl.base.AtomosCommands"
-},
-{
-  "name":"org.apache.felix.atomos.impl.modules.AtomosModules",
-  "methods":[{"name":"<init>","parameterTypes":["java.util.Map"] }]
-},
-{
-  "name":"org.apache.felix.atomos.Atomos"
-},
-{
   "name":"org.apache.felix.gogo.command.Activator",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
