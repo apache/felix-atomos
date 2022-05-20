@@ -30,7 +30,7 @@ import org.apache.felix.atomos.utils.substrate.api.NativeImageArguments;
 public class NativeImageCliUtil
 {
 
-    private static final String GRAAL_HOME = "GRAAL_HOME";
+    public static final String GRAALVM_HOME = "GRAALVM_HOME";
 
     private static final String JAVA_HOME = "java.home";
 
@@ -48,7 +48,7 @@ public class NativeImageCliUtil
 
         if (exec.isEmpty())
         {
-            throw new Exception("Missing native image executable. Set '" + GRAAL_HOME
+            throw new Exception("Missing native image executable. Set '" + GRAALVM_HOME
                 + "' with the path as an environment variable");
         }
 
@@ -96,9 +96,9 @@ public class NativeImageCliUtil
             {
                 return oExec;
             }
-            if (System.getenv(GRAAL_HOME) != null)
+            if (System.getenv(GRAALVM_HOME) != null)
             {
-                oExec = findNativeImageExecutable(Paths.get(System.getenv(GRAAL_HOME)));
+                oExec = findNativeImageExecutable(Paths.get(System.getenv(GRAALVM_HOME)));
                 if (oExec.isPresent())
                 {
                     return oExec;

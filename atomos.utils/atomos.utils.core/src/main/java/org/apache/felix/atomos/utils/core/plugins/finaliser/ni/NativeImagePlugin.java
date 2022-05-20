@@ -115,7 +115,7 @@ public class NativeImagePlugin implements FinalPlugin<NativeImageBuilderConfig>
                 config.nativeImageExecutable());
 
             //execute build an native image
-            nOptional.ifPresent(cli -> {
+            nOptional.ifPresentOrElse(cli -> {
                 try
                 {
                     Path binFile = cli.execute(binDir, arguments);
@@ -125,12 +125,17 @@ public class NativeImagePlugin implements FinalPlugin<NativeImageBuilderConfig>
                 {
                     throw new RuntimeException(e);
                 }
-            });
+            }, () -> {throw new RuntimeException("Missing native image executable. Set 'GRAALVM_HOME' with the path as an environment variable");});
 
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            if (e instanceof RuntimeException) {
+            	throw (RuntimeException) e;
+            }
+            else {
+            	throw new RuntimeException(e);
+            }
         }
     }
 
