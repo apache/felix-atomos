@@ -192,6 +192,7 @@
                             <additionalInitializeAtBuildTime>org.eclipse.jetty.util.log.StdErrLog</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>org.eclipse.jetty.util.Uptime</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>org.eclipse.jetty.server.HttpOutput</additionalInitializeAtBuildTime>
+                            <additionalInitializeAtBuildTime>org.eclipse.jetty.util.ModuleLocation</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>org.slf4j</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>org.slf4j.impl</additionalInitializeAtBuildTime>
                             <additionalInitializeAtBuildTime>org.apache.cxf.bus.managers.DestinationFactoryManagerImpl</additionalInitializeAtBuildTime>
