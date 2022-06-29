@@ -27,6 +27,7 @@ import org.osgi.framework.connect.ConnectContent;
 
 public class ConnectContentModule implements ConnectContent
 {
+	static final ClassLoader platformLoader = ClassLoader.getPlatformClassLoader();
     final Module module;
     final ModuleReference reference;
     final AtomosLayerModules atomosLayer;
@@ -61,7 +62,7 @@ public class ConnectContentModule implements ConnectContent
     @Override
     public Optional<ClassLoader> getClassLoader()
     {
-        return Optional.ofNullable(module.getClassLoader());
+        return Optional.ofNullable(module.getClassLoader()).or(() -> Optional.of(ConnectContentModule.platformLoader));
     }
 
     @Override
