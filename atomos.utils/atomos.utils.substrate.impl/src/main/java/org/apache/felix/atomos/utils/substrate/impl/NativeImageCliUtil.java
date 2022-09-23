@@ -34,6 +34,17 @@ public class NativeImageCliUtil
 
     private static final String JAVA_HOME = "java.home";
 
+    public static final String OS;
+    private static final String EXECUTABLE;
+    static {
+    	OS = System.getProperty("os.name");
+    	EXECUTABLE =  isWindows() ? "native-image.cmd" : "native-image";
+    }
+
+    public static boolean isWindows() {
+    	return (OS != null && OS.startsWith("Windows"));
+    }
+    
     public static Path execute(final Path outputDir,
         final BaseNativeImageArguments arguments) throws Exception
     {
@@ -52,7 +63,11 @@ public class NativeImageCliUtil
                 + "' with the path as an environment variable");
         }
 
-        final Path resultFile = executionDir.resolve(arguments.name());
+        String resultFileName = arguments.name();
+        if (isWindows()) {
+        	resultFileName += ".exe";
+        }
+        final Path resultFile = executionDir.resolve(resultFileName);
 
         final List<String> commands = new ArrayList<>();
         commands.add(exec.get().toAbsolutePath().toString());
@@ -91,7 +106,7 @@ public class NativeImageCliUtil
     {
         if (path == null)
         {
-            Optional<Path> oExec = findNativeImageExecutable(Paths.get("native-image"));
+            Optional<Path> oExec = findNativeImageExecutable(Paths.get(EXECUTABLE));
             if (oExec.isPresent())
             {
                 return oExec;
@@ -122,7 +137,7 @@ public class NativeImageCliUtil
         else if (Files.isDirectory(path))
         {
             final Optional<Path> candidate = findNativeImageExecutable(
-                path.resolve("native-image"));
+                path.resolve(EXECUTABLE));
             if (candidate.isPresent())
             {
                 return candidate;

@@ -121,7 +121,7 @@ public class NativeImageArgumentsImpl implements DefaultNativeImageArguments
             .map(Path::toAbsolutePath)//
             .sorted(NativeImageArgumentsImpl::byAbsolutePath)//
             .map(Path::toString)//
-            .collect(Collectors.joining(":"));
+            .collect(Collectors.joining(NativeImageCliUtil.isWindows() ? ";" : ":"));
         arguments.add(cp);
 
         //--verbose
