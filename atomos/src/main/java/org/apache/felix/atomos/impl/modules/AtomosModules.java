@@ -527,14 +527,28 @@ public class AtomosModules extends AtomosBase
                 // only do exports for non bundle modules
                 // real OSGi bundles already have good export capabilities
                 StringBuilder exportPackageHeader = new StringBuilder();
-                desc.exports().stream().sorted().forEach((exports) -> {
-                    if (exportPackageHeader.length() > 0)
-                    {
-                        exportPackageHeader.append(", ");
-                    }
-                    exportPackageHeader.append(exports.source());
-                    // TODO map targets to x-friends directive?
-                });
+
+                // ModuleDescriptor.exports() is empty for an automatic module, which is different from
+                // JPMS at runtime where all packages in the module are exported for an automatic module
+                if (desc.isAutomatic()) {
+                    desc.packages().stream().sorted().forEach((exports) -> {
+                        if (exportPackageHeader.length() > 0)
+                        {
+                            exportPackageHeader.append(", ");
+                        }
+                        exportPackageHeader.append(exports);
+                    });
+                }
+                else {
+                    desc.exports().stream().sorted().forEach((exports) -> {
+                        if (exportPackageHeader.length() > 0)
+                        {
+                            exportPackageHeader.append(", ");
+                        }
+                        exportPackageHeader.append(exports.source());
+                        // TODO map targets to x-friends directive?
+                    });
+                }
                 if (exportPackageHeader.length() > 0)
                 {
                     headers.put(Constants.EXPORT_PACKAGE, exportPackageHeader.toString());
