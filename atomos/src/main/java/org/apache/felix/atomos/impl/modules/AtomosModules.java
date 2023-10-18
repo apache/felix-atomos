@@ -531,12 +531,12 @@ public class AtomosModules extends AtomosBase
                 // ModuleDescriptor.exports() is empty for an automatic module, which is different from
                 // JPMS at runtime where all packages in the module are exported for an automatic module
                 if (desc.isAutomatic()) {
-                    desc.packages().stream().sorted().forEach((exports) -> {
+                    desc.packages().stream().sorted().forEach((packages) -> {
                         if (exportPackageHeader.length() > 0)
                         {
                             exportPackageHeader.append(", ");
                         }
-                        exportPackageHeader.append(exports);
+                        exportPackageHeader.append(packages);
                     });
                 }
                 else {
