@@ -531,21 +531,21 @@ public class AtomosModules extends AtomosBase
                 // ModuleDescriptor.exports() is empty for an automatic module, which is different from
                 // JPMS at runtime where all packages in the automatic module are exported
                 if (desc.isAutomatic()) {
-                    desc.packages().stream().sorted().forEach((packages) -> {
+                    desc.packages().stream().sorted().forEach((packageName) -> {
                         if (exportPackageHeader.length() > 0)
                         {
                             exportPackageHeader.append(", ");
                         }
-                        exportPackageHeader.append(packages);
+                        exportPackageHeader.append(packageName);
                     });
                 }
                 else {
-                    desc.exports().stream().sorted().forEach((exports) -> {
+                    desc.exports().stream().sorted().forEach((exported) -> {
                         if (exportPackageHeader.length() > 0)
                         {
                             exportPackageHeader.append(", ");
                         }
-                        exportPackageHeader.append(exports.source());
+                        exportPackageHeader.append(exported.source());
                         // TODO map targets to x-friends directive?
                     });
                 }
