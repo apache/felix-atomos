@@ -1663,9 +1663,8 @@ public abstract class AtomosBase implements Atomos, SynchronousBundleListener, F
                 try
                 {
                     content.getEntries().forEach((s) -> {
-                        if (s.length() > 1 && s.endsWith("/") && s.indexOf('-') < 0)
-                        {
-                            String pkg = s.substring(0, s.length() - 1).replace('/', '.');
+                        if (s.endsWith(".class")) {
+                            String pkg = s.substring(0, s.lastIndexOf('/')).replace('/', '.');
                             packageToAtomosContent.put(pkg,
                                 (AtomosContentIndexed) atomosContent);
                         }
