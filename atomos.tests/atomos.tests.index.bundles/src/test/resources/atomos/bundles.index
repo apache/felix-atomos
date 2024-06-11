@@ -53,6 +53,7 @@ org/apache/felix/atomos/
 org/apache/felix/atomos/tests/
 org/apache/felix/atomos/tests/index/
 org/apache/felix/atomos/tests/index/bundles/
+org/apache/felix/atomos/tests/index/bundles/TestClass.class
 org/apache/felix/atomos/tests/index/bundles/b3/
 org/apache/felix/atomos/tests/index/bundles/b3/ActivatorBundle3.class
 ATOMOS_BUNDLE
