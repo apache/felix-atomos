@@ -25,7 +25,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,11 +50,17 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
+import org.osgi.framework.namespace.PackageNamespace;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.framework.wiring.FrameworkWiring;
+import org.osgi.resource.Namespace;
+import org.osgi.resource.Requirement;
+import org.osgi.resource.Resource;
 
 public class IndexLaunchTest
 {
@@ -274,23 +282,26 @@ public class IndexLaunchTest
         {
             AtomosContent content = runtime.getBootLayer().findAtomosContent(
                 "bundle." + i).get();
-            List<String> expectedEntries = List.of( //
-                "/META-INF/", //
-                "/META-INF/MANIFEST.MF", //
-                "/OSGI-INF/", //
-                "/OSGI-INF/common.txt", //
-                "/OSGI-INF/bundle." + i + "-1.txt", //
-                "/OSGI-INF/bundle." + i + "-2.txt", //
-                "/org/", //
-                "/org/apache/", //
-                "/org/apache/felix/", //
-                "/org/apache/felix/atomos/", //
-                "/org/apache/felix/atomos/tests/", //
-                "/org/apache/felix/atomos/tests/index/", //
-                "/org/apache/felix/atomos/tests/index/bundles/", //
-                "/org/apache/felix/atomos/tests/index/bundles/b" + i + "/", //
-                "/org/apache/felix/atomos/tests/index/bundles/b" + i + "/ActivatorBundle" + i + ".class" //
-            );
+            List<String> expectedEntries = new ArrayList<>();
+            expectedEntries.add("/META-INF/");
+            expectedEntries.add("/META-INF/MANIFEST.MF");
+            expectedEntries.add("/OSGI-INF/");
+            expectedEntries.add("/OSGI-INF/common.txt");
+            expectedEntries.add("/OSGI-INF/bundle." + i + "-1.txt");
+            expectedEntries.add("/OSGI-INF/bundle." + i + "-2.txt");
+            expectedEntries.add("/org/");
+            expectedEntries.add("/org/apache/");
+            expectedEntries.add("/org/apache/felix/");
+            expectedEntries.add("/org/apache/felix/atomos/");
+            expectedEntries.add("/org/apache/felix/atomos/tests/");
+            expectedEntries.add("/org/apache/felix/atomos/tests/index/");
+            expectedEntries.add("/org/apache/felix/atomos/tests/index/bundles/");
+            if (i == 3) {
+                expectedEntries.add("/org/apache/felix/atomos/tests/index/bundles/TestClass.class");
+            }
+            expectedEntries.add("/org/apache/felix/atomos/tests/index/bundles/b" + i + "/");
+            expectedEntries.add("/org/apache/felix/atomos/tests/index/bundles/b" + i + "/ActivatorBundle" + i + ".class");
+
             Bundle bundle = content.getBundle();
             BundleWiring wiring = bundle.adapt(BundleWiring.class);
             List<URL> entryURLs = wiring.findEntries("/", "*",
@@ -303,6 +314,14 @@ public class IndexLaunchTest
             expectedEntries.forEach(
                 e -> assertNotNull(bundle.getEntry(e), "No entry found: " + e));
         }
+    }
+
+    @Test
+    void testEmptyDirectoryPackages(@TempDir Path storage) throws BundleException {
+        testFramework = getTestFramework(storage, null);
+        Bundle b3 = FrameworkUtil.getBundle(TestClass.class);
+        assertNotNull(b3, "no bundle found.");
+        assertEquals("bundle.3", b3.getSymbolicName(), "Wrong BSN");
     }
 
     private void assertContent(String expected, URL url) throws IOException
